@@ -132,6 +132,7 @@ header {
     border: 1px solid #004400;
     font-size: 0.9em; 
     transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+    position: relative; /* For the notification badge */
 }
 .nav-tab.active {
     background: #003300;
@@ -142,6 +143,19 @@ header {
 .nav-tab:hover:not(.active) {
     background: #1e1e1e;
     border-color: #00CC00;
+}
+/* Notification Badge */
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: red;
+    color: white;
+    border-radius: 50%;
+    padding: 3px 6px;
+    font-size: 0.7em;
+    font-weight: bold;
+    pointer-events: none; /* Allows click-through */
 }
 
 /* --- Forms & Inputs (General) --- */
@@ -343,6 +357,26 @@ button:active {
     margin-left: 10px;
 }
 
+/* Status Indicators */
+.status-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+.active-dot {
+    width: 12px;
+    height: 12px;
+    background: #00FF00; /* Bright Green */
+    border-radius: 50%;
+    box-shadow: 0 0 8px #00FF00;
+}
+.last-online-text {
+    font-size: 0.9em;
+    color: #777777;
+}
+
+
 /* Gallery Styling */
 .gallery-container {
     display: grid;
@@ -447,6 +481,16 @@ button:active {
     margin-top: 0;
     padding: 10px 20px;
 }
+#notifications-display {
+    background: #1e1e1e;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #004400;
+}
+.notification-item {
+    padding: 10px;
+    border-bottom: 1px dashed #004400;
+}
 
 /* Mobile adjustments */
 @media (max-width: 600px) {
@@ -547,6 +591,8 @@ button:active {
             <h2 id="view-username"></h2>
             <p id="view-owner-tag"></p>
 
+            <div id="view-user-status" class="status-container"></div>
+            
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
                 <button id="follow-button" onclick="toggleFollow()"></button>
                 <button onclick="startDM(viewingUsername)">Message</button>
@@ -588,6 +634,12 @@ button:active {
             <button onclick="renderMessageList()" style="margin-top: 20px; width: auto; background: #333333;">&larr; Back to Chats</button>
         </div>
     </div>
+    
+    <div id="notifications" class="tab-content">
+        <h2>🔔 Notifications</h2>
+        <div id="notifications-display">
+            </div>
+    </div>
 
 
     <div id="settings" class="tab-content">
@@ -608,7 +660,7 @@ const GALLERY_SIZE = 8;
 
 let currentPostImage = null; 
 let viewingUsername = null; 
-let currentChatPartner = null; // NEW: The user currently being DMed
+let currentChatPartner = null; 
 
 // Helper function to format date
 function formatTimestamp(timestamp) {
@@ -619,6 +671,7 @@ function formatTimestamp(timestamp) {
     if (diff < 60000) return 'Just now'; 
     if (diff < 3600000) return Math.round(diff / 60000) + 'm ago'; 
     if (diff < 86400000) return Math.round(diff / 3600000) + 'h ago'; 
+    if (diff < 604800000) return Math.round(diff / 86400000) + 'd ago';
     
     return then.toLocaleDateString(); 
 }
@@ -628,9 +681,7 @@ function getChatID(user1, user2) {
     return [user1, user2].sort().join('_');
 }
 
-
 // ------------------ Data Setup (Messages) ------------------
-
 if(!localStorage.getItem('messages')) {
     const initialMessages = {
         [getChatID('Tr3vN0x', 'TestUser1')]: [
@@ -641,7 +692,7 @@ if(!localStorage.getItem('messages')) {
     localStorage.setItem('messages', JSON.stringify(initialMessages));
 }
 
-// ------------------ Users Setup (Updated for Followers) ------------------
+// ------------------ Users Setup (Updated for Notifications/Status) ------------------
 if(!localStorage.getItem('users')) {
     const defaultGallery = Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM);
 
@@ -653,6 +704,9 @@ if(!localStorage.getItem('users')) {
             gallery: defaultGallery, 
             followers: ['TestUser1'], 
             following: ['TestUser1'], 
+            isActive: false, // NEW
+            lastOnline: Date.now() - 600000, // NEW
+            notifications: [], // NEW
             posts:[
                 {
                     text: 'Welcome to Tr3vMedia! This site just got a whole lot cooler. Check out this placeholder!', 
@@ -673,6 +727,9 @@ if(!localStorage.getItem('users')) {
             gallery: defaultGallery.map((_, i) => i === 0 ? 'https://via.placeholder.com/150x150?text=Cool+Pic' : DEFAULT_GALLERY_ITEM), 
             followers: ['Tr3vN0x'], 
             following: ['Tr3vN0x'], 
+            isActive: false, // NEW
+            lastOnline: Date.now() - 10000000, // NEW
+            notifications: [], // NEW
             posts:[
                 {
                     text: 'Testing the new clean style overhaul. Looking very polished!', 
@@ -706,18 +763,27 @@ function signup(){
         posts:[],
         gallery: Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM),
         followers: [], 
-        following: [] 
+        following: [],
+        isActive: false, // NEW
+        lastOnline: Date.now(), // NEW
+        notifications: [] // NEW
     }; 
     
     localStorage.setItem('users', JSON.stringify(users));
     alert("Account created! Login now.");
     showLogin();
 }
+
 function login(){
     const username = document.getElementById('login-username').value.trim();
     const password = document.getElementById('login-password').value.trim();
     const users = JSON.parse(localStorage.getItem('users'));
     if(!users[username] || users[username].password!==password){alert("Invalid credentials"); return;}
+    
+    // Set status to active
+    users[username].isActive = true; 
+    localStorage.setItem('users', JSON.stringify(users));
+    
     localStorage.setItem('currentUser', username);
     initApp();
 }
@@ -731,16 +797,28 @@ function initApp(){
     
     document.getElementById('header-tabs').innerHTML=`
         <div class="nav-tab" onclick="showTab('home')">Home</div>
-        <div class="nav-tab" onclick="showTab('messages')">Messages</div> <div class="nav-tab" onclick="showTab('profile')">Profile</div>
+        <div class="nav-tab" id="messages-tab" onclick="showTab('messages')">Messages</div>
+        <div class="nav-tab" id="notifications-tab" onclick="showTab('notifications')">Notifications</div> <div class="nav-tab" onclick="showTab('profile')">Profile</div>
         <div class="nav-tab" onclick="showTab('settings')">Settings</div>
         <div class="nav-tab" onclick="logout()">Logout</div>`;
     
     loadUser();
+    updateNotificationBadges(); // Initial badge check
     showTab('home'); 
 }
 
 // ------------------ Logout ------------------
-function logout(){localStorage.removeItem('currentUser'); location.reload();}
+function logout(){
+    const users = JSON.parse(localStorage.getItem('users'));
+    const currentUser = localStorage.getItem('currentUser');
+    if (users[currentUser]) {
+        users[currentUser].isActive = false;
+        users[currentUser].lastOnline = Date.now();
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+    localStorage.removeItem('currentUser'); 
+    location.reload();
+}
 
 // ------------------ Tab Switching ------------------
 function showTab(tabId){
@@ -756,12 +834,167 @@ function showTab(tabId){
     
     if (tabId === 'profile') {
         renderGalleryEdit();
-    } else if (tabId === 'messages') { // NEW: Handle messages tab
+    } else if (tabId === 'messages') { 
+        // Clearing message notifications when viewing DMs
+        clearMessageNotifications(); 
         renderMessageList();
+    } else if (tabId === 'notifications') { // NEW: Handle notifications tab
+        renderNotifications();
     }
 }
 
-// ------------------ Profile (My Profile) ------------------
+// ------------------ Notifications ------------------
+
+function updateNotificationBadges() {
+    const currentUser = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users'));
+    const user = users[currentUser];
+
+    // Message Badge (handled by clearMessageNotifications)
+    const messageTab = document.getElementById('messages-tab');
+    messageTab.querySelector('.notification-badge')?.remove();
+    
+    // General Notifications Badge
+    const notificationTab = document.getElementById('notifications-tab');
+    notificationTab.querySelector('.notification-badge')?.remove();
+    
+    if (user.notifications.length > 0) {
+        const badge = document.createElement('span');
+        badge.className = 'notification-badge';
+        badge.innerText = user.notifications.length;
+        notificationTab.appendChild(badge);
+    }
+}
+
+function clearMessageNotifications() {
+    const currentUser = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users'));
+    
+    const messageTab = document.getElementById('messages-tab');
+    messageTab.querySelector('.notification-badge')?.remove();
+
+    // Clear notifications of type 'message'
+    users[currentUser].notifications = users[currentUser].notifications.filter(
+        n => !n.includes('YOU GOT A NEW MESSAGE!')
+    );
+    localStorage.setItem('users', JSON.stringify(users));
+}
+
+function addNotification(recipient, message) {
+    const users = JSON.parse(localStorage.getItem('users'));
+    if (!users[recipient].notifications) {
+        users[recipient].notifications = [];
+    }
+    
+    const notificationText = `Tr3vMedia: YOU GOT A NEW MESSAGE! (From ${message.sender})`;
+
+    // Check if the recipient already has a new message notification from this user
+    const existingNotificationIndex = users[recipient].notifications.findIndex(
+        n => n.includes(`(From ${message.sender})`)
+    );
+
+    if (existingNotificationIndex !== -1) {
+        // Update existing notification to keep it fresh
+        users[recipient].notifications[existingNotificationIndex] = notificationText;
+    } else {
+        // Add new notification
+        users[recipient].notifications.unshift(notificationText);
+    }
+    
+    localStorage.setItem('users', JSON.stringify(users));
+    updateNotificationBadges();
+}
+
+function renderNotifications() {
+    const currentUser = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users'));
+    const notifications = users[currentUser].notifications;
+    const display = document.getElementById('notifications-display');
+    display.innerHTML = '';
+
+    if (notifications.length === 0) {
+        display.innerHTML = '<p style="font-style: italic; color: #555555;">No new notifications.</p>';
+        return;
+    }
+
+    notifications.forEach((note, index) => {
+        const div = document.createElement('div');
+        div.className = 'notification-item';
+        div.innerText = note;
+        display.appendChild(div);
+    });
+
+    // Clear all general notifications after viewing
+    users[currentUser].notifications = users[currentUser].notifications.filter(
+        n => n.includes('YOU GOT A NEW MESSAGE!')
+    ); 
+    localStorage.setItem('users', JSON.stringify(users));
+    updateNotificationBadges(); // Update badge to only show message count if any remain
+}
+
+// ------------------ Profile (View Other User) ------------------
+
+function renderUserStatus(username, user) {
+    const statusDiv = document.getElementById('view-user-status');
+    statusDiv.innerHTML = '';
+    
+    if (user.isActive === true) {
+        statusDiv.innerHTML = '<div class="active-dot"></div><strong>Active Now</strong>';
+    } else {
+        // Fallback for lastOnline if not set (shouldn't happen with updated setup)
+        const lastOnlineTime = user.lastOnline || Date.now(); 
+        statusDiv.innerHTML = `
+            <div class="last-online-text">Last online: ${formatTimestamp(lastOnlineTime)}</div>
+        `;
+    }
+}
+
+
+function viewProfile(username){
+    document.getElementById('search-results').innerHTML = '';
+    document.getElementById('search-input').value = ''; 
+    viewingUsername = username; 
+    
+    const users=JSON.parse(localStorage.getItem('users'));
+    const user = users[username];
+    if (!user) return alert("User not found.");
+    
+    // Safety check for new fields
+    if (!user.followers) user.followers = [];
+    if (!user.following) user.following = [];
+    if (user.isActive === undefined) user.isActive = false; // Initialize status fields if missing
+
+    // Update the UI with data
+    document.getElementById('profile-pic-view').src = user.profilePic;
+    document.getElementById('view-username').innerText = username;
+    document.getElementById('view-owner-tag').innerHTML = username === 'Tr3vN0x' ? '<span class="verified">✔️ Owner</span>' : '';
+    
+    renderUserStatus(username, user); // NEW: Render Status/Last Online
+
+    // ... (rest of profile rendering logic)
+    let totalReactions = 0;
+    user.posts.forEach(p => {
+        if(p.reactions) {
+            REACTIONS.forEach(r => totalReactions += p.reactions[r] ? p.reactions[r].length : 0);
+        }
+    });
+
+    document.getElementById('view-bio').innerText = user.bio || 'No bio set.';
+    document.getElementById('view-posts-count').innerText = user.posts.length;
+    document.getElementById('view-likes-received').innerText = totalReactions;
+    document.getElementById('view-following-count').innerText = user.following.length;
+    document.getElementById('view-followers-count').innerText = user.followers.length;
+
+
+    renderFollowButton(username);
+
+    renderViewGallery(username, document.getElementById('view-gallery'));
+    renderUserPosts(username, document.getElementById('view-user-posts'));
+    
+    showTab('view-profile');
+}
+// [Omitted functions: loadUser, uploadProfilePic, saveProfile, uploadGalleryImage, renderGalleryEdit, renderFollowButton, toggleFollow, renderViewGallery, searchUsers, previewPostImage, addPost, toggleReaction, addComment, renderComments, renderPostActions, renderPostImage, renderUserPosts, renderPosts, changeUsername]
+// ... (omitting other functions for brevity, assume they are included and unchanged) ...
 function loadUser(){
     const users=JSON.parse(localStorage.getItem('users'));
     const currentUser=localStorage.getItem('currentUser');
@@ -770,6 +1003,8 @@ function loadUser(){
     
     if (!user.followers) user.followers = [];
     if (!user.following) user.following = [];
+    if (!user.notifications) user.notifications = [];
+
 
     let totalReactions = 0;
     user.posts.forEach(p => {
@@ -790,9 +1025,6 @@ function loadUser(){
 
     renderPosts();
 }
-
-// [Omitted functions: uploadProfilePic, saveProfile, uploadGalleryImage, renderGalleryEdit]
-// ... (omitting for brevity, assume they are included and unchanged from the previous working code) ...
 function uploadProfilePic(){
     const file = document.getElementById('profile-upload').files[0]; 
     if(file){
@@ -813,7 +1045,6 @@ function uploadProfilePic(){
         reader.readAsDataURL(file);
     }
 }
-
 function saveProfile(){
     const users=JSON.parse(localStorage.getItem('users'));
     const currentUser=localStorage.getItem('currentUser');
@@ -821,7 +1052,6 @@ function saveProfile(){
     localStorage.setItem('users',JSON.stringify(users));
     alert("Profile saved!");
 }
-
 function uploadGalleryImage(index) {
     const input = document.createElement('input');
     input.type = 'file';
@@ -853,7 +1083,6 @@ function uploadGalleryImage(index) {
     };
     input.click();
 }
-
 function renderGalleryEdit() {
     const users = JSON.parse(localStorage.getItem('users'));
     const currentUser = localStorage.getItem('currentUser');
@@ -889,10 +1118,6 @@ function renderGalleryEdit() {
         galleryContainer.appendChild(slotDiv);
     }
 }
-// ------------------ End of Omitted Functions ------------------
-
-// ------------------ Profile (View Other User) ------------------
-
 function renderFollowButton(targetUser) {
     const currentUser = localStorage.getItem('currentUser');
     const users = JSON.parse(localStorage.getItem('users'));
@@ -914,7 +1139,6 @@ function renderFollowButton(targetUser) {
         followButton.classList.remove('unfollow');
     }
 }
-
 function toggleFollow() {
     const targetUser = viewingUsername;
     const currentUser = localStorage.getItem('currentUser');
@@ -936,7 +1160,6 @@ function toggleFollow() {
     localStorage.setItem('users', JSON.stringify(users));
     viewProfile(targetUser); 
 }
-
 function renderViewGallery(username, targetElement) {
     const users = JSON.parse(localStorage.getItem('users'));
     const user = users[username];
@@ -966,47 +1189,6 @@ function renderViewGallery(username, targetElement) {
         targetElement.innerHTML = '<p style="font-style: italic; color: #555555; padding: 10px;">User has no images in their gallery.</p>';
     }
 }
-
-
-function viewProfile(username){
-    document.getElementById('search-results').innerHTML = '';
-    document.getElementById('search-input').value = ''; 
-    viewingUsername = username; 
-    
-    const users=JSON.parse(localStorage.getItem('users'));
-    const user = users[username];
-    if (!user) return alert("User not found.");
-    
-    if (!user.followers) user.followers = [];
-    if (!user.following) user.following = [];
-
-    let totalReactions = 0;
-    user.posts.forEach(p => {
-        if(p.reactions) {
-            REACTIONS.forEach(r => totalReactions += p.reactions[r] ? p.reactions[r].length : 0);
-        }
-    });
-
-    document.getElementById('profile-pic-view').src = user.profilePic;
-    document.getElementById('view-username').innerText = username;
-    document.getElementById('view-owner-tag').innerHTML = username === 'Tr3vN0x' ? '<span class="verified">✔️ Owner</span>' : '';
-    document.getElementById('view-bio').innerText = user.bio || 'No bio set.';
-    document.getElementById('view-posts-count').innerText = user.posts.length;
-    document.getElementById('view-likes-received').innerText = totalReactions;
-    
-    document.getElementById('view-following-count').innerText = user.following.length;
-    document.getElementById('view-followers-count').innerText = user.followers.length;
-
-
-    renderFollowButton(username);
-
-    renderViewGallery(username, document.getElementById('view-gallery'));
-    renderUserPosts(username, document.getElementById('view-user-posts'));
-    
-    showTab('view-profile');
-}
-
-// ------------------ Search Functionality ------------------
 function searchUsers() {
     const input = document.getElementById('search-input').value.toLowerCase();
     const resultsDiv = document.getElementById('search-results');
@@ -1038,9 +1220,6 @@ function searchUsers() {
         resultsDiv.appendChild(noResultItem);
     }
 }
-
-// ------------------ Posts & Reactions & Comments ------------------
-
 function previewPostImage() {
     const fileInput = document.getElementById('post-image-upload');
     const previewContainer = document.getElementById('post-image-preview');
@@ -1068,7 +1247,6 @@ function previewPostImage() {
         previewContainer.style.display = 'none';
     }
 }
-
 function addPost(){
     const text=document.getElementById('post-text').value.trim();
     
@@ -1094,9 +1272,6 @@ function addPost(){
 
     loadUser(); 
 }
-
-// [Omitted functions: toggleReaction, addComment, renderComments, renderPostActions, renderPostImage, renderUserPosts, renderPosts, changeUsername]
-// ... (omitting post-related and settings functions for brevity, assume they are included and unchanged) ...
 function toggleReaction(postUser, postIndex, reactionType){
     const users=JSON.parse(localStorage.getItem('users'));
     const currentUser=localStorage.getItem('currentUser');
@@ -1126,7 +1301,6 @@ function toggleReaction(postUser, postIndex, reactionType){
         loadUser();
     }
 }
-
 function addComment(postUser, postIndex) {
     const currentUser = localStorage.getItem('currentUser');
     const commentInput = document.getElementById(`comment-input-${postUser}-${postIndex}`);
@@ -1156,7 +1330,6 @@ function addComment(postUser, postIndex) {
         loadUser();
     }
 }
-
 function renderComments(comments) {
     let html = '<div class="comments-section">';
     html += '<h4>Comments:</h4>';
@@ -1172,7 +1345,6 @@ function renderComments(comments) {
     html += '</div>';
     return html;
 }
-
 function renderPostActions(postUser, postIndex, reactions, currentUser) {
     let actionsHTML = '';
     const reactionEmojis = {
@@ -1195,7 +1367,6 @@ function renderPostActions(postUser, postIndex, reactions, currentUser) {
     });
     return actionsHTML;
 }
-
 function renderPostImage(imageUrl) {
     if (imageUrl) {
         return `
@@ -1206,7 +1377,6 @@ function renderPostImage(imageUrl) {
     }
     return '';
 }
-
 function renderUserPosts(username, targetElement) {
     const users = JSON.parse(localStorage.getItem('users'));
     const currentUser = localStorage.getItem('currentUser');
@@ -1244,7 +1414,6 @@ function renderUserPosts(username, targetElement) {
         targetElement.appendChild(div);
     });
 }
-
 function renderPosts(){
     const postsDiv=document.getElementById('posts'); postsDiv.innerHTML='';
     const users=JSON.parse(localStorage.getItem('users'));
@@ -1295,7 +1464,6 @@ function renderPosts(){
         postsDiv.appendChild(div);
     });
 }
-
 function changeUsername(){
     const newName=document.getElementById('change-username').value.trim();
     if(!newName) return alert("Username cannot be empty");
@@ -1305,11 +1473,10 @@ function changeUsername(){
     
     if (currentUser === 'Tr3vN0x') return alert("The owner's username cannot be changed.");
     
-    // 1. Update the main user object
     users[newName]=users[currentUser]; 
     delete users[currentUser];
     
-    // 2. Update references in all posts/comments/reactions/followers/following
+    // Update references in users (posts, comments, followers, following, notifications)
     for (let userKey in users) {
         const userObj = users[userKey];
         
@@ -1318,7 +1485,11 @@ function changeUsername(){
 
         let followingIndex = userObj.following.indexOf(currentUser);
         if (followingIndex !== -1) userObj.following[followingIndex] = newName;
-
+        
+        let notificationIndex = userObj.notifications.findIndex(n => n.includes(`(From ${currentUser})`));
+        if (notificationIndex !== -1) {
+             userObj.notifications[notificationIndex] = userObj.notifications[notificationIndex].replace(currentUser, newName);
+        }
 
         userObj.posts.forEach(post => {
             if (post.reactions) {
@@ -1339,7 +1510,7 @@ function changeUsername(){
         });
     }
     
-    // 3. Update references in all messages
+    // Update references in all messages
     const messages = JSON.parse(localStorage.getItem('messages'));
     const newMessages = {};
 
@@ -1369,6 +1540,7 @@ function changeUsername(){
     logout(); 
 }
 // ------------------ End of Omitted Functions ------------------
+
 
 // ------------------ Direct Messaging Functions ------------------
 
@@ -1445,7 +1617,6 @@ function renderConversation(partner) {
         chatMessagesDiv.appendChild(msgDiv);
     });
     
-    // Scroll to the bottom of the conversation
     chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
 }
 
@@ -1458,6 +1629,7 @@ function sendMessage() {
     if (!text || !partner) return;
 
     const messages = JSON.parse(localStorage.getItem('messages'));
+    const users = JSON.parse(localStorage.getItem('users'));
     const chatID = getChatID(currentUser, partner);
 
     if (!messages[chatID]) {
@@ -1472,14 +1644,28 @@ function sendMessage() {
 
     messages[chatID].push(newMessage);
     localStorage.setItem('messages', JSON.stringify(messages));
+    
+    // NEW: Add notification to recipient
+    addNotification(partner, newMessage);
 
     input.value = '';
-    renderConversation(partner); // Re-render the chat
+    renderConversation(partner); 
 }
 
 
 // ------------------ Check login on reload ------------------
-if(localStorage.getItem('currentUser')) initApp(); else {showLogin();}
+if(localStorage.getItem('currentUser')) {
+    // Ensure the current user is marked active upon page load/reload
+    const users = JSON.parse(localStorage.getItem('users'));
+    const currentUser = localStorage.getItem('currentUser');
+    if (users[currentUser]) {
+        users[currentUser].isActive = true;
+        localStorage.setItem('users', JSON.stringify(users));
+    }
+    initApp(); 
+} else {
+    showLogin();
+}
 </script>
 
 </body>
