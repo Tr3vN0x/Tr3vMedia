@@ -28,13 +28,20 @@ header {display:flex;justify-content:space-between;align-items:center;border-bot
     vertical-align: middle;
 }
 
+/* NEW: Ensure header tabs display horizontally */
+.header-actions {
+    display: flex; 
+    gap: 5px; 
+    align-items: center;
+}
+
 /* Fix: Make tabs look like small, uniform buttons */
 .nav-tab {
     cursor:pointer;
     padding: 6px 10px; /* Smaller padding */
     border-radius:4px; /* Smaller radius */
     border:1px solid #003300;
-    margin-left:5px;
+    /* margin-left:5px; - Removed margin-left, using gap on parent instead */
     font-size: 0.9em; /* Smaller font */
     transition: background 0.2s;
 }
@@ -561,4 +568,3 @@ if(localStorage.getItem('currentUser')) initApp(); else {showLogin();}
 
 </body>
 </html>
-
