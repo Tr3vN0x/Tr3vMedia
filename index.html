@@ -4,329 +4,219 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tr3vMedia</title>
-<link rel="icon" type="image/jpg" href="https://scontent-iad3-2.xx.fbcdn.net/v/t39.30808-6/596009832_838710972097270_9022730636766278745_n.jpg">
 <style>
-/* ---------------------- General Styles ---------------------- */
-body {
-    margin: 0;
-    font-family: 'Consolas', monospace;
-    background: #0a0a0a;
-    color: #00ff66;
-}
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 30px;
-    background: #0d0d0d;
-    border-bottom: 2px solid #003300;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    flex-wrap: wrap;
-    gap: 15px;
-}
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-.logo-container img.logo {
-    height: 50px;
-    border-radius: 4px;
-    border: 1px solid #00ff66;
-}
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-.nav-tab {
-    text-decoration: none;
-    color: #00ff66;
-    font-weight: bold;
-    font-size: 1em;
-    padding: 8px 12px;
-    border: 1px solid #003300;
-    border-radius: 6px;
-    transition: 0.3s;
-    text-shadow: 0 0 4px rgba(0, 255, 102, 0.5);
-    background: #111;
-    cursor: pointer;
-}
-.nav-tab:hover {
-    background: #003300;
-    border-color: #00ff66;
-    box-shadow: 0 0 10px #00ff66;
-    color: #33ff99;
-}
-.nav-tab.active {
-    background: #003300;
-    box-shadow: 0 0 10px #33ff99;
-}
-#welcome-banner {
-    padding: 15px 30px;
-    background: #004400;
-    color: #ffffff;
-    text-align: center;
-    font-size: 1.2em;
-    font-weight: bold;
-    border-bottom: 2px solid #00ff66;
-}
-main {
-    padding: 20px 30px;
-}
-.post {
-    background: #111;
-    padding: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #003300;
-    border-radius: 6px;
-    box-shadow: 0 0 8px #00ff66;
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-}
-.post img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: 1px solid #00ff66;
-    object-fit: cover;
-}
-footer {
-    text-align: center;
-    padding: 25px;
-    background: #0d0d0d;
-    border-top: 2px solid #003300;
-    color: #00ff66;
-    font-weight: bold;
-    text-shadow: 0 0 4px #00ff66;
-    margin-top: 20px;
-}
-#new-post {
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-#new-post textarea {
-    padding: 10px;
-    background: #111;
-    border: 1px solid #003300;
-    border-radius: 6px;
-    color: #00ff66;
-    resize: none;
-}
-#new-post button {
-    width: 120px;
-    padding: 8px;
-    border: 1px solid #003300;
-    border-radius: 6px;
-    background: #111;
-    color: #00ff66;
-    cursor: pointer;
-}
-#new-post button:hover {
-    background: #003300;
-    box-shadow: 0 0 10px #00ff66;
-    color: #33ff99;
-}
-input, textarea {
-    background: #111;
-    color: #00ff66;
-    border: 1px solid #003300;
-    border-radius: 6px;
-    padding: 5px;
-}
-button {
-    cursor: pointer;
-}
-.verified {
-    color: #1DA1F2;
-    font-weight: bold;
-    margin-left: 5px;
-}
+body {margin:0;font-family:'Consolas',monospace;background:#0a0a0a;color:#00ff66;}
+header, footer {background:#0d0d0d;padding:15px 30px;color:#00ff66;}
+header {display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #003300;position:sticky;top:0;z-index:10;}
+.nav-tab {cursor:pointer;padding:8px 12px;border-radius:6px;border:1px solid #003300;margin-left:5px;}
+.nav-tab.active {background:#003300;box-shadow:0 0 10px #33ff99;}
+main {padding:20px 30px;}
+input, button, textarea {padding:5px;border-radius:6px;background:#111;color:#00ff66;border:1px solid #003300;margin-top:5px;}
+button {cursor:pointer;}
+.post {display:flex;align-items:flex-start;gap:10px;background:#111;padding:15px;margin-bottom:10px;border-radius:6px;border:1px solid #003300;}
+.post img {width:40px;height:40px;border-radius:50%;border:1px solid #00ff66;object-fit:cover;}
+.verified {color:#1DA1F2;font-weight:bold;margin-left:5px;}
+.tab-content {display:none;}
+#welcome-banner {background:#004400;color:white;text-align:center;padding:15px;margin-bottom:20px;}
 </style>
 </head>
 <body>
 
 <header>
     <div class="logo-container">
-        <img src="https://see.fontimg.com/api/rf5/vXL4/YTM3ZmYyMWFkMzNiNGY5MGEwY2ZmZTZmNDhiZGI4NzkudHRm/VHIzdk1lZGlh/chimpanzee-website-report.png" class="logo" alt="Tr3vMedia Logo">
+        <strong>Tr3vMedia</strong>
     </div>
-    <div class="header-actions">
-        <div class="nav-tab active" onclick="showTab('home')">Home</div>
-        <div class="nav-tab" onclick="showTab('profile')">Profile</div>
-        <div class="nav-tab" onclick="showTab('settings')">Settings</div>
-        <div class="nav-tab" onclick="logout()">Logout</div>
-    </div>
+    <div class="header-actions" id="header-tabs"></div>
 </header>
 
 <div id="welcome-banner"></div>
 
 <main id="main-content">
+    <!-- Login / Signup -->
+    <div id="auth" class="tab-content">
+        <h2>Login</h2>
+        <input type="text" id="login-username" placeholder="Username"><br>
+        <input type="password" id="login-password" placeholder="Password"><br>
+        <button onclick="login()">Login</button>
+        <p>Or <span style="cursor:pointer;color:#33ff99;" onclick="showSignup()">Sign Up</span></p>
+    </div>
+
+    <div id="signup" class="tab-content">
+        <h2>Sign Up</h2>
+        <input type="text" id="signup-username" placeholder="Username"><br>
+        <input type="password" id="signup-password" placeholder="Password"><br>
+        <button onclick="signup()">Create Account</button>
+        <p>Or <span style="cursor:pointer;color:#33ff99;" onclick="showLogin()">Login</span></p>
+    </div>
+
     <!-- Home feed -->
     <div id="home" class="tab-content">
         <div id="new-post">
-            <textarea id="post-text" rows="3" placeholder="What's on your mind?"></textarea>
+            <textarea id="post-text" rows="3" placeholder="What's on your mind?"></textarea><br>
             <button onclick="addPost()">Post</button>
         </div>
         <div id="posts"></div>
     </div>
 
     <!-- Profile -->
-    <div id="profile" class="tab-content" style="display:none;">
-        <h2>Profile Page</h2>
-        <div>
-            <img id="profile-pic" src="" width="80" height="80">
-            <input type="file" id="profile-upload" accept="image/*">
-        </div>
-        <div>
-            <textarea id="profile-bio" placeholder="Write your bio..."></textarea>
-            <button onclick="saveProfile()">Save Profile</button>
-        </div>
+    <div id="profile" class="tab-content">
+        <h2>Profile</h2>
+        <img id="profile-pic" src="" width="80" height="80"><br>
+        <input type="file" id="profile-upload" accept="image/*"><br>
+        <textarea id="profile-bio" placeholder="Write your bio..."></textarea><br>
+        <button onclick="saveProfile()">Save Profile</button>
         <p>Username: <span id="profile-username"></span> <span id="owner-tag"></span></p>
         <p>Posts: <span id="profile-posts-count"></span></p>
     </div>
 
     <!-- Settings -->
-    <div id="settings" class="tab-content" style="display:none;">
+    <div id="settings" class="tab-content">
         <h2>Settings</h2>
-        <p>Settings for your account:</p>
-        <label>Change username: <input type="text" id="change-username"></label>
+        <label>Change username: <input type="text" id="change-username"></label><br>
         <button onclick="changeUsername()">Save</button>
     </div>
 </main>
 
-<footer>
-    &copy; 2025 Tr3vMedia — All Rights Reserved
-</footer>
+<footer>&copy; 2025 Tr3vMedia — All Rights Reserved</footer>
 
 <script>
 // ------------------ Users Setup ------------------
 if(!localStorage.getItem('users')) {
     const defaultUsers = {
-        'Tr3vN0x': {
-            profilePic: 'https://via.placeholder.com/60?text=Owner',
-            bio: 'Owner of Tr3vMedia',
-            posts: []
-        }
+        'Tr3vN0x': {password:'ownerpass', profilePic:'https://via.placeholder.com/60', bio:'Owner of Tr3vMedia', posts:[]}
     };
     localStorage.setItem('users', JSON.stringify(defaultUsers));
 }
 
-// ------------------ Login / Current User ------------------
-function login() {
-    let username = prompt("Enter username:");
+// ------------------ Auth Tabs ------------------
+function showLogin() {document.getElementById('signup').style.display='none'; document.getElementById('auth').style.display='block';}
+function showSignup() {document.getElementById('auth').style.display='none'; document.getElementById('signup').style.display='block';}
+
+// ------------------ Signup / Login ------------------
+function signup(){
+    const username = document.getElementById('signup-username').value.trim();
+    const password = document.getElementById('signup-password').value.trim();
+    if(!username||!password){alert("Fill all fields"); return;}
     const users = JSON.parse(localStorage.getItem('users'));
-    if(!users[username]) {
-        if(confirm("Username not found. Create new account?")) {
-            users[username] = {profilePic:'https://via.placeholder.com/60', bio:'', posts:[]};
-            localStorage.setItem('users', JSON.stringify(users));
-        } else return login();
-    }
+    if(users[username]){alert("Username taken"); return;}
+    users[username]={password,profilePic:'https://via.placeholder.com/60',bio:'',posts:[]};
+    localStorage.setItem('users', JSON.stringify(users));
+    alert("Account created! Login now.");
+    showLogin();
+}
+function login(){
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    const users = JSON.parse(localStorage.getItem('users'));
+    if(!users[username] || users[username].password!==password){alert("Invalid credentials"); return;}
     localStorage.setItem('currentUser', username);
+    initApp();
+}
+
+// ------------------ App Init ------------------
+function initApp(){
+    document.getElementById('auth').style.display='none';
+    document.getElementById('signup').style.display='none';
+    document.getElementById('home').style.display='block';
+    document.getElementById('welcome-banner').innerText=`Hello ${localStorage.getItem('currentUser')}!`;
+    // header tabs
+    document.getElementById('header-tabs').innerHTML=`<div class="nav-tab active" onclick="showTab('home')">Home</div>
+    <div class="nav-tab" onclick="showTab('profile')">Profile</div>
+    <div class="nav-tab" onclick="showTab('settings')">Settings</div>
+    <div class="nav-tab" onclick="logout()">Logout</div>`;
     loadUser();
 }
 
-function logout() {
-    localStorage.removeItem('currentUser');
-    location.reload();
-}
-
-function loadUser() {
-    const users = JSON.parse(localStorage.getItem('users'));
-    const currentUser = localStorage.getItem('currentUser');
-    if(!currentUser) return login();
-    const user = users[currentUser];
-    document.getElementById('welcome-banner').innerText = `Hello ${currentUser}, welcome to Tr3vMedia!`;
-    document.getElementById('profile-pic').src = user.profilePic;
-    document.getElementById('profile-username').innerText = currentUser;
-    document.getElementById('profile-posts-count').innerText = user.posts.length;
-    document.getElementById('owner-tag').innerHTML = currentUser==='Tr3vN0x'?'<span class="verified">✔️ Owner</span>':'';
-    renderPosts();
-}
-
-login();
+// ------------------ Logout ------------------
+function logout(){localStorage.removeItem('currentUser'); location.reload();}
 
 // ------------------ Tab Switching ------------------
 function showTab(tabId){
-    document.querySelectorAll('.tab-content').forEach(tab => tab.style.display='none');
+    document.querySelectorAll('.tab-content').forEach(tab=>tab.style.display='none');
     document.getElementById(tabId).style.display='block';
     document.querySelectorAll('.nav-tab').forEach(tab=>tab.classList.remove('active'));
-    document.querySelector(`.nav-tab[onclick="showTab('${tabId}')"]`).classList.add('active');
+    const tabs = document.querySelectorAll('.nav-tab'); tabs.forEach(t=>{if(t.textContent==tabId.charAt(0).toUpperCase()+tabId.slice(1)) t.classList.add('active');});
 }
 
 // ------------------ Profile ------------------
+function loadUser(){
+    const users=JSON.parse(localStorage.getItem('users'));
+    const currentUser=localStorage.getItem('currentUser');
+    if(!currentUser) return;
+    const user = users[currentUser];
+    document.getElementById('profile-pic').src=user.profilePic;
+    document.getElementById('profile-username').innerText=currentUser;
+    document.getElementById('profile-posts-count').innerText=user.posts.length;
+    document.getElementById('owner-tag').innerHTML=currentUser==='Tr3vN0x'?'<span class="verified">✔️ Owner</span>':'';
+    document.getElementById('profile-bio').value=user.bio;
+    renderPosts();
+}
+
 document.getElementById('profile-upload').addEventListener('change', function(){
-    const file = this.files[0];
-    if(file){
+    const file = this.files[0]; if(file){
         const reader = new FileReader();
-        reader.onload = function(){
-            const users = JSON.parse(localStorage.getItem('users'));
-            const currentUser = localStorage.getItem('currentUser');
-            users[currentUser].profilePic = reader.result;
-            localStorage.setItem('users', JSON.stringify(users));
-            document.getElementById('profile-pic').src = reader.result;
-            renderPosts(); // update posts
+        reader.onload=function(){
+            const users=JSON.parse(localStorage.getItem('users'));
+            const currentUser=localStorage.getItem('currentUser');
+            users[currentUser].profilePic=reader.result;
+            localStorage.setItem('users',JSON.stringify(users));
+            document.getElementById('profile-pic').src=reader.result;
+            renderPosts();
         };
         reader.readAsDataURL(file);
     }
 });
 
 function saveProfile(){
-    const users = JSON.parse(localStorage.getItem('users'));
-    const currentUser = localStorage.getItem('currentUser');
-    users[currentUser].bio = document.getElementById('profile-bio').value;
-    localStorage.setItem('users', JSON.stringify(users));
-    alert("Profile updated!");
+    const users=JSON.parse(localStorage.getItem('users'));
+    const currentUser=localStorage.getItem('currentUser');
+    users[currentUser].bio=document.getElementById('profile-bio').value;
+    localStorage.setItem('users',JSON.stringify(users));
+    alert("Profile saved!");
 }
 
 // ------------------ Posts ------------------
 function addPost(){
-    const text = document.getElementById('post-text').value.trim();
-    if(!text) return alert("Post cannot be empty!");
-    const users = JSON.parse(localStorage.getItem('users'));
-    const currentUser = localStorage.getItem('currentUser');
-    users[currentUser].posts.unshift({text, date: Date.now()});
-    localStorage.setItem('users', JSON.stringify(users));
+    const text=document.getElementById('post-text').value.trim();
+    if(!text){alert("Cannot post empty"); return;}
+    const users=JSON.parse(localStorage.getItem('users'));
+    const currentUser=localStorage.getItem('currentUser');
+    users[currentUser].posts.unshift({text,date:Date.now()});
+    localStorage.setItem('users',JSON.stringify(users));
     document.getElementById('post-text').value='';
     renderPosts();
 }
 
 function renderPosts(){
-    const postsDiv = document.getElementById('posts');
-    postsDiv.innerHTML='';
-    const users = JSON.parse(localStorage.getItem('users'));
-    const currentUser = localStorage.getItem('currentUser');
-    const allPosts = [];
-    for(let user in users){
-        users[user].posts.forEach(post => allPosts.push({user, text: post.text, date: post.date, profilePic: users[user].profilePic}));
-    }
+    const postsDiv=document.getElementById('posts'); postsDiv.innerHTML='';
+    const users=JSON.parse(localStorage.getItem('users'));
+    const allPosts=[];
+    for(let user in users){users[user].posts.forEach(p=>allPosts.push({user,text:p.text,date:p.date,profilePic:users[user].profilePic}));}
     allPosts.sort((a,b)=>b.date-a.date);
-    allPosts.forEach(post=>{
-        const div = document.createElement('div');
-        div.className='post';
-        div.innerHTML=`<img src="${post.profilePic}"><strong>${post.user}${post.user==='Tr3vN0x'?'<span class="verified">✔️ Owner</span>':''}:</strong> ${post.text}`;
+    allPosts.forEach(p=>{
+        const div=document.createElement('div'); div.className='post';
+        div.innerHTML=`<img src="${p.profilePic}"><strong>${p.user}${p.user==='Tr3vN0x'?'<span class="verified">✔️ Owner</span>':''}:</strong> ${p.text}`;
         postsDiv.appendChild(div);
     });
 }
 
 // ------------------ Settings ------------------
 function changeUsername(){
-    const newName = document.getElementById('change-username').value.trim();
-    if(!newName) return alert("Username cannot be empty!");
-    const users = JSON.parse(localStorage.getItem('users'));
-    const currentUser = localStorage.getItem('currentUser');
-    if(users[newName]) return alert("Username already taken!");
-    users[newName] = users[currentUser];
-    delete users[currentUser];
-    localStorage.setItem('users', JSON.stringify(users));
-    localStorage.setItem('currentUser', newName);
+    const newName=document.getElementById('change-username').value.trim();
+    if(!newName) return alert("Username cannot be empty");
+    const users=JSON.parse(localStorage.getItem('users'));
+    const currentUser=localStorage.getItem('currentUser');
+    if(users[newName]) return alert("Username taken");
+    users[newName]=users[currentUser]; delete users[currentUser];
+    localStorage.setItem('users',JSON.stringify(users));
+    localStorage.setItem('currentUser',newName);
     loadUser();
     alert("Username changed!");
 }
+
+// ------------------ Check login on reload ------------------
+if(localStorage.getItem('currentUser')) initApp(); else {document.getElementById('auth').style.display='block';}
 </script>
+
 </body>
 </html>
