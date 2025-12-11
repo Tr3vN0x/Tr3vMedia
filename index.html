@@ -6,7 +6,7 @@
 <title>Tr3vMedia</title>
 <style>
 /* ---------------------------------- */
-/* --- 🎨 STYLISTIC CLEAN OVERHAUL --- */
+/* --- 🎨 COLOR REVERTED TO GREEN --- */
 /* ---------------------------------- */
 
 /* --- Core Styling & Typography --- */
@@ -14,29 +14,29 @@ body {
     margin: 0;
     font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
     background: #0a0a0a; 
-    color: #00FFFF; 
+    color: #00FF00; /* Main text color: Bright Green */
     line-height: 1.6;
 }
 header, footer {
     background: #111111; 
     padding: 15px 30px;
-    color: #00FFFF;
+    color: #00FF00;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); 
 }
 main {padding: 30px 40px;}
-h2, h3, h4 {color: #00CCCC; margin-top: 0;} 
+h2, h3, h4 {color: #00CC00; margin-top: 0;} /* Green Accent */
 .verified {
-    color: #1DA1F2;
+    color: #00CC00;
     font-weight: bold;
     margin-left: 5px;
-    background: rgba(29, 161, 242, 0.1);
+    background: rgba(0, 204, 0, 0.1);
     padding: 2px 6px;
     border-radius: 3px;
     font-size: 0.8em;
 }
 .tab-content {display:none;}
 #welcome-banner {
-    background: #004444; 
+    background: #004400; /* Darker Green */
     color: #FFFFFF;
     text-align: center;
     padding: 15px;
@@ -49,7 +49,7 @@ header {
     display:flex;
     justify-content:space-between;
     align-items:center;
-    border-bottom: 1px solid #004444;
+    border-bottom: 1px solid #004400;
     position:sticky;
     top:0;
     z-index:1000; 
@@ -67,7 +67,7 @@ header {
 .logo-container img {
     height: 35px;
     border-radius: 5px;
-    filter: drop-shadow(0 0 5px #00CCCC); 
+    filter: drop-shadow(0 0 5px #00CC00); 
 }
 
 /* Search Bar Styling */
@@ -79,16 +79,16 @@ header {
     padding: 8px 12px;
     border-radius: 20px; 
     background: #1e1e1e;
-    color: #00FFFF;
-    border: 1px solid #004444;
+    color: #00FF00;
+    border: 1px solid #004400;
     width: 100%;
     box-sizing: border-box;
     transition: all 0.3s;
 }
 #search-input:focus {
     background: #222222;
-    border-color: #00CCCC;
-    box-shadow: 0 0 8px rgba(0, 204, 204, 0.5);
+    border-color: #00CC00;
+    box-shadow: 0 0 8px rgba(0, 204, 0, 0.5);
     outline: none;
 }
 
@@ -99,7 +99,7 @@ header {
     left: 0;
     width: 100%;
     background: #1e1e1e;
-    border: 1px solid #004444;
+    border: 1px solid #004400;
     border-top: none;
     border-radius: 0 0 10px 10px;
     max-height: 250px;
@@ -110,11 +110,11 @@ header {
 .search-result-item {
     padding: 10px 15px;
     cursor: pointer;
-    border-bottom: 1px solid #001a1a;
+    border-bottom: 1px solid #001a00;
     transition: background 0.2s;
 }
 .search-result-item:hover {
-    background: #003333;
+    background: #003300;
     color: #FFFFFF;
 }
 
@@ -129,19 +129,19 @@ header {
     cursor:pointer;
     padding: 8px 15px; 
     border-radius: 20px; 
-    border: 1px solid #004444;
+    border: 1px solid #004400;
     font-size: 0.9em; 
     transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 .nav-tab.active {
-    background: #003333;
-    border-color: #00CCCC;
-    box-shadow: 0 0 10px rgba(0, 204, 204, 0.5);
+    background: #003300;
+    border-color: #00CC00;
+    box-shadow: 0 0 10px rgba(0, 204, 0, 0.5);
     color: #FFFFFF;
 }
 .nav-tab:hover:not(.active) {
     background: #1e1e1e;
-    border-color: #00CCCC;
+    border-color: #00CC00;
 }
 
 /* --- Forms & Inputs (General) --- */
@@ -152,25 +152,25 @@ input:not([type="file"], #search-input), textarea {
     margin-bottom: 15px; 
     border-radius: 6px;
     background: #1e1e1e;
-    color: #00FFFF;
-    border: 1px solid #004444;
+    color: #00FF00;
+    border: 1px solid #004400;
     margin-top: 5px;
     resize: vertical;
     transition: border-color 0.3s, box-shadow 0.3s;
 }
 input:focus:not([type="file"], #search-input), textarea:focus {
-    border-color: #00CCCC;
-    box-shadow: 0 0 5px rgba(0, 204, 204, 0.4);
+    border-color: #00CC00;
+    box-shadow: 0 0 5px rgba(0, 204, 0, 0.4);
     outline: none;
 }
 /* File input styling is subtle */
-input[type="file"] {margin-top:10px; margin-bottom: 15px; background: #1e1e1e; color: #00FFFF; padding: 10px; border-radius: 6px; border: 1px solid #004444;}
+input[type="file"] {margin-top:10px; margin-bottom: 15px; background: #1e1e1e; color: #00FF00; padding: 10px; border-radius: 6px; border: 1px solid #004400;}
 
 button {
     cursor:pointer;
     padding:10px 18px; 
     border-radius: 20px; 
-    background: #006666;
+    background: #006600; /* Standard Button Green */
     color: #FFFFFF;
     border: none;
     margin-top: 5px;
@@ -178,11 +178,11 @@ button {
     font-weight: bold;
 }
 button:hover {
-    background: #008888;
-    box-shadow: 0 4px 10px rgba(0, 204, 204, 0.4);
+    background: #008800;
+    box-shadow: 0 4px 10px rgba(0, 204, 0, 0.4);
 }
 button:active {
-    background: #004444;
+    background: #004400;
 }
 
 #new-post {
@@ -190,9 +190,18 @@ button:active {
     padding: 20px;
     border-radius: 10px;
     margin-bottom: 30px;
-    border: 1px solid #004444;
+    border: 1px solid #004400;
 }
 #new-post button {margin-top: 10px; width: 100%;}
+
+/* Follow/Unfollow Button Specific Styling */
+#follow-button.unfollow {
+    background: #CC0000; /* Red for Unfollow */
+}
+#follow-button.unfollow:hover {
+    background: #FF3333;
+}
+
 
 /* --- Posts & Post Images --- */
 .post {
@@ -202,7 +211,7 @@ button:active {
     padding: 20px;
     margin-bottom: 15px;
     border-radius: 10px;
-    border: 1px solid #004444;
+    border: 1px solid #004400;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 .post-header {
@@ -220,7 +229,7 @@ button:active {
     margin: 10px 0 15px 0;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid #004444;
+    border: 1px solid #004400;
 }
 .post-image {
     width: 100%;
@@ -233,7 +242,7 @@ button:active {
     align-items: center;
     gap: 20px;
     margin-top: 10px;
-    border-top: 1px dashed #004444;
+    border-top: 1px dashed #004400;
     padding-top: 10px;
 }
 .post-actions button {
@@ -241,22 +250,22 @@ button:active {
     margin-top: 0;
     font-size: 0.9em;
     background: #333333;
-    color: #00FFFF;
+    color: #00FF00;
 }
 .post-actions button:hover {
-    background: #005555;
+    background: #005500;
     box-shadow: none;
 }
 .reaction-count {
     margin-left: -15px; 
     font-size: 0.9em;
-    color: #00CCCC;
+    color: #00CC00;
 }
 .post img, .profile-image-small {
     width: 45px;
     height: 45px;
     border-radius: 50%;
-    border: 2px solid #00CCCC;
+    border: 2px solid #00CC00;
     object-fit:cover;
     background: #0d0d0d; 
 }
@@ -266,20 +275,20 @@ button:active {
 .comments-section {
     margin-top: 20px;
     padding: 10px 0;
-    border-top: 1px solid #004444;
-    border-bottom: 1px solid #004444;
+    border-top: 1px solid #004400;
+    border-bottom: 1px solid #004400;
 }
 .comment {
     background: #0d0d0d;
     padding: 8px 12px;
     margin-bottom: 6px;
-    border-left: 3px solid #00CCCC;
+    border-left: 3px solid #00CC00;
     border-radius: 4px;
     font-size: 0.9em;
 }
 .comment-user {
     font-weight: bold;
-    color: #00CCCC;
+    color: #00CC00;
 }
 .comment-input-area {
     display: flex;
@@ -296,36 +305,36 @@ button:active {
     margin-top: 0;
     padding: 8px 15px;
     white-space: nowrap;
-    background: #00CCCC;
+    background: #00CC00;
 }
 .comment-input-area button:hover {
-    background: #00FFFF;
+    background: #00FF00;
 }
 
-/* --- Profile Styling (View & Edit) (Remains Clean) --- */
+/* --- Profile Styling (View & Edit) --- */
 #profile, #view-profile {
     background: #1e1e1e;
     padding: 25px;
     border-radius: 10px;
-    border: 1px solid #004444;
+    border: 1px solid #004400;
 }
 
 #view-profile-content #profile-pic-view {
     width: 120px;
     height: 120px;
     border-radius: 50%;
-    border: 3px solid #00CCCC;
+    border: 3px solid #00CC00;
     background: #0d0d0d;
     margin-bottom: 10px;
 }
 .clickable-username {
     cursor: pointer;
     text-decoration: none; 
-    color: #00CCCC;
+    color: #00CC00;
     transition: color 0.2s, text-decoration 0.2s;
 }
 .clickable-username:hover {
-    color: #00FFFF;
+    color: #00FF00;
     text-decoration: underline;
 }
 .post-timestamp {
@@ -334,7 +343,7 @@ button:active {
     margin-left: 10px;
 }
 
-/* Gallery Styling (Remains Clean) */
+/* Gallery Styling */
 .gallery-container {
     display: grid;
     grid-template-columns: repeat(4, 1fr); 
@@ -347,7 +356,7 @@ button:active {
 
 .gallery-slot {
     background: #222222;
-    border: 1px solid #004444;
+    border: 1px solid #004400;
     border-radius: 6px;
     padding: 5px;
     text-align: center;
@@ -360,7 +369,7 @@ button:active {
     object-fit: cover;
     margin-bottom: 5px;
     border-radius: 4px;
-    border: 1px solid #00CCCC;
+    border: 1px solid #00CC00;
     cursor: pointer;
     transition: transform 0.3s, opacity 0.3s;
 }
@@ -369,7 +378,7 @@ button:active {
     transform: scale(1.02);
 }
 
-/* Mobile adjustments (Remains Clean) */
+/* Mobile adjustments */
 @media (max-width: 600px) {
     main {padding: 15px 15px;}
     header {padding: 10px 15px;}
@@ -448,10 +457,14 @@ button:active {
         <p>Total Posts: <span id="my-profile-posts-count"></span></p>
         <p>Total Reactions Received: <span id="my-profile-likes-count"></span></p>
         
-        <hr style="border-top: 1px solid #004444; margin: 20px 0;">
+        <hr style="border-top: 1px solid #004400; margin: 20px 0;">
+
+        <h3>🤝 Following: <span id="my-profile-following-count">0</span> | Followers: <span id="my-profile-followers-count">0</span></h3>
+
+        <hr style="border-top: 1px solid #004400; margin: 20px 0;">
 
         <h3>🖼️ Gallery (8 Images)</h3>
-        <p style="font-size:0.9em; color:#00CCCC;">Click the current image to upload a replacement.</p>
+        <p style="font-size:0.9em; color:#00CC00;">Click the current image to upload a replacement.</p>
         <div class="gallery-container" id="my-gallery-edit">
             </div>
 
@@ -463,16 +476,19 @@ button:active {
             <img id="profile-pic-view" src="" alt="User Profile Picture"><br>
             <h2 id="view-username"></h2>
             <p id="view-owner-tag"></p>
-            <p>Bio: <span id="view-bio"></span></p>
+
+            <button id="follow-button" onclick="toggleFollow()"></button>
+            <p style="margin-top: 15px;">Bio: <span id="view-bio"></span></p>
             <p>Posts: <span id="view-posts-count"></span></p>
             <p>Reactions Received: <span id="view-likes-received"></span></p>
+            <h3>🤝 Following: <span id="view-following-count">0</span> | Followers: <span id="view-followers-count">0</span></h3>
 
-            <hr style="border-top: 1px solid #004444; margin: 20px 0;">
+            <hr style="border-top: 1px solid #004400; margin: 20px 0;">
             <h3>🖼️ Gallery</h3>
             <div class="gallery-container" id="view-gallery">
                 </div>
 
-            <hr style="border-top: 1px solid #004444; margin: 20px 0;">
+            <hr style="border-top: 1px solid #004400; margin: 20px 0;">
             <h3>User Posts</h3>
             <div id="view-user-posts"></div>
         </div>
@@ -489,14 +505,14 @@ button:active {
 <footer>&copy; 2025 Tr3vMedia — All Rights Reserved</footer>
 
 <script>
-// --- Global Constants ---
+// --- Global Constants & State ---
 const DEFAULT_PIC = 'https://via.placeholder.com/60';
 const DEFAULT_GALLERY_ITEM = 'https://via.placeholder.com/150x150?text=Empty+Slot';
 const REACTIONS = ['like', 'heart', 'star']; 
 const GALLERY_SIZE = 8; 
 
-// Temp variable to hold the image data URL for a new post
 let currentPostImage = null; 
+let viewingUsername = null; // Stores the username of the profile currently being viewed
 
 // Helper function to format date
 function formatTimestamp(timestamp) {
@@ -511,7 +527,7 @@ function formatTimestamp(timestamp) {
     return then.toLocaleDateString(); 
 }
 
-// ------------------ Users Setup (Updated) ------------------
+// ------------------ Users Setup (Updated for Followers) ------------------
 if(!localStorage.getItem('users')) {
     const defaultGallery = Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM);
 
@@ -521,6 +537,8 @@ if(!localStorage.getItem('users')) {
             profilePic:DEFAULT_PIC, 
             bio:'Owner of Tr3vMedia', 
             gallery: defaultGallery, 
+            followers: ['TestUser1'], // NEW: Follower Array
+            following: ['TestUser1'], // NEW: Following Array
             posts:[
                 {
                     text: 'Welcome to Tr3vMedia! This site just got a whole lot cooler. Check out this placeholder!', 
@@ -539,6 +557,8 @@ if(!localStorage.getItem('users')) {
             profilePic:DEFAULT_PIC, 
             bio:'Just a friendly user.', 
             gallery: defaultGallery.map((_, i) => i === 0 ? 'https://via.placeholder.com/150x150?text=Cool+Pic' : DEFAULT_GALLERY_ITEM), 
+            followers: ['Tr3vN0x'], // NEW
+            following: ['Tr3vN0x'], // NEW
             posts:[
                 {
                     text: 'Testing the new clean style overhaul. Looking very polished!', 
@@ -570,7 +590,9 @@ function signup(){
         profilePic:DEFAULT_PIC,
         bio:'',
         posts:[],
-        gallery: Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM) 
+        gallery: Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM),
+        followers: [], // NEW
+        following: [] // NEW
     }; 
     
     localStorage.setItem('users', JSON.stringify(users));
@@ -630,6 +652,10 @@ function loadUser(){
     if(!currentUser) return;
     const user = users[currentUser];
     
+    // Safety check for new fields
+    if (!user.followers) user.followers = [];
+    if (!user.following) user.following = [];
+
     let totalReactions = 0;
     user.posts.forEach(p => {
         if(p.reactions) {
@@ -643,6 +669,11 @@ function loadUser(){
     document.getElementById('my-profile-likes-count').innerText=totalReactions;
     document.getElementById('owner-tag-me').innerHTML=currentUser==='Tr3vN0x'?'<span class="verified">✔️ Owner</span>':'';
     document.getElementById('profile-bio').value=user.bio;
+    
+    // NEW: Display follower stats
+    document.getElementById('my-profile-following-count').innerText = user.following.length;
+    document.getElementById('my-profile-followers-count').innerText = user.followers.length;
+
     renderPosts();
 }
 
@@ -740,7 +771,7 @@ function renderGalleryEdit() {
         const label = document.createElement('p');
         label.style.fontSize = '0.8em';
         label.style.margin = '5px 0 0 0';
-        label.style.color = '#00CCCC';
+        label.style.color = '#00CC00';
         label.innerText = `Slot ${i + 1}`;
         slotDiv.appendChild(label);
 
@@ -750,6 +781,55 @@ function renderGalleryEdit() {
 
 
 // ------------------ Profile (View Other User) ------------------
+
+function renderFollowButton(targetUser) {
+    const currentUser = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users'));
+    const followButton = document.getElementById('follow-button');
+    followButton.style.display = 'inline-block';
+
+    if (currentUser === targetUser) {
+        followButton.style.display = 'none'; // Hide button on own profile
+        return;
+    }
+
+    const isFollowing = users[currentUser].following.includes(targetUser);
+
+    if (isFollowing) {
+        followButton.innerText = 'Unfollow';
+        followButton.classList.add('unfollow');
+    } else {
+        followButton.innerText = 'Follow';
+        followButton.classList.remove('unfollow');
+    }
+}
+
+function toggleFollow() {
+    const targetUser = viewingUsername;
+    const currentUser = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users'));
+    
+    // Current User (The follower)
+    let currentFollowing = users[currentUser].following;
+    // Target User (The followee)
+    let targetFollowers = users[targetUser].followers;
+
+    const isFollowing = currentFollowing.includes(targetUser);
+
+    if (isFollowing) {
+        // Unfollow Logic
+        users[currentUser].following = currentFollowing.filter(u => u !== targetUser);
+        users[targetUser].followers = targetFollowers.filter(u => u !== currentUser);
+    } else {
+        // Follow Logic
+        if (!currentFollowing.includes(targetUser)) users[currentUser].following.push(targetUser);
+        if (!targetFollowers.includes(currentUser)) users[targetUser].followers.push(currentUser);
+    }
+
+    localStorage.setItem('users', JSON.stringify(users));
+    viewProfile(targetUser); // Re-render the view profile screen
+}
+
 function renderViewGallery(username, targetElement) {
     const users = JSON.parse(localStorage.getItem('users'));
     const user = users[username];
@@ -767,7 +847,7 @@ function renderViewGallery(username, targetElement) {
                     <img class="gallery-image-display" 
                          src="${imgUrl}" 
                          alt="${username}'s Gallery Image ${index + 1}"
-                         style="cursor: default; border: 2px solid #006666;">
+                         style="cursor: default; border: 2px solid #006600;">
                 </div>
             `;
         }
@@ -784,10 +864,15 @@ function renderViewGallery(username, targetElement) {
 function viewProfile(username){
     document.getElementById('search-results').innerHTML = '';
     document.getElementById('search-input').value = ''; 
+    viewingUsername = username; // Set the global state
     
     const users=JSON.parse(localStorage.getItem('users'));
     const user = users[username];
     if (!user) return alert("User not found.");
+    
+    // Safety check for new fields
+    if (!user.followers) user.followers = [];
+    if (!user.following) user.following = [];
 
     let totalReactions = 0;
     user.posts.forEach(p => {
@@ -802,6 +887,13 @@ function viewProfile(username){
     document.getElementById('view-bio').innerText = user.bio || 'No bio set.';
     document.getElementById('view-posts-count').innerText = user.posts.length;
     document.getElementById('view-likes-received').innerText = totalReactions;
+    
+    // NEW: Display follower stats
+    document.getElementById('view-following-count').innerText = user.following.length;
+    document.getElementById('view-followers-count').innerText = user.followers.length;
+
+
+    renderFollowButton(username);
 
     renderViewGallery(username, document.getElementById('view-gallery'));
     renderUserPosts(username, document.getElementById('view-user-posts'));
@@ -844,7 +936,7 @@ function searchUsers() {
 
 // ------------------ Posts & Reactions & Comments ------------------
 
-// NEW: Function to preview the image and store the Data URL
+// Function to preview the image and store the Data URL
 function previewPostImage() {
     const fileInput = document.getElementById('post-image-upload');
     const previewContainer = document.getElementById('post-image-preview');
@@ -876,6 +968,7 @@ function previewPostImage() {
 function addPost(){
     const text=document.getElementById('post-text').value.trim();
     
+    // --- FIX: Allow posting if EITHER text OR image is present ---
     if(!text && !currentPostImage){alert("Cannot post empty text or image"); return;}
     
     const users=JSON.parse(localStorage.getItem('users'));
@@ -894,12 +987,9 @@ function addPost(){
     
     // Reset inputs and temporary image variable
     document.getElementById('post-text').value='';
-    
-    // --- FIX IS HERE: Clear file input and hide preview ---
     document.getElementById('post-image-upload').value = '';
     document.getElementById('post-image-preview').style.display = 'none';
     currentPostImage = null;
-    // -----------------------------------------------------
 
     loadUser(); 
 }
@@ -972,13 +1062,12 @@ function renderComments(comments) {
     
     if (comments.length === 0) {
         html += '<p style="margin-left: 10px; font-style: italic; color: #555555;">No comments yet.</p>';
-    } else {
-        comments.forEach(c => {
-            html += `<div class="comment">
-                        <span class="comment-user clickable-username" onclick="viewProfile('${c.user}')">${c.user}</span>: ${c.text}
-                     </div>`;
-        });
     }
+    comments.forEach(c => {
+        html += `<div class="comment">
+                    <span class="comment-user clickable-username" onclick="viewProfile('${c.user}')">${c.user}</span>: ${c.text}
+                 </div>`;
+    });
     html += '</div>';
     return html;
 }
@@ -1039,7 +1128,9 @@ function renderUserPosts(username, targetElement) {
             </div>
             <div class="post-content">${p.text}</div>
             
-            ${renderPostImage(p.imageUrl)} <div class="post-actions">
+            ${renderPostImage(p.imageUrl)} 
+
+            <div class="post-actions">
                 ${renderPostActions(username, index, p.reactions, currentUser)}
             </div>
             
@@ -1088,7 +1179,9 @@ function renderPosts(){
             </div>
             <div class="post-content">${p.text}</div>
             
-            ${renderPostImage(p.imageUrl)} <div class="post-actions">
+            ${renderPostImage(p.imageUrl)} 
+            
+            <div class="post-actions">
                 ${renderPostActions(p.user, p.postIndex, p.reactions, currentUser)}
             </div>
             
@@ -1113,11 +1206,24 @@ function changeUsername(){
     
     if (currentUser === 'Tr3vN0x') return alert("The owner's username cannot be changed.");
     
+    // Update the main user object
     users[newName]=users[currentUser]; 
     delete users[currentUser];
     
+    // Update references in all posts/comments/reactions
     for (let userKey in users) {
-        users[userKey].posts.forEach(post => {
+        // Update follower/following arrays of other users
+        const userObj = users[userKey];
+        
+        let followerIndex = userObj.followers.indexOf(currentUser);
+        if (followerIndex !== -1) userObj.followers[followerIndex] = newName;
+
+        let followingIndex = userObj.following.indexOf(currentUser);
+        if (followingIndex !== -1) userObj.following[followingIndex] = newName;
+
+
+        // Update post reactions and comments
+        userObj.posts.forEach(post => {
             if (post.reactions) {
                 REACTIONS.forEach(r => {
                     const index = post.reactions[r].indexOf(currentUser);
