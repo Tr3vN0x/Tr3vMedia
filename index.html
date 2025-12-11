@@ -41,9 +41,9 @@ header {
     vertical-align: middle;
 }
 
-/* NEW: Search Bar Styling */
+/* Search Bar Styling */
 #search-bar {
-    position: relative; /* Needed to position search results */
+    position: relative; 
     min-width: 200px;
 }
 #search-input {
@@ -56,10 +56,10 @@ header {
     box-sizing: border-box;
 }
 
-/* NEW: Search Results Dropdown Styling */
+/* Search Results Dropdown Styling */
 #search-results {
     position: absolute;
-    top: 100%; /* Position below the input */
+    top: 100%; 
     left: 0;
     width: 100%;
     background: #111;
@@ -79,7 +79,6 @@ header {
 .search-result-item:hover {
     background: #003300;
 }
-
 
 /* Tabs Styling */
 .header-actions {
@@ -178,6 +177,39 @@ button:hover {background: #003300;}
 }
 #profile-pic-display {width:80px;height:80px;}
 
+/* --- Comments Styling --- */
+.comments-section {
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 1px solid #002200;
+}
+.comment {
+    background: #0d0d0d;
+    padding: 5px 10px;
+    margin-bottom: 5px;
+    border-left: 3px solid #33ff99;
+    font-size: 0.9em;
+}
+.comment-user {
+    font-weight: bold;
+    color: #33ff99;
+}
+.comment-input-area {
+    display: flex;
+    gap: 5px;
+    margin-top: 10px;
+}
+.comment-input-area input {
+    flex-grow: 1;
+    margin-bottom: 0;
+    padding: 5px;
+}
+.comment-input-area button {
+    margin-top: 0;
+    padding: 5px 10px;
+    white-space: nowrap;
+}
+
 /* --- Profile Styling (View) --- */
 #view-profile-content #profile-pic-view {
     width: 100px;
@@ -232,7 +264,7 @@ button:hover {background: #003300;}
     </div>
 
     <div id="signup" class="tab-content">
-        <h2>Sign Up </h2>
+        <h2>Sign Up </h2>
         <input type="text" id="signup-username" placeholder="Username">
         <input type="password" id="signup-password" placeholder="Password">
         <button onclick="signup()">Create Account</button>
@@ -293,11 +325,10 @@ function formatTimestamp(timestamp) {
     const then = new Date(timestamp);
     const diff = now - then;
 
-    if (diff < 60000) return 'Just now'; // less than 1 minute
-    if (diff < 3600000) return Math.round(diff / 60000) + 'm ago'; // less than 1 hour
-    if (diff < 86400000) return Math.round(diff / 3600000) + 'h ago'; // less than 24 hours
+    if (diff < 60000) return 'Just now'; 
+    if (diff < 3600000) return Math.round(diff / 60000) + 'm ago'; 
+    if (diff < 86400000) return Math.round(diff / 3600000) + 'h ago'; 
     
-    // Default format for older posts
     return then.toLocaleDateString(); 
 }
 
@@ -305,11 +336,23 @@ function formatTimestamp(timestamp) {
 if(!localStorage.getItem('users')) {
     const defaultUsers = {
         'Tr3vN0x': {password:'ownerpass', profilePic:DEFAULT_PIC, bio:'Owner of Tr3vMedia', posts:[
-            // Posts now store reactions as an object of arrays
-            {text: 'Welcome to Tr3vMedia! This site just got a whole lot cooler.', date: Date.now(), reactions: {like: [], heart: [], star: []}}
+            {
+                text: 'Welcome to Tr3vMedia! This site just got a whole lot cooler.', 
+                date: Date.now(), 
+                reactions: {like: [], heart: [], star: []},
+                comments: [
+                    {user: 'TestUser1', text: 'Looks awesome!'},
+                    {user: 'Tr3vN0x', text: 'Thanks! Enjoy the new features.'}
+                ]
+            }
         ]},
         'TestUser1': {password:'password', profilePic:DEFAULT_PIC, bio:'Just a friendly user.', posts:[
-            {text: 'Testing the search feature!', date: Date.now() - 5000000, reactions: {like: ['Tr3vN0x'], heart: [], star: []}}
+            {
+                text: 'Testing the new search feature and the clean UI!', 
+                date: Date.now() - 5000000, 
+                reactions: {like: ['Tr3vN0x'], heart: [], star: []},
+                comments: []
+            }
         ]}
     };
     localStorage.setItem('users', JSON.stringify(defaultUsers));
@@ -373,7 +416,7 @@ function showTab(tabId){
     }
 }
 
-// ------------------ Profile (My Profile) ------------------
+// ------------------ Profile (My Profile and View Other User) ------------------
 function loadUser(){
     const users=JSON.parse(localStorage.getItem('users'));
     const currentUser=localStorage.getItem('currentUser');
@@ -420,7 +463,6 @@ function saveProfile(){
 }
 
 
-// ------------------ Profile (View Other User) ------------------
 function viewProfile(username){
     // Hides search results when clicking a profile
     document.getElementById('search-results').innerHTML = '';
@@ -458,7 +500,6 @@ function searchUsers() {
     resultsDiv.innerHTML = '';
     
     if (input.length < 2) {
-        // Clear results if input is too short
         return;
     }
 
@@ -492,12 +533,12 @@ function addPost(){
     const users=JSON.parse(localStorage.getItem('users'));
     const currentUser=localStorage.getItem('currentUser');
     
-    // New posts initialize with an empty reactions object
-    users[currentUser].posts.unshift({text,date:Date.now(), reactions: {like: [], heart: [], star: []}}); 
+    // New posts initialize with an empty reactions and comments object
+    users[currentUser].posts.unshift({text,date:Date.now(), reactions: {like: [], heart: [], star: []}, comments: []}); 
     
     localStorage.setItem('users',JSON.stringify(users));
     document.getElementById('post-text').value='';
-    loadUser(); // Re-loads user and renders all posts
+    loadUser(); 
 }
 
 function toggleReaction(postUser, postIndex, reactionType){
@@ -505,7 +546,7 @@ function toggleReaction(postUser, postIndex, reactionType){
     const currentUser=localStorage.getItem('currentUser');
     const post = users[postUser].posts[postIndex];
     
-    if(!post.reactions) post.reactions = {like: [], heart: [], star: []}; // Safety check/init
+    if(!post.reactions) post.reactions = {like: [], heart: [], star: []}; 
 
     // 1. Check and remove current user from ALL other reaction arrays on this post
     REACTIONS.forEach(r => {
@@ -518,11 +559,8 @@ function toggleReaction(postUser, postIndex, reactionType){
     // 2. Add or remove the reactionType
     const indexInTargetReaction = post.reactions[reactionType].indexOf(currentUser);
     if (indexInTargetReaction === -1) {
-        // User is not in target array, so add the reaction
         post.reactions[reactionType].push(currentUser);
     } 
-    // If user was in target array (indexInTargetReaction !== -1), they were just removed in step 1.
-    // This effectively toggles the reaction off if the same button is pressed twice.
     
     localStorage.setItem('users',JSON.stringify(users));
     
@@ -534,6 +572,59 @@ function toggleReaction(postUser, postIndex, reactionType){
     } else if (document.getElementById('profile').style.display === 'block') {
         loadUser();
     }
+}
+
+// ------------------ Comments Logic ------------------
+
+function addComment(postUser, postIndex) {
+    const currentUser = localStorage.getItem('currentUser');
+    const commentInput = document.getElementById(`comment-input-${postUser}-${postIndex}`);
+    const commentText = commentInput.value.trim();
+
+    if (!commentText) return;
+
+    const users = JSON.parse(localStorage.getItem('users'));
+    const post = users[postUser].posts[postIndex];
+
+    if (!post.comments) post.comments = []; // Safety check
+
+    post.comments.push({
+        user: currentUser,
+        text: commentText
+    });
+
+    localStorage.setItem('users', JSON.stringify(users));
+    
+    // Clear input and re-render the posts to show the new comment
+    commentInput.value = '';
+    
+    if (document.getElementById('home').style.display === 'block') {
+        renderPosts();
+    } else if (document.getElementById('view-profile').style.display === 'block') {
+        viewProfile(postUser);
+    } else if (document.getElementById('profile').style.display === 'block') {
+        loadUser();
+    }
+}
+
+
+// ------------------ Rendering Functions ------------------
+
+function renderComments(comments) {
+    let html = '<div class="comments-section">';
+    html += '<h4>Comments:</h4>';
+    
+    if (comments.length === 0) {
+        html += '<p style="margin-left: 10px; font-style: italic;">No comments yet.</p>';
+    } else {
+        comments.forEach(c => {
+            html += `<div class="comment">
+                        <span class="comment-user clickable-username" onclick="viewProfile('${c.user}')">${c.user}</span>: ${c.text}
+                     </div>`;
+        });
+    }
+    html += '</div>';
+    return html;
 }
 
 function renderPostActions(postUser, postIndex, reactions, currentUser) {
@@ -566,8 +657,13 @@ function renderUserPosts(username, targetElement) {
     targetElement.innerHTML = '';
 
     userPosts.forEach((p, index) => {
+        const postId = `${username}-${index}`; // Unique ID for comment input
         const div = document.createElement('div'); 
         div.className = 'post';
+        
+        // Ensure comments are initialized
+        if (!p.comments) p.comments = [];
+
         div.innerHTML = `
             <div class="post-header">
                 <img src="${users[username].profilePic}" alt="${username}'s profile picture">
@@ -577,6 +673,13 @@ function renderUserPosts(username, targetElement) {
             <div class="post-content">${p.text}</div>
             <div class="post-actions">
                 ${renderPostActions(username, index, p.reactions, currentUser)}
+            </div>
+            
+            ${renderComments(p.comments)}
+
+            <div class="comment-input-area">
+                <input type="text" id="comment-input-${postId}" placeholder="Write a comment...">
+                <button onclick="addComment('${username}', ${index})">Comment</button>
             </div>
         `;
         targetElement.appendChild(div);
@@ -598,7 +701,8 @@ function renderPosts(){
                 date: p.date,
                 profilePic: users[user].profilePic,
                 postIndex: index, 
-                reactions: p.reactions || {like: [], heart: [], star: []}
+                reactions: p.reactions || {like: [], heart: [], star: []},
+                comments: p.comments || [] // Include comments
             });
         });
     }
@@ -606,6 +710,7 @@ function renderPosts(){
     allPosts.sort((a,b)=>b.date-a.date);
     
     allPosts.forEach(p=>{
+        const postId = `${p.user}-${p.postIndex}`; // Unique ID for comment input
         const div=document.createElement('div'); div.className='post';
         div.innerHTML=`
             <div class="post-header">
@@ -616,6 +721,13 @@ function renderPosts(){
             <div class="post-content">${p.text}</div>
             <div class="post-actions">
                 ${renderPostActions(p.user, p.postIndex, p.reactions, currentUser)}
+            </div>
+            
+            ${renderComments(p.comments)}
+
+            <div class="comment-input-area">
+                <input type="text" id="comment-input-${postId}" placeholder="Write a comment..." class="comment-input">
+                <button onclick="addComment('${p.user}', ${p.postIndex})">Comment</button>
             </div>
         `;
         postsDiv.appendChild(div);
@@ -636,7 +748,7 @@ function changeUsername(){
     users[newName]=users[currentUser]; 
     delete users[currentUser];
     
-    // 2. Update reactions on ALL posts to reflect the new username
+    // 2. Update reactions and comments on ALL posts to reflect the new username
     for (let userKey in users) {
         users[userKey].posts.forEach(post => {
             if (post.reactions) {
@@ -644,6 +756,13 @@ function changeUsername(){
                     const index = post.reactions[r].indexOf(currentUser);
                     if (index !== -1) {
                         post.reactions[r][index] = newName;
+                    }
+                });
+            }
+            if (post.comments) {
+                post.comments.forEach(comment => {
+                    if (comment.user === currentUser) {
+                        comment.user = newName;
                     }
                 });
             }
