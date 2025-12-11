@@ -8,158 +8,36 @@
 
 <style>
 /* ---------------------- General Styles ---------------------- */
-body {
-    margin: 0;
-    font-family: 'Consolas', monospace;
-    background: #0a0a0a;
-    color: #00ff66;
-}
+body {margin:0; font-family:'Consolas', monospace; background:#0a0a0a; color:#00ff66;}
+header {display:flex; justify-content:space-between; align-items:center; padding:15px 30px; background:#0d0d0d; border-bottom:2px solid #003300; position:sticky; top:0; z-index:10; flex-wrap:wrap; gap:15px;}
+.logo-container {display:flex; align-items:center; gap:12px;}
+.side-image {width:60px; height:60px; object-fit:cover; border-radius:4px; border:2px solid #00ff66;}
+.logo-container img:not(.side-image) {height:50px; border-radius:4px; border:1px solid #00ff66;}
+.header-actions {display:flex; align-items:center; gap:10px;}
+.nav-tab {text-decoration:none; color:#00ff66; font-weight:bold; font-size:1em; padding:8px 12px; border:1px solid #003300; border-radius:6px; transition:0.3s; text-shadow:0 0 4px rgba(0,255,102,0.5); background:#111; cursor:pointer;}
+.nav-tab:hover {background:#003300; border-color:#00ff66; box-shadow:0 0 10px #00ff66; color:#33ff99;}
+.nav-tab.active {background:#003300; box-shadow:0 0 10px #33ff99;}
+#welcome-banner {padding:15px 30px; background:#004400; color:#fff; text-align:center; font-size:1.2em; font-weight:bold; border-bottom:2px solid #00ff66; text-shadow:0 0 5px rgba(0,0,0,0.5); letter-spacing:1px; box-shadow:0 5px 15px rgba(0,255,102,0.2);}
+main {padding:20px 30px;}
+.post {background:#111; padding:15px; margin-bottom:15px; border:1px solid #003300; border-radius:6px; box-shadow:0 0 8px #00ff66;}
+footer {text-align:center; padding:25px; background:#0d0d0d; border-top:2px solid #003300; color:#00ff66; font-weight:bold; text-shadow:0 0 4px #00ff66; margin-top:20px;}
+#new-post {margin-bottom:20px; display:flex; flex-direction:column; gap:10px;}
+#new-post textarea {padding:10px; background:#111; border:1px solid #003300; border-radius:6px; color:#00ff66; resize:none;}
+#new-post button {width:120px; padding:8px; border:1px solid #003300; border-radius:6px; background:#111; color:#00ff66; cursor:pointer;}
+#new-post button:hover {background:#003300; box-shadow:0 0 10px #00ff66; color:#33ff99;}
 
-/* Header */
-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 30px; 
-    background: #0d0d0d;
-    border-bottom: 2px solid #003300;
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    flex-wrap: wrap;
-    gap: 15px; 
-}
-
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.side-image {
-    width: 60px;
-    height: 60px;
-    object-fit: cover;
-    border-radius: 4px;
-    border: 2px solid #00ff66;
-}
-
-.logo-container img:not(.side-image) {
-    height: 50px;
-    border-radius: 4px;
-    border: 1px solid #00ff66;
-}
-
-.header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px; 
-}
-
-.nav-tab {
-    text-decoration: none;
-    color: #00ff66;
-    font-weight: bold;
-    font-size: 1em;
-    padding: 8px 12px;
-    border: 1px solid #003300;
-    border-radius: 6px;
-    transition: 0.3s;
-    text-shadow: 0 0 4px rgba(0, 255, 102, 0.5);
-    background: #111;
-    cursor: pointer;
-}
-
-.nav-tab:hover {
-    background: #003300;
-    border-color: #00ff66;
-    box-shadow: 0 0 10px #00ff66;
-    color: #33ff99;
-}
-
-.nav-tab.active {
-    background: #003300;
-    box-shadow: 0 0 10px #33ff99;
-}
-
-/* Welcome banner */
-#welcome-banner {
-    padding: 15px 30px;
-    background: #004400;
-    color: #ffffff;
-    text-align: center;
-    font-size: 1.2em;
-    font-weight: bold;
-    border-bottom: 2px solid #00ff66;
-    text-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
-    letter-spacing: 1px;
-    box-shadow: 0 5px 15px rgba(0, 255, 102, 0.2);
-}
-
-/* Main content */
-main {
-    padding: 20px 30px;
-}
-
-/* Posts */
-.post {
-    background: #111;
-    padding: 15px;
-    margin-bottom: 15px;
-    border: 1px solid #003300;
-    border-radius: 6px;
-    box-shadow: 0 0 8px #00ff66;
-}
-
-/* Footer */
-footer {
-    text-align: center;
-    padding: 25px;
-    background: #0d0d0d;
-    border-top: 2px solid #003300;
-    color: #00ff66;
-    font-weight: bold;
-    text-shadow: 0 0 4px #00ff66;
-    margin-top: 20px;
-}
-
-/* Post creation form */
-#new-post {
-    margin-bottom: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-#new-post textarea {
-    padding: 10px;
-    background: #111;
-    border: 1px solid #003300;
-    border-radius: 6px;
-    color: #00ff66;
-    resize: none;
-}
-
-#new-post button {
-    width: 120px;
-    padding: 8px;
-    border: 1px solid #003300;
-    border-radius: 6px;
-    background: #111;
-    color: #00ff66;
-    cursor: pointer;
-}
-
-#new-post button:hover {
-    background: #003300;
-    box-shadow: 0 0 10px #00ff66;
-    color: #33ff99;
-}
+/* Login / Signup forms */
+#auth-container {max-width:400px; margin:50px auto; background:#111; padding:25px; border:1px solid #003300; border-radius:6px; box-shadow:0 0 10px #00ff66;}
+#auth-container h2 {text-align:center; margin-bottom:20px;}
+#auth-container input {width:100%; padding:10px; margin-bottom:15px; border-radius:6px; border:1px solid #003300; background:#0a0a0a; color:#00ff66;}
+#auth-container button {width:100%; padding:10px; border-radius:6px; border:1px solid #003300; background:#111; color:#00ff66; cursor:pointer;}
+#auth-container button:hover {background:#003300; box-shadow:0 0 10px #00ff66; color:#33ff99;}
+#auth-toggle {text-align:center; margin-top:15px; cursor:pointer; color:#33ff99; text-decoration:underline;}
 </style>
 </head>
 <body>
 
-<header>
+<header style="display:none;">
     <div class="logo-container">
         <img src="https://scontent-iad3-2.xx.fbcdn.net/v/t39.30808-6/596009832_838710972097270_9022730636766278745_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=TZjP9DC4yXIQ7kNvwHdpFg7&_nc_oc=AdnBmq-TZowH6YRcFRCd3Jivz_VCUa2-xgSohFxWykjbNuzrqYHW_6gne7eslaL4ZFCdK9cEG8NpB5VG555CxO6q&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=tSIEeMfSeNSk__07eF_UGA&oh=00_Afm8Xz1VR1MYenel-chWfd3ajWnOdho-IvK1TEyO-duDuA&oe=693AC07A" class="side-image" alt="Profile Image">
         <img src="https://see.fontimg.com/api/rf5/vXL4/YTM3ZmYyMWFkMzNiNGY5MGEwY2ZmZTZmNDhiZGI4NzkudHRm/VHIzdk1lZGlh/chimpanzee-website-report.png?r=fs&h=65&w=1000&fg=E8E4E4&bg=27E2A1&tb=1&s=65" alt="Site Logo">
@@ -174,82 +52,151 @@ footer {
     </div>
 </header>
 
-<div id="welcome-banner">
-    Hello user, welcome to Tr3vMedia!
+<div id="auth-container">
+    <h2 id="auth-title">Sign In</h2>
+    <input type="text" id="username" placeholder="Username">
+    <input type="password" id="password" placeholder="Password">
+    <button id="auth-button">Sign In</button>
+    <div id="auth-toggle">Don't have an account? Sign Up</div>
 </div>
 
-<main id="main-content">
-    <!-- Home feed -->
+<div id="welcome-banner" style="display:none;"></div>
+
+<main id="main-content" style="display:none;">
     <div id="home" class="tab-content">
         <div id="new-post">
             <textarea id="post-text" rows="3" placeholder="What's on your mind?"></textarea>
             <button onclick="addPost()">Post</button>
         </div>
-        <div id="posts">
-            <div class="post"><strong>User1:</strong> Hello world! This is my first post.</div>
-            <div class="post"><strong>User2:</strong> Loving the new platform!</div>
-        </div>
+        <div id="posts"></div>
     </div>
 
-    <!-- Profile -->
     <div id="profile" class="tab-content" style="display:none;">
         <h2>Profile Page</h2>
-        <p>Username: User1</p>
-        <p>Posts: 12</p>
-        <p>Followers: 42</p>
+        <p id="profile-username"></p>
+        <p id="profile-posts"></p>
+        <p id="profile-followers"></p>
     </div>
 
-    <!-- Notifications -->
     <div id="notifications" class="tab-content" style="display:none;">
         <h2>Notifications</h2>
         <p>No new notifications</p>
     </div>
 
-    <!-- Messages -->
     <div id="messages" class="tab-content" style="display:none;">
         <h2>Messages</h2>
         <p>You have no messages.</p>
     </div>
 
-    <!-- Settings -->
     <div id="settings" class="tab-content" style="display:none;">
         <h2>Settings</h2>
         <p>Account settings will go here.</p>
     </div>
 </main>
 
-<footer>
+<footer style="display:none;">
     &copy; 2025 Tr3vMedia — All Rights Reserved
 </footer>
 
 <script>
-// Tab switching
-function showTab(tabId) {
+// ------------------ Auth System ------------------
+let isSignUp = false;
+
+document.getElementById('auth-toggle').addEventListener('click', () => {
+    isSignUp = !isSignUp;
+    document.getElementById('auth-title').innerText = isSignUp ? 'Sign Up' : 'Sign In';
+    document.getElementById('auth-button').innerText = isSignUp ? 'Sign Up' : 'Sign In';
+    document.getElementById('auth-toggle').innerText = isSignUp ? 'Already have an account? Sign In' : "Don't have an account? Sign Up";
+});
+
+document.getElementById('auth-button').addEventListener('click', () => {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    if(!username || !password) return alert("Please fill all fields!");
+
+    let users = JSON.parse(localStorage.getItem('users') || '{}');
+
+    if(isSignUp){
+        if(users[username]) return alert("Username already exists!");
+        users[username] = {password: password, posts: [], followers: 0};
+        localStorage.setItem('users', JSON.stringify(users));
+        alert("Account created! Please sign in.");
+        isSignUp = false;
+        document.getElementById('auth-toggle').click();
+    } else {
+        if(!users[username] || users[username].password !== password) return alert("Invalid credentials!");
+        localStorage.setItem('currentUser', username);
+        initApp();
+    }
+});
+
+function initApp(){
+    const username = localStorage.getItem('currentUser');
+    if(!username) return;
+
+    document.querySelector('header').style.display = 'flex';
+    document.querySelector('main').style.display = 'block';
+    document.querySelector('footer').style.display = 'block';
+    document.getElementById('auth-container').style.display = 'none';
+    document.getElementById('welcome-banner').style.display = 'block';
+    document.getElementById('welcome-banner').innerText = `Hello ${username}, welcome to Tr3vMedia!`;
+
+    loadPosts();
+    updateProfile();
+}
+
+// ------------------ Tabs ------------------
+function showTab(tabId){
     const tabs = document.querySelectorAll('.tab-content');
     tabs.forEach(tab => tab.style.display = 'none');
+    document.getElementById(tabId).style.display = 'block';
 
-    const activeTab = document.getElementById(tabId);
-    if (activeTab) activeTab.style.display = 'block';
-
-    // Highlight active tab
     const navTabs = document.querySelectorAll('.nav-tab');
     navTabs.forEach(tab => tab.classList.remove('active'));
     const clickedTab = document.querySelector(`.nav-tab[onclick="showTab('${tabId}')"]`);
-    if (clickedTab) clickedTab.classList.add('active');
+    if(clickedTab) clickedTab.classList.add('active');
 }
 
-// Add new post
-function addPost() {
-    const postText = document.getElementById('post-text').value.trim();
-    if(postText === "") return alert("Post cannot be empty!");
-    const postsContainer = document.getElementById('posts');
-    const postDiv = document.createElement('div');
-    postDiv.className = 'post';
-    postDiv.innerHTML = `<strong>You:</strong> ${postText}`;
-    postsContainer.prepend(postDiv);
+// ------------------ Posts ------------------
+function addPost(){
+    const text = document.getElementById('post-text').value.trim();
+    if(!text) return alert("Post cannot be empty!");
+    const username = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users'));
+    users[username].posts.unshift(text);
+    localStorage.setItem('users', JSON.stringify(users));
     document.getElementById('post-text').value = '';
+    loadPosts();
+    updateProfile();
+}
+
+function loadPosts(){
+    const username = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users'));
+    const postsContainer = document.getElementById('posts');
+    postsContainer.innerHTML = '';
+    for(const user in users){
+        users[user].posts.forEach(post => {
+            const div = document.createElement('div');
+            div.className = 'post';
+            div.innerHTML = `<strong>${user}:</strong> ${post}`;
+            postsContainer.appendChild(div);
+        });
+    }
+}
+
+function updateProfile(){
+    const username = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users'));
+    document.getElementById('profile-username').innerText = `Username: ${username}`;
+    document.getElementById('profile-posts').innerText = `Posts: ${users[username].posts.length}`;
+    document.getElementById('profile-followers').innerText = `Followers: ${users[username].followers}`;
+}
+
+// Initialize if already logged in
+if(localStorage.getItem('currentUser')){
+    initApp();
 }
 </script>
-
 </body>
 </html>
