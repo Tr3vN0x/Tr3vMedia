@@ -8,14 +8,20 @@
 body {margin:0;font-family:'Consolas',monospace;background:#0a0a0a;color:#00ff66;}
 header, footer {background:#0d0d0d;padding:15px 30px;color:#00ff66;}
 header {display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #003300;position:sticky;top:0;z-index:10;}
+header img {
+    height: 30px; /* Control icon size */
+    width: auto;
+    border: none;
+    padding: 0;
+}
 .nav-tab {cursor:pointer;padding:8px 12px;border-radius:6px;border:1px solid #003300;margin-left:5px;}
 .nav-tab.active {background:#003300;box-shadow:0 0 10px #33ff99;}
 main {padding:20px 30px;}
 input:not([type="file"]), textarea {
-    width: 100%; /* Fix: Make inputs full width */
+    width: 100%; 
     box-sizing: border-box;
     padding: 10px;
-    margin-bottom: 10px; /* Add space below inputs */
+    margin-bottom: 10px; 
     border-radius:6px;
     background:#111;
     color:#00ff66;
@@ -25,7 +31,7 @@ input:not([type="file"]), textarea {
 input[type="file"] {margin-top:5px;}
 button {
     cursor:pointer;
-    padding:10px 15px; /* Fix: Increase button size */
+    padding:10px 15px; 
     border-radius:6px;
     background:#111;
     color:#00ff66;
@@ -39,7 +45,7 @@ button {
     border-radius:50%;
     border:1px solid #00ff66;
     object-fit:cover;
-    background: #0d0d0d; /* Fix: Fallback background for missing images */
+    background: #0d0d0d; 
 }
 #profile-pic {width:80px;height:80px;}
 .verified {color:#1DA1F2;font-weight:bold;margin-left:5px;}
@@ -52,7 +58,9 @@ button {
 
 <header>
     <div class="logo-container">
-        <strong>Tr3vMedia</strong>
+        <img src="https://see.fontimg.com/api/rf5/vXL4/YTM3ZmYyMWFkMzNiNGY5MGEwY2ZmZTZmNDhiZGI4NzkudHRm/VHIzdk1lZGlh/chimpanzee-website-report.png?r=fs&h=65&w=1000&fg=E8E4E4&bg=27E2A1&tb=1&s=65" 
+             alt="Tr3vMedia Icon" 
+             style="height: 30px; border: none; padding: 0; margin-top: 5px; vertical-align: middle;">
     </div>
     <div class="header-actions" id="header-tabs"></div>
 </header>
@@ -123,7 +131,6 @@ function signup(){
     if(!username||!password){alert("Fill all fields"); return;}
     const users = JSON.parse(localStorage.getItem('users'));
     if(users[username]){alert("Username taken"); return;}
-    // Set a default profile pic for new users
     users[username]={password,profilePic:'https://via.placeholder.com/60',bio:'',posts:[]}; 
     localStorage.setItem('users', JSON.stringify(users));
     alert("Account created! Login now.");
@@ -145,7 +152,6 @@ function initApp(){
     
     document.getElementById('welcome-banner').innerText=`Hello ${localStorage.getItem('currentUser')}!`;
     
-    // Fix: Redraw all header tabs with correct onclick for robust switching
     document.getElementById('header-tabs').innerHTML=`
         <div class="nav-tab" onclick="showTab('home')">Home</div>
         <div class="nav-tab" onclick="showTab('profile')">Profile</div>
@@ -153,7 +159,7 @@ function initApp(){
         <div class="nav-tab" onclick="logout()">Logout</div>`;
     
     loadUser();
-    showTab('home'); // Fix: Ensure 'home' is the initial active tab
+    showTab('home'); 
 }
 
 // ------------------ Logout ------------------
@@ -166,7 +172,6 @@ function showTab(tabId){
     
     document.querySelectorAll('.nav-tab').forEach(tab=>tab.classList.remove('active'));
     
-    // Fix: Select the tab based on the tabId argument passed
     const activeTabElement = document.querySelector(`.nav-tab[onclick*="showTab('${tabId}')"]`);
     if (activeTabElement) {
         activeTabElement.classList.add('active');
@@ -179,7 +184,6 @@ function loadUser(){
     const currentUser=localStorage.getItem('currentUser');
     if(!currentUser) return;
     const user = users[currentUser];
-    // Fix: Ensure profile pic is set
     document.getElementById('profile-pic').src=user.profilePic;
     document.getElementById('profile-username').innerText=currentUser;
     document.getElementById('profile-posts-count').innerText=user.posts.length;
@@ -220,7 +224,6 @@ function addPost(){
     users[currentUser].posts.unshift({text,date:Date.now()});
     localStorage.setItem('users',JSON.stringify(users));
     document.getElementById('post-text').value='';
-    // Fix: Ensure profile count updates after a post
     document.getElementById('profile-posts-count').innerText=users[currentUser].posts.length; 
     renderPosts();
 }
@@ -246,14 +249,12 @@ function changeUsername(){
     const currentUser=localStorage.getItem('currentUser');
     if(users[newName]) return alert("Username taken");
     
-    // Fix: Prevent the owner from changing the username, as it's the anchor for the 'Owner' badge logic
     if (currentUser === 'Tr3vN0x') return alert("The owner's username cannot be changed.");
     
     users[newName]=users[currentUser]; delete users[currentUser];
     localStorage.setItem('users',JSON.stringify(users));
     localStorage.setItem('currentUser',newName);
     
-    // Update the UI
     document.getElementById('change-username').value = '';
     loadUser();
     
