@@ -200,6 +200,13 @@ button:hover {
 button:active {
     background: #004400;
 }
+/* New button styles for Settings */
+.settings-button {
+    width: 100%; 
+    display: block;
+    margin-top: 10px;
+}
+
 
 #new-post {
     background: #1e1e1e;
@@ -733,9 +740,22 @@ button:active {
 
     <div id="settings" class="tab-content">
         <h2>Settings</h2>
+        
+        <h3>Account Management</h3>
         <label>Change username: <input type="text" id="change-username"></label><br>
-        <button onclick="changeUsername()">Save</button>
-        <button onclick="logout()" style="background: #CC0000; margin-top: 20px;">Logout</button>
+        <button onclick="changeUsername()">Save New Username</button>
+        <button onclick="logout()" class="settings-button" style="background: #CC0000;">Logout</button>
+
+        <hr style="border-top: 1px solid #004400; margin: 30px 0;">
+        
+        <h3>🌐 Cross-Device Sync (Manual)</h3>
+        <p style="font-size: 0.9em; color: #00CC00; line-height: 1.4;">
+            To synchronize data between devices (e.g., PC and Mobile), use the Export button on the device with the *newest* data, 
+            and use the Import button on the device with the *older* data.
+        </p>
+        <button onclick="exportData()" class="settings-button" style="background: #333333;">Export Data (Copy to Clipboard)</button>
+        <button onclick="importData()" class="settings-button" style="background: #0088AA;">Import Data (Paste & Overwrite)</button>
+        
     </div>
 </main>
 
@@ -796,7 +816,7 @@ function getChatID(user1, user2) {
     return [user1, user2].sort().join('_');
 }
 
-// ------------------ Data Setup (Core FIX implemented here) ------------------
+// ------------------ Data Setup ------------------
 
 // Define the absolute default data
 const DEFAULT_USER_DATA = {
@@ -852,40 +872,31 @@ const DEFAULT_MESSAGES_DATA = {
     ]
 };
 
-// Function to initialize or merge data (THE CORE FIX)
+// Function to initialize or merge data 
 function initializeOrMergeData() {
-    // 1. Get the current user data from this session's localStorage
     let currentUsers = {};
     let currentMessages = {};
+    let dataChanged = false;
 
+    // Load existing data from localStorage
     try {
         const storedUsers = localStorage.getItem('users');
         if (storedUsers) {
             currentUsers = JSON.parse(storedUsers);
         }
-    } catch (e) {
-        console.error("Error parsing stored users, initializing to empty.", e);
-    }
+    } catch (e) { console.error("Error parsing stored users.", e); }
 
     try {
         const storedMessages = localStorage.getItem('messages');
         if (storedMessages) {
             currentMessages = JSON.parse(storedMessages);
         }
-    } catch (e) {
-        console.error("Error parsing stored messages, initializing to empty.", e);
-    }
+    } catch (e) { console.error("Error parsing stored messages.", e); }
     
-    // 2. Get the "fresh" data from the shared storage (simulated by prompt/last action)
-    // IMPORTANT: Since we can't use a real server, we use the fallback defaults 
-    // to represent the "master" copy, but we must update the merging logic.
     let mergedUsers = {...currentUsers};
     let mergedMessages = {...currentMessages};
-    let dataChanged = false;
-
-    // --- Merge Users ---
     
-    // a) Inject default users if missing (ensures core accounts exist)
+    // 1. Inject default users if missing
     for (const defaultUser in DEFAULT_USER_DATA) {
         if (!mergedUsers[defaultUser]) {
             mergedUsers[defaultUser] = DEFAULT_USER_DATA[defaultUser];
@@ -893,106 +904,31 @@ function initializeOrMergeData() {
         }
     }
     
-    // b) Iterate through ALL existing users to merge posts, followers, etc.
-    // **THIS IS THE CRUCIAL NEW STEP FOR SYNCHRONIZATION**
-    const allUsernames = new Set([...Object.keys(currentUsers), ...Object.keys(DEFAULT_USER_DATA)]);
-    
-    // This part is the **simulation** of synchronization. 
-    // In a real app, 'freshUsers' would come from the server.
-    // Here, we rely on the user to paste the code, which ensures the core structure.
-
-    // If you want to simulate the server saving the LATEST user data, 
-    // uncomment the following line and save/load the data on the primary device.
-    // WARNING: This is an imperfect simulation and will only work if the data 
-    // is manually copied between sessions (which we are simulating by running this code).
-
-    /*
-    // --- THIS IS THE IMPERFECT LOCAL MERGE STRATEGY ---
-    // It assumes that the current session's data is the "master" after the last save. 
-    // To see the mobile user's post on PC, the mobile user's data MUST be the PC's currentUsers.
-    // The only way to force synchronization in this *environment* is to rely on the user 
-    // running the code on the device that has the latest data, or for the data to be
-    // manually copied/pasted into the script.
-
-    // Given the constraints, the best we can do is ensure that whenever the app is loaded,
-    // ALL USERS AND ALL THEIR POSTS/FOLLOWS are visible and merged into the 'current' view.
-    // The previous fix accomplished the visibility of accounts. The missing piece is 
-    // *detecting* that User X now has 5 posts instead of 4.
-    
-    // To ensure a new post is seen, we must update the load process to assume the 
-    // user performing the POST action *updates the master source*. Since we don't 
-    // have a master source, the most reliable simulation is to make the 
-    // **posts array immutable unless the user is local**.
-    // The current setup should *already* show all posts because `renderPosts` loops
-    // over all users in the currently loaded `localStorage`.
-    */
-    
-    // Let's re-verify the data loading process. If the PC does not see the Mobile post, 
-    // it means the mobile post was NOT successfully written to the PC's localStorage. 
-    // Since `localStorage` cannot be shared, the only way for the PC to see the mobile 
-    // post is if the mobile user's data was copied and saved back to the PC's file.
-
-    // FIX ATTEMPT #2: We will introduce a 'lastActivity' timestamp to the whole `users` object. 
-    // When a user posts, we update `lastActivity`. When another session loads, 
-    // if the stored `lastActivity` is older than the `lastActivity` it loaded, 
-    // it triggers a re-fetch of the full data. (Still impossible without a server, 
-    // but we can try to make the loading logic more aggressive).
-
-    // --- Aggressive Post Merge (Actual fix for this constraint) ---
-    // We will assume that any user data in the **browser's current session** (currentUsers) 
-    // is the most up-to-date and should be saved, while also ensuring all default users exist.
-    
-    // The real issue is that the mobile user's *new post* is not in the PC's `localStorage` 
-    // after a refresh. The only way for the PC to get it is if the mobile user saves a copy 
-    // of their `localStorage` and the PC user imports it.
-
-    // Lacking a server, the definitive solution is to **re-prompt the user to save the new code**,
-    // as that is the only way to propagate the new data structure *and* the new code across devices.
-
-    // **ASSUMPTION:** The user has the new code on both PC and Mobile.
-    // We will trust that the `currentUsers` object loaded above contains all posts from all users 
-    // that have ever logged in on THIS SPECIFIC BROWSER/DEVICE.
-    
-    // The only *true* missing link is **newly created accounts**.
-    for (const username of Object.keys(currentUsers)) {
-        if (!mergedUsers[username]) {
-            mergedUsers[username] = currentUsers[username];
-            dataChanged = true;
-        }
-        
-        // Ensure new properties exist for old users
-        if (!mergedUsers[username].notifications) {
-            mergedUsers[username].notifications = [];
-            dataChanged = true;
+    // 2. Ensure all data structure properties are present for all users
+    for (const username of Object.keys(mergedUsers)) {
+        const user = mergedUsers[username];
+        if (!user.notifications) { user.notifications = []; dataChanged = true; }
+        if (!user.followers) { user.followers = []; dataChanged = true; }
+        if (!user.following) { user.following = []; dataChanged = true; }
+        if (!user.gallery || user.gallery.length !== GALLERY_SIZE) { 
+            user.gallery = Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM); 
+            dataChanged = true; 
         }
     }
 
-    // --- Merge Messages ---
+    // 3. Inject default messages if missing
     for (const chatID in DEFAULT_MESSAGES_DATA) {
         if (!mergedMessages[chatID]) {
             mergedMessages[chatID] = DEFAULT_MESSAGES_DATA[chatID];
             dataChanged = true;
         }
     }
-    for (const chatID in currentMessages) {
-        if (!mergedMessages[chatID]) {
-            mergedMessages[chatID] = currentMessages[chatID];
-            dataChanged = true;
-        }
+
+    // 4. Save if any changes were made
+    if (dataChanged) {
+        localStorage.setItem('users', JSON.stringify(mergedUsers));
+        localStorage.setItem('messages', JSON.stringify(mergedMessages));
     }
-
-
-    // 3. Save the merged data back to localStorage ONLY if it was changed or if it was empty.
-    // If we rely purely on `localStorage`, this should already contain all data visible to the PC.
-    // The only way a new post on mobile *isn't* visible on PC is if the mobile post was saved, 
-    // but the PC refresh didn't include the mobile user's data in the PC's `localStorage`.
-    // Since `localStorage` is unique per browser, this is the expected behavior.
-    
-    // The TRUE fix: If the app starts and it's currently showing the feed, force a re-render.
-    // The rest of the data structure logic below will remain focused on robust defaults and access.
-
-    localStorage.setItem('users', JSON.stringify(mergedUsers));
-    localStorage.setItem('messages', JSON.stringify(mergedMessages));
     
     return dataChanged;
 }
@@ -1009,6 +945,62 @@ function getAllMessages() {
     return JSON.parse(localStorage.getItem('messages'));
 }
 
+
+// ------------------ Data Export/Import (THE CROSS-PLATFORM FIX) ------------------
+
+function exportData() {
+    const data = {
+        users: localStorage.getItem('users'),
+        messages: localStorage.getItem('messages'),
+        currentUser: localStorage.getItem('currentUser') 
+    };
+    
+    const dataString = JSON.stringify(data);
+
+    // Use modern Clipboard API if available, otherwise fallback to deprecated method
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(dataString).then(() => {
+            alert("Data exported! The entire app data has been copied to your clipboard. Paste this into the 'Import Data' prompt on your other device.");
+        }).catch(err => {
+            console.error('Could not copy text: ', err);
+            alert("Could not copy data to clipboard automatically. Please check the console for the data string and copy it manually.");
+        });
+    } else {
+        // Fallback for older browsers or non-secure contexts (e.g., local files)
+        prompt("Data Exported (Copy the text below):", dataString);
+    }
+}
+
+function importData() {
+    const dataString = prompt("Paste the exported data string here. WARNING: This will overwrite your current app data.");
+    
+    if (!dataString) return; 
+
+    try {
+        const importedData = JSON.parse(dataString);
+
+        if (!importedData.users || !importedData.messages) {
+            alert("Import failed: The pasted data is missing required sections (users or messages).");
+            return;
+        }
+
+        // Apply imported data
+        localStorage.setItem('users', importedData.users);
+        localStorage.setItem('messages', importedData.messages);
+        
+        // Only set currentUser if the imported data has one (it should)
+        if (importedData.currentUser) {
+            localStorage.setItem('currentUser', importedData.currentUser);
+        }
+
+        alert("Data successfully imported! The app will now reload to apply the changes.");
+        location.reload();
+
+    } catch (e) {
+        alert("Import failed: The pasted data is not valid JSON format. Please ensure you copied the entire string.");
+        console.error("Import Error:", e);
+    }
+}
 
 // ------------------ Auth Tabs ------------------
 function showLogin() {document.getElementById('signup').style.display='none'; document.getElementById('auth').style.display='block';}
@@ -1048,6 +1040,7 @@ function login(){
 
     if(!users[username] || users[username].password!==password){alert("Invalid credentials"); return;}
     
+    // Update active status when logging in
     users[username].isActive = true; 
     localStorage.setItem('users', JSON.stringify(users));
     
