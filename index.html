@@ -26,15 +26,15 @@ header {
 .header-left {
     display: flex;
     align-items: center;
-    gap: 20px; /* Space between logos and search bar */
+    gap: 20px;
 }
 .logo-container {
-    display: flex; /* Allow multiple logos side-by-side */
+    display: flex;
     align-items: center;
     gap: 10px;
 }
 .logo-container img {
-    height: 30px; /* Consistent height for both logos */
+    height: 30px;
     width: auto;
     border: none;
     padding: 0;
@@ -167,7 +167,7 @@ button:hover {background: #003300;}
     margin-left: 5px;
     font-size: 0.9em;
 }
-.post img, #profile-pic-display {
+.post img, .profile-image-small {
     width:40px;
     height:40px;
     border-radius:50%;
@@ -210,7 +210,7 @@ button:hover {background: #003300;}
     white-space: nowrap;
 }
 
-/* --- Profile Styling (View) --- */
+/* --- Profile Styling (View & Edit) --- */
 #view-profile-content #profile-pic-view {
     width: 100px;
     height: 100px;
@@ -227,6 +227,39 @@ button:hover {background: #003300;}
     font-size: 0.8em;
     color: #009944;
     margin-left: 10px;
+}
+
+/* NEW: Gallery Styling */
+.gallery-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columns for desktop */
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.gallery-slot {
+    background: #111;
+    border: 1px dashed #003300;
+    border-radius: 4px;
+    padding: 5px;
+    text-align: center;
+}
+
+.gallery-image-display {
+    width: 100%;
+    aspect-ratio: 1 / 1; /* Make images square */
+    object-fit: cover;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    border: 1px solid #33ff99;
+    cursor: pointer;
+}
+
+/* Mobile adjustments for gallery */
+@media (max-width: 600px) {
+    .gallery-container {
+        grid-template-columns: repeat(2, 1fr); /* 2 columns for mobile */
+    }
 }
 </style>
 </head>
@@ -281,13 +314,23 @@ button:hover {background: #003300;}
 
     <div id="profile" class="tab-content">
         <h2>My Profile</h2>
-        <img id="profile-pic-display" src="" alt="Profile Picture"><br>
-        <input type="file" id="profile-upload" accept="image/*"><br>
+        <img id="profile-pic-display" class="profile-image-small" src="" alt="Profile Picture"><br>
+        <label>Main Profile Picture:</label>
+        <input type="file" id="profile-upload" accept="image/*" onchange="uploadProfilePic()">
         <textarea id="profile-bio" placeholder="Write your bio..."></textarea><br>
-        <button onclick="saveProfile()">Save Profile</button>
+        
         <p>Username: <span id="my-profile-username"></span> <span id="owner-tag-me"></span></p>
         <p>Total Posts: <span id="my-profile-posts-count"></span></p>
         <p>Total Reactions Received: <span id="my-profile-likes-count"></span></p>
+        
+        <hr style="border-top: 1px dashed #003300;">
+
+        <h3>🖼️ Gallery (8 Images)</h3>
+        <p style="font-size:0.9em; color:#009944;">Click the current image to upload a replacement.</p>
+        <div class="gallery-container" id="my-gallery-edit">
+            </div>
+
+        <button onclick="saveProfile()" style="margin-top: 20px;">Save Profile & Bio</button>
     </div>
     
     <div id="view-profile" class="tab-content">
@@ -298,6 +341,12 @@ button:hover {background: #003300;}
             <p>Bio: <span id="view-bio"></span></p>
             <p>Posts: <span id="view-posts-count"></span></p>
             <p>Reactions Received: <span id="view-likes-received"></span></p>
+
+            <hr style="border-top: 1px dashed #003300;">
+            <h3>🖼️ Gallery</h3>
+            <div class="gallery-container" id="view-gallery">
+                </div>
+
             <hr style="border-top: 1px dashed #003300;">
             <h3>User Posts</h3>
             <div id="view-user-posts"></div>
@@ -317,7 +366,9 @@ button:hover {background: #003300;}
 <script>
 // --- Global Constants ---
 const DEFAULT_PIC = 'https://via.placeholder.com/60';
+const DEFAULT_GALLERY_ITEM = 'https://via.placeholder.com/150x150?text=Empty+Slot';
 const REACTIONS = ['like', 'heart', 'star']; // Available reaction types
+const GALLERY_SIZE = 8; // Max number of gallery images
 
 // Helper function to format date
 function formatTimestamp(timestamp) {
@@ -332,28 +383,42 @@ function formatTimestamp(timestamp) {
     return then.toLocaleDateString(); 
 }
 
-// ------------------ Users Setup ------------------
+// ------------------ Users Setup (Updated) ------------------
 if(!localStorage.getItem('users')) {
+    const defaultGallery = Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM);
+
     const defaultUsers = {
-        'Tr3vN0x': {password:'ownerpass', profilePic:DEFAULT_PIC, bio:'Owner of Tr3vMedia', posts:[
-            {
-                text: 'Welcome to Tr3vMedia! This site just got a whole lot cooler.', 
-                date: Date.now(), 
-                reactions: {like: [], heart: [], star: []},
-                comments: [
-                    {user: 'TestUser1', text: 'Looks awesome!'},
-                    {user: 'Tr3vN0x', text: 'Thanks! Enjoy the new features.'}
-                ]
-            }
-        ]},
-        'TestUser1': {password:'password', profilePic:DEFAULT_PIC, bio:'Just a friendly user.', posts:[
-            {
-                text: 'Testing the new search feature and the clean UI!', 
-                date: Date.now() - 5000000, 
-                reactions: {like: ['Tr3vN0x'], heart: [], star: []},
-                comments: []
-            }
-        ]}
+        'Tr3vN0x': {
+            password:'ownerpass', 
+            profilePic:DEFAULT_PIC, 
+            bio:'Owner of Tr3vMedia', 
+            gallery: defaultGallery, // NEW
+            posts:[
+                {
+                    text: 'Welcome to Tr3vMedia! This site just got a whole lot cooler.', 
+                    date: Date.now(), 
+                    reactions: {like: [], heart: [], star: []},
+                    comments: [
+                        {user: 'TestUser1', text: 'Looks awesome!'},
+                        {user: 'Tr3vN0x', text: 'Thanks! Enjoy the new features.'}
+                    ]
+                }
+            ]
+        },
+        'TestUser1': {
+            password:'password', 
+            profilePic:DEFAULT_PIC, 
+            bio:'Just a friendly user.', 
+            gallery: defaultGallery.map((_, i) => i === 0 ? 'https://via.placeholder.com/150x150?text=Cool+Pic' : DEFAULT_GALLERY_ITEM), // Example one gallery image
+            posts:[
+                {
+                    text: 'Testing the new search feature and the clean UI!', 
+                    date: Date.now() - 5000000, 
+                    reactions: {like: ['Tr3vN0x'], heart: [], star: []},
+                    comments: []
+                }
+            ]
+        }
     };
     localStorage.setItem('users', JSON.stringify(defaultUsers));
 }
@@ -369,7 +434,16 @@ function signup(){
     if(!username||!password){alert("Fill all fields"); return;}
     const users = JSON.parse(localStorage.getItem('users'));
     if(users[username]){alert("Username taken"); return;}
-    users[username]={password,profilePic:DEFAULT_PIC,bio:'',posts:[]}; 
+    
+    // Initialize new user with empty gallery
+    users[username]={
+        password,
+        profilePic:DEFAULT_PIC,
+        bio:'',
+        posts:[],
+        gallery: Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM) // NEW INIT
+    }; 
+    
     localStorage.setItem('users', JSON.stringify(users));
     alert("Account created! Login now.");
     showLogin();
@@ -414,9 +488,13 @@ function showTab(tabId){
     if (activeTabElement) {
         activeTabElement.classList.add('active');
     }
+    
+    if (tabId === 'profile') {
+        renderGalleryEdit();
+    }
 }
 
-// ------------------ Profile (My Profile and View Other User) ------------------
+// ------------------ Profile (My Profile) ------------------
 function loadUser(){
     const users=JSON.parse(localStorage.getItem('users'));
     const currentUser=localStorage.getItem('currentUser');
@@ -439,8 +517,15 @@ function loadUser(){
     renderPosts();
 }
 
-document.getElementById('profile-upload').addEventListener('change', function(){
-    const file = this.files[0]; if(file){
+// Main Profile Picture Upload
+function uploadProfilePic(){
+    const file = document.getElementById('profile-upload').files[0]; 
+    if(file){
+        if (!file.type.startsWith('image/')) {
+            alert("Only image files are allowed for profile pictures.");
+            document.getElementById('profile-upload').value = '';
+            return;
+        }
         const reader = new FileReader();
         reader.onload=function(){
             const users=JSON.parse(localStorage.getItem('users'));
@@ -452,7 +537,8 @@ document.getElementById('profile-upload').addEventListener('change', function(){
         };
         reader.readAsDataURL(file);
     }
-});
+}
+
 
 function saveProfile(){
     const users=JSON.parse(localStorage.getItem('users'));
@@ -460,6 +546,119 @@ function saveProfile(){
     users[currentUser].bio=document.getElementById('profile-bio').value;
     localStorage.setItem('users',JSON.stringify(users));
     alert("Profile saved!");
+}
+
+// NEW: Gallery Upload Function
+function uploadGalleryImage(index) {
+    // Create a temporary file input for the specific slot
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    
+    input.onchange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            if (!file.type.startsWith('image/')) {
+                alert("Only image files are allowed in the gallery.");
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = function() {
+                const users = JSON.parse(localStorage.getItem('users'));
+                const currentUser = localStorage.getItem('currentUser');
+                
+                // Ensure gallery array exists and is the correct size
+                if (!users[currentUser].gallery || users[currentUser].gallery.length !== GALLERY_SIZE) {
+                    users[currentUser].gallery = Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM);
+                }
+                
+                // Update the specific slot with the new image data URL
+                users[currentUser].gallery[index] = reader.result;
+                localStorage.setItem('users', JSON.stringify(users));
+                
+                // Update the displayed image instantly
+                document.getElementById(`gallery-img-${index}`).src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+    
+    // Programmatically click the hidden input element
+    input.click();
+}
+
+// NEW: Render Gallery Edit (on My Profile tab)
+function renderGalleryEdit() {
+    const users = JSON.parse(localStorage.getItem('users'));
+    const currentUser = localStorage.getItem('currentUser');
+    const user = users[currentUser];
+    const galleryContainer = document.getElementById('my-gallery-edit');
+    galleryContainer.innerHTML = '';
+
+    // Initialize gallery if missing or incorrect size
+    if (!user.gallery || user.gallery.length !== GALLERY_SIZE) {
+        user.gallery = Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM);
+        localStorage.setItem('users', JSON.stringify(users)); // Save initialization
+    }
+    
+    for (let i = 0; i < GALLERY_SIZE; i++) {
+        const slotDiv = document.createElement('div');
+        slotDiv.className = 'gallery-slot';
+        
+        // Use an image element to display the current picture
+        const img = document.createElement('img');
+        img.id = `gallery-img-${i}`;
+        img.className = 'gallery-image-display';
+        img.src = user.gallery[i];
+        img.alt = `Gallery Slot ${i + 1}`;
+        img.onclick = () => uploadGalleryImage(i); // Clicking the image triggers upload
+
+        slotDiv.appendChild(img);
+        
+        // Add a small label
+        const label = document.createElement('p');
+        label.style.fontSize = '0.8em';
+        label.style.margin = '5px 0 0 0';
+        label.innerText = `Slot ${i + 1}`;
+        slotDiv.appendChild(label);
+
+        galleryContainer.appendChild(slotDiv);
+    }
+}
+
+
+// ------------------ Profile (View Other User) ------------------
+function renderViewGallery(username, targetElement) {
+    const users = JSON.parse(localStorage.getItem('users'));
+    const user = users[username];
+    targetElement.innerHTML = '';
+    
+    const galleryImages = user.gallery || Array(GALLERY_SIZE).fill(DEFAULT_GALLERY_ITEM);
+
+    galleryImages.forEach((imgUrl, index) => {
+        // Only render the slot if it's not the default placeholder (optional, but cleaner)
+        if (imgUrl !== DEFAULT_GALLERY_ITEM) {
+            const slotDiv = document.createElement('div');
+            slotDiv.className = 'gallery-slot';
+            slotDiv.style.border = 'none'; // No dashed border for view mode
+            slotDiv.style.padding = '0';
+
+            const img = document.createElement('img');
+            img.className = 'gallery-image-display';
+            img.src = imgUrl;
+            img.alt = `${username}'s Gallery Image ${index + 1}`;
+            
+            // Remove click action for viewing
+            img.style.cursor = 'default'; 
+
+            slotDiv.appendChild(img);
+            targetElement.appendChild(slotDiv);
+        }
+    });
+
+    if (targetElement.innerHTML === '') {
+        targetElement.innerHTML = '<p style="font-style: italic;">User has no images in their gallery.</p>';
+    }
 }
 
 
@@ -486,6 +685,9 @@ function viewProfile(username){
     document.getElementById('view-bio').innerText = user.bio || 'No bio set.';
     document.getElementById('view-posts-count').innerText = user.posts.length;
     document.getElementById('view-likes-received').innerText = totalReactions;
+
+    // NEW: Render the gallery for the viewed user
+    renderViewGallery(username, document.getElementById('view-gallery'));
 
     // Render only this user's posts in the view-profile tab
     renderUserPosts(username, document.getElementById('view-user-posts'));
@@ -526,7 +728,7 @@ function searchUsers() {
     }
 }
 
-// ------------------ Posts & Reactions ------------------
+// ------------------ Posts & Reactions & Comments ------------------
 function addPost(){
     const text=document.getElementById('post-text').value.trim();
     if(!text){alert("Cannot post empty"); return;}
@@ -574,7 +776,6 @@ function toggleReaction(postUser, postIndex, reactionType){
     }
 }
 
-// ------------------ Comments Logic ------------------
 
 function addComment(postUser, postIndex) {
     const currentUser = localStorage.getItem('currentUser');
@@ -586,7 +787,7 @@ function addComment(postUser, postIndex) {
     const users = JSON.parse(localStorage.getItem('users'));
     const post = users[postUser].posts[postIndex];
 
-    if (!post.comments) post.comments = []; // Safety check
+    if (!post.comments) post.comments = []; 
 
     post.comments.push({
         user: currentUser,
@@ -607,8 +808,6 @@ function addComment(postUser, postIndex) {
     }
 }
 
-
-// ------------------ Rendering Functions ------------------
 
 function renderComments(comments) {
     let html = '<div class="comments-section">';
@@ -666,7 +865,7 @@ function renderUserPosts(username, targetElement) {
 
         div.innerHTML = `
             <div class="post-header">
-                <img src="${users[username].profilePic}" alt="${username}'s profile picture">
+                <img src="${users[username].profilePic}" class="profile-image-small" alt="${username}'s profile picture">
                 <strong><span class="clickable-username" onclick="viewProfile('${username}')">${username}</span>${username==='Tr3vN0x'?'<span class="verified">✔️ Owner</span>':''}</strong>
                 <span class="post-timestamp">${formatTimestamp(p.date)}</span>
             </div>
@@ -702,7 +901,7 @@ function renderPosts(){
                 profilePic: users[user].profilePic,
                 postIndex: index, 
                 reactions: p.reactions || {like: [], heart: [], star: []},
-                comments: p.comments || [] // Include comments
+                comments: p.comments || []
             });
         });
     }
@@ -710,11 +909,11 @@ function renderPosts(){
     allPosts.sort((a,b)=>b.date-a.date);
     
     allPosts.forEach(p=>{
-        const postId = `${p.user}-${p.postIndex}`; // Unique ID for comment input
+        const postId = `${p.user}-${p.postIndex}`; 
         const div=document.createElement('div'); div.className='post';
         div.innerHTML=`
             <div class="post-header">
-                <img src="${p.profilePic}" alt="${p.user}'s profile picture">
+                <img src="${p.profilePic}" class="profile-image-small" alt="${p.user}'s profile picture">
                 <strong><span class="clickable-username" onclick="viewProfile('${p.user}')">${p.user}</span>${p.user==='Tr3vN0x'?'<span class="verified">✔️ Owner</span>':''}</strong>
                 <span class="post-timestamp">${formatTimestamp(p.date)}</span>
             </div>
