@@ -193,7 +193,7 @@ button:active {
 }
 #new-post button {margin-top: 10px; width: 100%;}
 
-/* --- Posts & Profile Images --- */
+/* --- Posts & Post Image --- */
 .post {
     display:flex;
     flex-direction: column; 
@@ -212,8 +212,27 @@ button:active {
 }
 .post-content {
     margin-bottom: 15px;
-    white-space: pre-wrap; /* Preserves formatting but wraps */
+    white-space: pre-wrap;
 }
+
+/* New Post Image Styling */
+.post-image-container {
+    width: 100%;
+    margin-top: 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #004444;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+.post-image-container img {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain; /* Ensures the whole image is visible */
+    display: block;
+}
+
 .post-actions {
     display: flex;
     align-items: center;
@@ -234,7 +253,7 @@ button:active {
     box-shadow: none;
 }
 .reaction-count {
-    margin-left: -15px; /* Pull count closer to button */
+    margin-left: -15px; 
     font-size: 0.9em;
     color: #00CCCC;
 }
@@ -306,7 +325,7 @@ button:active {
 }
 .clickable-username {
     cursor: pointer;
-    text-decoration: none; /* Removed default underline */
+    text-decoration: none; 
     color: #00CCCC;
     transition: color 0.2s, text-decoration 0.2s;
 }
@@ -432,6 +451,9 @@ footer {
     <div id="home" class="tab-content">
         <div id="new-post">
             <textarea id="post-text" rows="3" placeholder="What's on your mind?"></textarea>
+            <label style="display:block; margin-top: 10px; font-size: 0.9em; color: #00CCCC;">Attach Image (Optional):</label>
+            <input type="file" id="post-image-upload" accept="image/*">
+            
             <button onclick="addPost()">Post</button>
         </div>
         <div id="posts"></div>
@@ -520,8 +542,9 @@ if(!localStorage.getItem('users')) {
             gallery: defaultGallery, 
             posts:[
                 {
-                    text: 'Welcome to Tr3vMedia! This site just got a whole lot cooler.', 
-                    date: Date.now(), 
+                    text: 'Welcome to Tr3vMedia! This post has no image.', 
+                    date: Date.now() - 10000, 
+                    image: null, // NEW: No image for this post
                     reactions: {like: [], heart: [], star: []},
                     comments: [
                         {user: 'TestUser1', text: 'Looks awesome!'},
@@ -537,8 +560,9 @@ if(!localStorage.getItem('users')) {
             gallery: defaultGallery.map((_, i) => i === 0 ? 'https://via.placeholder.com/150x150?text=Cool+Pic' : DEFAULT_GALLERY_ITEM), 
             posts:[
                 {
-                    text: 'Testing the new clean style overhaul. Looking very polished!', 
+                    text: 'Testing the new image post feature!', 
                     date: Date.now() - 5000000, 
+                    image: 'https://via.placeholder.com/600x300?text=Post+Image+Example', // NEW: Image URL for example
                     reactions: {like: ['Tr3vN0x'], heart: [], star: []},
                     comments: []
                 }
@@ -839,18 +863,55 @@ function searchUsers() {
 }
 
 // ------------------ Posts & Reactions & Comments ------------------
+
+// MODIFIED: Post logic now handles file reading (asynchronous)
 function addPost(){
     const text=document.getElementById('post-text').value.trim();
-    if(!text){alert("Cannot post empty"); return;}
-    const users=JSON.parse(localStorage.getItem('users'));
+    const imageFile = document.getElementById('post-image-upload').files[0];
     const currentUser=localStorage.getItem('currentUser');
+
+    if(!text && !imageFile){
+        alert("A post must contain text or an image."); 
+        return;
+    }
     
-    users[currentUser].posts.unshift({text,date:Date.now(), reactions: {like: [], heart: [], star: []}, comments: []}); 
+    if (imageFile && !imageFile.type.startsWith('image/')) {
+        alert("The attached file must be an image.");
+        return;
+    }
+
+    // Handle image upload asynchronously
+    if (imageFile) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            saveNewPost(text, e.target.result, currentUser);
+        };
+        reader.readAsDataURL(imageFile);
+    } else {
+        saveNewPost(text, null, currentUser);
+    }
+}
+
+function saveNewPost(text, image, currentUser) {
+    const users = JSON.parse(localStorage.getItem('users'));
+    
+    users[currentUser].posts.unshift({
+        text,
+        date: Date.now(),
+        image: image, // NEW: Include image data URL
+        reactions: {like: [], heart: [], star: []},
+        comments: []
+    }); 
     
     localStorage.setItem('users',JSON.stringify(users));
+    
+    // Clear inputs
     document.getElementById('post-text').value='';
+    document.getElementById('post-image-upload').value=''; // Clear file input
+    
     loadUser(); 
 }
+
 
 function toggleReaction(postUser, postIndex, reactionType){
     const users=JSON.parse(localStorage.getItem('users'));
@@ -954,6 +1015,18 @@ function renderPostActions(postUser, postIndex, reactions, currentUser) {
     return actionsHTML;
 }
 
+// NEW HELPER: Renders the image part of the post
+function renderPostImage(imageUrl) {
+    if (imageUrl) {
+        return `
+            <div class="post-image-container">
+                <img src="${imageUrl}" alt="Post Image">
+            </div>
+        `;
+    }
+    return '';
+}
+
 function renderUserPosts(username, targetElement) {
     const users = JSON.parse(localStorage.getItem('users'));
     const currentUser = localStorage.getItem('currentUser');
@@ -974,7 +1047,8 @@ function renderUserPosts(username, targetElement) {
                 <span class="post-timestamp">${formatTimestamp(p.date)}</span>
             </div>
             <div class="post-content">${p.text}</div>
-            <div class="post-actions">
+            
+            ${renderPostImage(p.image)} <div class="post-actions">
                 ${renderPostActions(username, index, p.reactions, currentUser)}
             </div>
             
@@ -1003,6 +1077,7 @@ function renderPosts(){
                 date: p.date,
                 profilePic: users[user].profilePic,
                 postIndex: index, 
+                image: p.image || null, // NEW: Include image
                 reactions: p.reactions || {like: [], heart: [], star: []},
                 comments: p.comments || []
             });
@@ -1021,7 +1096,8 @@ function renderPosts(){
                 <span class="post-timestamp">${formatTimestamp(p.date)}</span>
             </div>
             <div class="post-content">${p.text}</div>
-            <div class="post-actions">
+            
+            ${renderPostImage(p.image)} <div class="post-actions">
                 ${renderPostActions(p.user, p.postIndex, p.reactions, currentUser)}
             </div>
             
