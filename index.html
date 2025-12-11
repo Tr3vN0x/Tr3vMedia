@@ -7,11 +7,10 @@
 <link rel="icon" type="image/jpg" href="https://scontent-iad3-2.xx.fbcdn.net/v/t39.30808-6/596009832_838710972097270_9022730636766278745_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=TZjP9DC4yXIQ7kNvwHdpFg7&_nc_oc=AdnBmq-TZowH6YRcFRCd3Jivz_VCUa2-xgSohFxWykjbNuzrqYHW_6gne7eslaL4ZFCdK9cEG8NpB5VG555CxO6q&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=tSIEeMfSeNSk__07eF_UGA&oh=00_Afm8Xz1VR1MYenel-chWfd3ajWnOdho-IvK1TEyO-duDuA&oe=693AC07A">
 
 <style>
-/* ---------------------- General Styles ---------------------- */
 body {margin:0; font-family:'Consolas', monospace; background:#0a0a0a; color:#00ff66;}
 header {display:flex; justify-content:space-between; align-items:center; padding:15px 30px; background:#0d0d0d; border-bottom:2px solid #003300; position:sticky; top:0; z-index:10; flex-wrap:wrap; gap:15px;}
 .logo-container {display:flex; align-items:center; gap:12px;}
-.side-image {width:60px; height:60px; object-fit:cover; border-radius:4px; border:2px solid #00ff66;}
+.side-image {width:60px; height:60px; object-fit:cover; border-radius:50%; border:2px solid #00ff66;}
 .logo-container img:not(.side-image) {height:50px; border-radius:4px; border:1px solid #00ff66;}
 .header-actions {display:flex; align-items:center; gap:10px;}
 .nav-tab {text-decoration:none; color:#00ff66; font-weight:bold; font-size:1em; padding:8px 12px; border:1px solid #003300; border-radius:6px; transition:0.3s; text-shadow:0 0 4px rgba(0,255,102,0.5); background:#111; cursor:pointer;}
@@ -26,20 +25,24 @@ footer {text-align:center; padding:25px; background:#0d0d0d; border-top:2px soli
 #new-post button {width:120px; padding:8px; border:1px solid #003300; border-radius:6px; background:#111; color:#00ff66; cursor:pointer;}
 #new-post button:hover {background:#003300; box-shadow:0 0 10px #00ff66; color:#33ff99;}
 
-/* Login / Signup forms */
 #auth-container {max-width:400px; margin:50px auto; background:#111; padding:25px; border:1px solid #003300; border-radius:6px; box-shadow:0 0 10px #00ff66;}
 #auth-container h2 {text-align:center; margin-bottom:20px;}
 #auth-container input {width:100%; padding:10px; margin-bottom:15px; border-radius:6px; border:1px solid #003300; background:#0a0a0a; color:#00ff66;}
 #auth-container button {width:100%; padding:10px; border-radius:6px; border:1px solid #003300; background:#111; color:#00ff66; cursor:pointer;}
 #auth-container button:hover {background:#003300; box-shadow:0 0 10px #00ff66; color:#33ff99;}
 #auth-toggle {text-align:center; margin-top:15px; cursor:pointer; color:#33ff99; text-decoration:underline;}
+
+#profile-pic-upload {margin-bottom:15px;}
+#bio {width:100%; padding:10px; background:#111; border:1px solid #003300; border-radius:6px; color:#00ff66; resize:none; margin-bottom:10px;}
+#save-bio {padding:8px 12px; border-radius:6px; border:1px solid #003300; background:#111; color:#00ff66; cursor:pointer;}
+#save-bio:hover {background:#003300; box-shadow:0 0 10px #00ff66; color:#33ff99;}
 </style>
 </head>
 <body>
 
 <header style="display:none;">
     <div class="logo-container">
-        <img src="https://scontent-iad3-2.xx.fbcdn.net/v/t39.30808-6/596009832_838710972097270_9022730636766278745_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=TZjP9DC4yXIQ7kNvwHdpFg7&_nc_oc=AdnBmq-TZowH6YRcFRCd3Jivz_VCUa2-xgSohFxWykjbNuzrqYHW_6gne7eslaL4ZFCdK9cEG8NpB5VG555CxO6q&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=tSIEeMfSeNSk__07eF_UGA&oh=00_Afm8Xz1VR1MYenel-chWfd3ajWnOdho-IvK1TEyO-duDuA&oe=693AC07A" class="side-image" alt="Profile Image">
+        <img src="" class="side-image" id="header-profile-pic" alt="Profile Image">
         <img src="https://see.fontimg.com/api/rf5/vXL4/YTM3ZmYyMWFkMzNiNGY5MGEwY2ZmZTZmNDhiZGI4NzkudHRm/VHIzdk1lZGlh/chimpanzee-website-report.png?r=fs&h=65&w=1000&fg=E8E4E4&bg=27E2A1&tb=1&s=65" alt="Site Logo">
     </div>
 
@@ -73,9 +76,14 @@ footer {text-align:center; padding:25px; background:#0d0d0d; border-top:2px soli
 
     <div id="profile" class="tab-content" style="display:none;">
         <h2>Profile Page</h2>
+        <img src="" id="profile-pic" class="side-image" alt="Profile Picture">
+        <input type="file" id="profile-pic-upload" accept="image/*" onchange="uploadProfilePic(event)">
+        <textarea id="bio" rows="3" placeholder="Write your bio..."></textarea>
+        <button id="save-bio" onclick="saveBio()">Save Bio</button>
         <p id="profile-username"></p>
         <p id="profile-posts"></p>
         <p id="profile-followers"></p>
+        <p id="profile-bio"></p>
     </div>
 
     <div id="notifications" class="tab-content" style="display:none;">
@@ -118,7 +126,7 @@ document.getElementById('auth-button').addEventListener('click', () => {
 
     if(isSignUp){
         if(users[username]) return alert("Username already exists!");
-        users[username] = {password: password, posts: [], followers: 0};
+        users[username] = {password: password, posts: [], followers: 0, bio: '', profilePic: ''};
         localStorage.setItem('users', JSON.stringify(users));
         alert("Account created! Please sign in.");
         isSignUp = false;
@@ -171,7 +179,6 @@ function addPost(){
 }
 
 function loadPosts(){
-    const username = localStorage.getItem('currentUser');
     const users = JSON.parse(localStorage.getItem('users'));
     const postsContainer = document.getElementById('posts');
     postsContainer.innerHTML = '';
@@ -185,12 +192,46 @@ function loadPosts(){
     }
 }
 
+// ------------------ Profile ------------------
 function updateProfile(){
     const username = localStorage.getItem('currentUser');
     const users = JSON.parse(localStorage.getItem('users'));
+    const user = users[username];
+
     document.getElementById('profile-username').innerText = `Username: ${username}`;
-    document.getElementById('profile-posts').innerText = `Posts: ${users[username].posts.length}`;
-    document.getElementById('profile-followers').innerText = `Followers: ${users[username].followers}`;
+    document.getElementById('profile-posts').innerText = `Posts: ${user.posts.length}`;
+    document.getElementById('profile-followers').innerText = `Followers: ${user.followers}`;
+    document.getElementById('profile-bio').innerText = `Bio: ${user.bio || ''}`;
+
+    // Profile pictures
+    document.getElementById('profile-pic').src = user.profilePic || 'https://via.placeholder.com/60x60?text=User';
+    document.getElementById('header-profile-pic').src = user.profilePic || 'https://via.placeholder.com/60x60?text=User';
+
+    document.getElementById('bio').value = user.bio || '';
+}
+
+function uploadProfilePic(event){
+    const file = event.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = function(){
+        const base64 = reader.result;
+        const username = localStorage.getItem('currentUser');
+        const users = JSON.parse(localStorage.getItem('users'));
+        users[username].profilePic = base64;
+        localStorage.setItem('users', JSON.stringify(users));
+        updateProfile();
+    }
+    reader.readAsDataURL(file);
+}
+
+function saveBio(){
+    const bioText = document.getElementById('bio').value.trim();
+    const username = localStorage.getItem('currentUser');
+    const users = JSON.parse(localStorage.getItem('users'));
+    users[username].bio = bioText;
+    localStorage.setItem('users', JSON.stringify(users));
+    updateProfile();
 }
 
 // Initialize if already logged in
