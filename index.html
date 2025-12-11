@@ -14,7 +14,20 @@ main {padding:20px 30px;}
 #welcome-banner {background:#004400;color:white;text-align:center;padding:15px;margin-bottom:20px;}
 
 /* --- Header & Navigation --- */
-header {display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #003300;position:sticky;top:0;z-index:10;}
+header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    border-bottom:2px solid #003300;
+    position:sticky;
+    top:0;
+    z-index:10;
+}
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 20px; /* Space between logos and search bar */
+}
 .logo-container {
     display: flex; /* Allow multiple logos side-by-side */
     align-items: center;
@@ -28,28 +41,65 @@ header {display:flex;justify-content:space-between;align-items:center;border-bot
     vertical-align: middle;
 }
 
-/* NEW: Ensure header tabs display horizontally */
+/* NEW: Search Bar Styling */
+#search-bar {
+    position: relative; /* Needed to position search results */
+    min-width: 200px;
+}
+#search-input {
+    padding: 5px 10px;
+    border-radius: 4px;
+    background: #111;
+    color: #00ff66;
+    border: 1px solid #003300;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* NEW: Search Results Dropdown Styling */
+#search-results {
+    position: absolute;
+    top: 100%; /* Position below the input */
+    left: 0;
+    width: 100%;
+    background: #111;
+    border: 1px solid #003300;
+    border-top: none;
+    border-radius: 0 0 4px 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 20;
+    box-shadow: 0 5px 10px rgba(0, 255, 102, 0.2);
+}
+.search-result-item {
+    padding: 8px 10px;
+    cursor: pointer;
+    border-bottom: 1px dashed #002200;
+}
+.search-result-item:hover {
+    background: #003300;
+}
+
+
+/* Tabs Styling */
 .header-actions {
     display: flex; 
     gap: 5px; 
     align-items: center;
 }
-
-/* Fix: Make tabs look like small, uniform buttons */
 .nav-tab {
     cursor:pointer;
-    padding: 6px 10px; /* Smaller padding */
-    border-radius:4px; /* Smaller radius */
+    padding: 6px 10px; 
+    border-radius:4px; 
     border:1px solid #003300;
-    /* margin-left:5px; - Removed margin-left, using gap on parent instead */
-    font-size: 0.9em; /* Smaller font */
+    font-size: 0.9em; 
     transition: background 0.2s;
 }
 .nav-tab.active {background:#003300;box-shadow:0 0 8px #33ff99;}
 .nav-tab:hover:not(.active) {background: #001a00;}
 
-/* --- Forms & Inputs (Posting Area Neatness) --- */
-input:not([type="file"]), textarea {
+/* --- Forms & Inputs (General) --- */
+input:not([type="file"], #search-input), textarea {
     width: 100%; 
     box-sizing: border-box;
     padding: 10px;
@@ -64,7 +114,7 @@ input:not([type="file"]), textarea {
 input[type="file"] {margin-top:5px;}
 button {
     cursor:pointer;
-    padding:8px 12px; /* Uniform button size */
+    padding:8px 12px; 
     border-radius:4px;
     background:#111;
     color:#00ff66;
@@ -151,14 +201,22 @@ button:hover {background: #003300;}
 <body>
 
 <header>
-    <div class="logo-container">
-        <img src="https://see.fontimg.com/api/rf5/vXL4/YTM3ZmYyMWFkMzNiNGY5MGEwY2ZmZTZmNDhiZGI4NzkudHRm/VHIzdk1lZGlh/chimpanzee-website-report.png?r=fs&h=65&w=1000&fg=E8E4E4&bg=27E2A1&tb=1&s=65" 
-             alt="Tr3vMedia Icon 1">
+    <div class="header-left">
+        <div class="logo-container">
+            <img src="https://see.fontimg.com/api/rf5/vXL4/YTM3ZmYyMWFkMzNiNGY5MGEwY2ZmZTZmNDhiZGI4NzkudHRm/VHIzdk1lZGlh/chimpanzee-website-report.png?r=fs&h=65&w=1000&fg=E8E4E4&bg=27E2A1&tb=1&s=65" 
+                 alt="Tr3vMedia Icon 1">
+            
+            <img src="https://scontent-iad3-2.xx.fbcdn.net/v/t39.30808-6/596009832_838710972097270_9022730636766278745_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=FV-kAQTMc9sQ7kNvwHtnXUJ&_nc_oc=AdnMy32z6EqV3KBKYoxV9lXa4sxDC5HGtKjqXOn1Ft5DhugILwP1VuHdODGDfKtXeMswLEwyf_07cIoNby3di58u&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=ffAPLrP0wQ4lRnuf3eL46g&oh=00_Afk9OB0-t0OJNQksLxcPV1gJpw_C1Z8IwkKu4li6rX9bgA&oe=6940AF3A" 
+                 alt="Tr3vMedia Icon 2">
+        </div>
         
-        <img src="https://scontent-iad3-2.xx.fbcdn.net/v/t39.30808-6/596009832_838710972097270_9022730636766278745_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=6ee11a&_nc_ohc=FV-kAQTMc9sQ7kNvwHtnXUJ&_nc_oc=AdnMy32z6EqV3KBKYoxV9lXa4sxDC5HGtKjqXOn1Ft5DhugILwP1VuHdODGDfKtXeMswLEwyf_07cIoNby3di58u&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=ffAPLrP0wQ4lRnuf3eL46g&oh=00_Afk9OB0-t0OJNQksLxcPV1gJpw_C1Z8IwkKu4li6rX9bgA&oe=6940AF3A" 
-             alt="Tr3vMedia Icon 2">
-             
+        <div id="search-bar">
+            <input type="text" id="search-input" placeholder="Search usernames..." onkeyup="searchUsers()">
+            <div id="search-results"></div>
+        </div>
+        
     </div>
+    
     <div class="header-actions" id="header-tabs"></div>
 </header>
 
@@ -174,7 +232,7 @@ button:hover {background: #003300;}
     </div>
 
     <div id="signup" class="tab-content">
-        <h2>Sign Up</h2>
+        <h2>Sign Up </h2>
         <input type="text" id="signup-username" placeholder="Username">
         <input type="password" id="signup-password" placeholder="Password">
         <button onclick="signup()">Create Account</button>
@@ -249,6 +307,9 @@ if(!localStorage.getItem('users')) {
         'Tr3vN0x': {password:'ownerpass', profilePic:DEFAULT_PIC, bio:'Owner of Tr3vMedia', posts:[
             // Posts now store reactions as an object of arrays
             {text: 'Welcome to Tr3vMedia! This site just got a whole lot cooler.', date: Date.now(), reactions: {like: [], heart: [], star: []}}
+        ]},
+        'TestUser1': {password:'password', profilePic:DEFAULT_PIC, bio:'Just a friendly user.', posts:[
+            {text: 'Testing the search feature!', date: Date.now() - 5000000, reactions: {like: ['Tr3vN0x'], heart: [], star: []}}
         ]}
     };
     localStorage.setItem('users', JSON.stringify(defaultUsers));
@@ -321,7 +382,6 @@ function loadUser(){
     
     let totalReactions = 0;
     user.posts.forEach(p => {
-        // Ensure reactions object exists and sum up all reaction types
         if(p.reactions) {
             REACTIONS.forEach(r => totalReactions += p.reactions[r] ? p.reactions[r].length : 0);
         }
@@ -362,6 +422,10 @@ function saveProfile(){
 
 // ------------------ Profile (View Other User) ------------------
 function viewProfile(username){
+    // Hides search results when clicking a profile
+    document.getElementById('search-results').innerHTML = '';
+    document.getElementById('search-input').value = ''; 
+    
     const users=JSON.parse(localStorage.getItem('users'));
     const user = users[username];
     if (!user) return alert("User not found.");
@@ -385,6 +449,40 @@ function viewProfile(username){
     renderUserPosts(username, document.getElementById('view-user-posts'));
     
     showTab('view-profile');
+}
+
+// ------------------ Search Functionality ------------------
+function searchUsers() {
+    const input = document.getElementById('search-input').value.toLowerCase();
+    const resultsDiv = document.getElementById('search-results');
+    resultsDiv.innerHTML = '';
+    
+    if (input.length < 2) {
+        // Clear results if input is too short
+        return;
+    }
+
+    const users = JSON.parse(localStorage.getItem('users'));
+    const userKeys = Object.keys(users);
+    
+    const matchedUsers = userKeys.filter(username => 
+        username.toLowerCase().includes(input)
+    );
+
+    if (matchedUsers.length > 0) {
+        matchedUsers.forEach(username => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'search-result-item';
+            resultItem.innerText = username;
+            resultItem.onclick = () => viewProfile(username);
+            resultsDiv.appendChild(resultItem);
+        });
+    } else {
+        const noResultItem = document.createElement('div');
+        noResultItem.className = 'search-result-item';
+        noResultItem.innerText = 'No users found.';
+        resultsDiv.appendChild(noResultItem);
+    }
 }
 
 // ------------------ Posts & Reactions ------------------
