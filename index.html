@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-:root { --duoup-primary:#00FFFF; --duoup-secondary:#FF5733; --duoup-accent:#8A2BE2; --duoup-dark:#050510; --duoup-light:#F0F8FF; --duoup-muted:#80809C; --font-main:'Rajdhani',sans-serif; --font-header:'Orbitron',sans-serif; --status-online:#38A169; --status-offline:#E53E3E; }
+:root { --duoup-primary:#00FFFF; --duoup-secondary:#FF5733; --duoup-accent:#8A2BE2; --duoup-dark:#050510; --duoup-light:#F0F8FF; --duoup-muted:#80809C; --font-main:'Rajdhani',sans-serif; --font-header:'Orbitron',sans-serif; }
 html,body{margin:0;height:100%;font-family:var(--font-main);background-color:var(--duoup-dark);color:var(--duoup-light);}
 h1,h2,h3{margin:0;font-family:var(--font-header);}
 h2{display:flex;align-items:baseline;border-bottom:2px solid var(--duoup-secondary);padding-bottom:5px;margin-bottom:20px;font-size:1.8em;background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
@@ -34,21 +34,6 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
 .avatar{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:15px;background:var(--duoup-secondary);color:var(--duoup-dark);}
 .bio{padding:10px 15px;font-size:0.9em;color:var(--duoup-muted);}
 .action-button{width:100%;padding:12px;background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));color:var(--duoup-dark);font-weight:bold;border-radius:0 0 12px 12px;}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);justify-content:center;align-items:center;z-index:2000;}
-.chat-container{width:90%;max-width:420px;height:80%;background:#141426;border-radius:12px;display:flex;flex-direction:column;}
-.chat-header{padding:10px 15px;background:#1A1A2E;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid var(--duoup-primary);color:var(--duoup-light);}
-.status-dot{width:8px;height:8px;border-radius:50%;margin-right:8px;display:inline-block;}
-.status-dot.online{background:var(--status-online);}
-.status-dot.offline{background:var(--status-offline);}
-.message-area{flex:1;padding:10px;overflow-y:auto;}
-.message{max-width:80%;margin-bottom:10px;}
-.message.self{margin-left:auto;}
-.message-content{padding:8px 12px;border-radius:12px;}
-.message.other .message-content{background:linear-gradient(135deg,#2D2D44,#3A3A52);color:white;}
-.message.self .message-content{background:linear-gradient(135deg,var(--duoup-primary),var(--duoup-accent));color:var(--duoup-dark);}
-.chat-input-area{display:flex;padding:10px;gap:5px;}
-.chat-input{flex:1;padding:10px;border-radius:6px;border:none;background:#2D2D44;color:white;}
-.send-button{padding:10px 15px;border:none;background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));color:var(--duoup-dark);font-weight:bold;border-radius:6px;}
 </style>
 </head>
 <body>
@@ -96,6 +81,7 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
             <input class="profile-field" id="profile-username" placeholder="Username">
             <textarea class="profile-field" id="profile-about" placeholder="About Me"></textarea>
             <input type="file" id="profile-photo">
+            <button type="button" id="saveProfileBtn">Save Profile</button>
         </form>
         <div id="profilePreviewContainer"></div>
     </div>
@@ -106,22 +92,10 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
     </div>
 </div>
 
-<div id="chatModal" class="modal">
-    <div class="chat-container">
-        <div id="chatHeader" class="chat-header"></div>
-        <div id="messageArea" class="message-area"></div>
-        <div class="chat-input-area">
-            <input id="chatInput" class="chat-input" placeholder="Type message">
-            <button class="send-button" id="sendMsgBtn">Send</button>
-            <span onclick="closeChat()" style="cursor:pointer;padding:10px;color:var(--duoup-light);"><i class="fas fa-times"></i></span>
-        </div>
-    </div>
-</div>
-
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
 
 const firebaseConfig = {
@@ -138,7 +112,7 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
-// --- DOM Elements ---
+// DOM Elements
 const signinForm = document.getElementById("signin");
 const signupForm = document.getElementById("signup");
 const googleBtn = document.querySelector(".google-btn");
@@ -153,10 +127,8 @@ const userCountElement = document.getElementById("userCount");
 const profileUsername = document.getElementById("profile-username");
 const profileAbout = document.getElementById("profile-about");
 const profilePhoto = document.getElementById("profile-photo");
+const saveProfileBtn = document.getElementById("saveProfileBtn");
 const profilePreviewContainer = document.getElementById("profilePreviewContainer");
-
-const requestsGrid = document.getElementById("requestsGrid");
-const duosGrid = document.getElementById("duosGrid");
 
 // --- Auth ---
 signinForm.addEventListener("submit", async e=>{
@@ -171,6 +143,7 @@ signupForm.addEventListener("submit", async e=>{
         const userCredential = await createUserWithEmailAndPassword(auth, document.getElementById("signup-email").value, document.getElementById("signup-password").value);
         await setDoc(doc(db,"users",userCredential.user.uid),{
             uid:userCredential.user.uid,
+            email: document.getElementById("signup-email").value,
             username:"New Player",
             bio:"",
             profileImageUrl:"",
@@ -193,7 +166,6 @@ async function loadProfile(){
     profileAbout.value = data.bio || '';
     renderProfilePreview(data);
 }
-
 function renderProfilePreview(data){
     profilePreviewContainer.innerHTML = `
     <div class="duo-card">
@@ -206,18 +178,15 @@ function renderProfilePreview(data){
     </div>
     `;
 }
-
-// Auto-save profile
-[profileUsername, profileAbout].forEach(el=>{
-    el.addEventListener("input", async ()=>{
-        const user = auth.currentUser;
-        if(!user) return;
-        await updateDoc(doc(db,"users",user.uid),{
-            username: profileUsername.value,
-            bio: profileAbout.value
-        });
-        renderProfilePreview({username:profileUsername.value, bio:profileAbout.value});
+saveProfileBtn.addEventListener("click", async ()=>{
+    const user = auth.currentUser;
+    if(!user) return;
+    await updateDoc(doc(db,"users",user.uid),{
+        username: profileUsername.value,
+        bio: profileAbout.value
     });
+    renderProfilePreview({username:profileUsername.value, bio:profileAbout.value});
+    alert("Profile updated!");
 });
 profilePhoto.addEventListener("change", async e=>{
     const file = e.target.files[0];
@@ -230,7 +199,7 @@ profilePhoto.addEventListener("change", async e=>{
     loadProfile();
 });
 
-// --- Duo Search ---
+// --- Duo Search (only real signed-in users) ---
 async function loadUsers(){
     const currentUser = auth.currentUser;
     const qSnap = await getDocs(collection(db,"users"));
@@ -238,7 +207,7 @@ async function loadUsers(){
     let count=0;
     qSnap.forEach(doc=>{
         const data = doc.data();
-        if(data.uid===currentUser.uid) return;
+        if(!data.uid || !data.email || data.uid===currentUser.uid) return; // show only real users
         count++;
         usersGrid.innerHTML+=`
         <div class="duo-card">
@@ -254,7 +223,7 @@ async function loadUsers(){
     userCountElement.innerText = count+" players online";
 }
 
-// --- Friend Requests & Chat ---
+// --- Friend Requests Placeholder ---
 async function sendFriendRequest(receiverId){
     const senderId = auth.currentUser.uid;
     await setDoc(doc(db,"friendRequests",senderId+"_"+receiverId),{
@@ -287,12 +256,9 @@ onAuthStateChanged(auth, user=>{
     }
 });
 
-// --- Chat Placeholder ---
-function closeChat(){ document.getElementById("chatModal").style.display="none"; }
-window.sendFriendRequest = sendFriendRequest;
+// Expose to window
 window.showSection = showSection;
-window.closeChat = closeChat;
-
+window.sendFriendRequest = sendFriendRequest;
 </script>
 </body>
 </html>
