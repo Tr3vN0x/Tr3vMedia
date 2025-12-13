@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-/* --- DUOUP NEON COLOR SCHEME --- */
+/* --- DUOUP NEON COLOR SCHEME (YOUR DESIGN) --- */
 :root {
   --duoup-primary: #00FFFF;   /* Neon Cyan */
   --duoup-secondary: #FF5733; /* Neon Orange */
@@ -68,7 +68,10 @@ header nav a:hover { color: var(--duoup-primary); text-shadow: 0 0 8px var(--duo
 /* --- Auth Forms --- */
 #auth-section { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding-top:60px; }
 form { display:flex; flex-direction:column; background:#141426; padding:30px; border-radius:12px; margin:15px; width:320px; box-shadow:0 5px 15px rgba(0,0,0,0.6);}
-input, textarea { margin:10px 0; padding:12px; border-radius:6px; border: 1px solid #3A3A52; background:#2D2D44; color:var(--duoup-light); font-family: var(--font-main);}
+input, textarea, select { /* ADDED SELECT HERE */
+    margin:10px 0; padding:12px; border-radius:6px; border: 1px solid #3A3A52; 
+    background:#2D2D44; color:var(--duoup-light); font-family: var(--font-main);
+}
 button { margin-top:15px; padding:12px; font-weight:bold; background: var(--duoup-primary); color: var(--duoup-dark); text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,255,255,0.4);}
 button:hover { background: var(--duoup-accent); transform: translateY(-2px); box-shadow:0 4px 15px rgba(138,43,226,0.5);}
 .google-btn { background:#DB4437; color:white; width:380px; display:flex; align-items:center; justify-content:center; gap:10px;}
@@ -99,7 +102,6 @@ button:hover { background: var(--duoup-accent); transform: translateY(-2px); box
 .chat-input-area { display: flex; padding: 10px; border-top: 1px solid #3A3A52; background: #1f1f3a; }
 .chat-input { flex-grow: 1; margin: 0; }
 .send-button { margin: 0 0 0 10px; padding: 10px 15px; background: var(--duoup-secondary); color: var(--duoup-dark); }
-
 </style>
 </head>
 <body>
@@ -153,6 +155,15 @@ button:hover { background: var(--duoup-accent); transform: translateY(-2px); box
     <input class="profile-field" id="profile-platform" placeholder="Platform (e.g., PC, PS5, Xbox)">
     <input class="profile-field" id="profile-games" placeholder="Games (e.g., Valorant, LoL, Apex)">
     <input class="profile-field" id="profile-playstyle" placeholder="Playstyle (e.g., Casual, Competitive)">
+    
+    <select class="profile-field" id="profile-mic">
+        <option value="">-- Mic Status --</option>
+        <option value="Preferred">Mic Preferred</option>
+        <option value="Required">Mic Required</option>
+        <option value="Optional">Mic Optional</option>
+        <option value="No Mic">No Mic</option>
+    </select>
+    
     <textarea class="profile-field" id="profile-about" placeholder="About Me"></textarea>
     <input type="file" id="profile-photo">
     <button onclick="updateProfile()">Save Profile</button>
@@ -178,7 +189,7 @@ button:hover { background: var(--duoup-accent); transform: translateY(-2px); box
       <button class="send-button" onclick="sendMessage()">Send</button>
       <span onclick="closeChat()" style="cursor:pointer; padding: 10px; margin-left: 10px; color: var(--duoup-light);"><i class="fas fa-times"></i></span>
     </div>
-  </div>
+    </div>
 </div>
 
 <script type="module">
@@ -310,8 +321,8 @@ async function loadProfile(){
       document.getElementById("profile-platform").value=data.platform||"";
       document.getElementById("profile-games").value=data.games||"";
       document.getElementById("profile-playstyle").value=data.playstyle||"";
+      document.getElementById("profile-mic").value=data.mic||""; // Load mic status
       document.getElementById("profile-about").value=data.about||"";
-      // Note: Mic setting not yet added to HTML, but is now in the data structure
     }
   } catch(e) { console.error("Error loading profile:", e); }
 }
@@ -322,6 +333,7 @@ window.updateProfile = async function(){
     const platform=document.getElementById("profile-platform").value;
     const games=document.getElementById("profile-games").value;
     const playstyle=document.getElementById("profile-playstyle").value;
+    const mic=document.getElementById("profile-mic").value; // Get mic status
     const about=document.getElementById("profile-about").value;
     const photoFile=document.getElementById("profile-photo").files[0];
     let photoURL="";
@@ -331,8 +343,15 @@ window.updateProfile = async function(){
       await uploadBytes(storageRef,photoFile);
       photoURL = await getDownloadURL(storageRef);
     }
-    // Including a default mic setting if not updated in the UI
-    await updateDoc(doc(db,"users",currentUser.uid),{ username, platform, games, playstyle, about, mic: "Preferred", ...(photoURL && {photoURL}) });
+    await updateDoc(doc(db,"users",currentUser.uid),{ 
+        username, 
+        platform, 
+        games, 
+        playstyle, 
+        mic: mic || "Preferred", // Save new mic status
+        about, 
+        ...(photoURL && {photoURL}) 
+    });
     alert("Profile Updated!");
   } catch(e) { alert("Profile Update Failed: " + e.message); }
 }
@@ -362,7 +381,7 @@ async function loadUsers(){
       <div class="bio">
             <p>${data.about||"No bio set."}</p>
             <p style="font-size:0.85em; margin-top: 10px; color:var(--duoup-primary);">
-                <i class="fas fa-microphone" style="margin-right: 5px;"></i> Mic: ${data.mic || 'N/A'} | Games: ${data.games || 'None'}
+                <i class="fas fa-microphone" style="margin-right: 5px;"></i> Mic: ${data.mic || 'Preferred'} | Games: ${data.games || 'None'}
             </p>
         </div>
       <button class="action-button" onclick="sendDuoRequest('${docSnap.id}')"><i class="fas fa-plus-circle"></i> Send Duo Request</button>`;
