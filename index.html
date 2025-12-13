@@ -21,36 +21,33 @@
 }
 
 body { margin:0; font-family:var(--font-main); background:var(--bg-primary); color:var(--text-light); min-height:100vh; }
+
 h1,h2,h3 {font-family:var(--font-header); margin:0;}
 a {color:var(--accent-cyan); text-decoration:none;}
-button { cursor:pointer; border:none; border-radius:5px; transition:.2s; }
+button { cursor:pointer; border:none; border-radius:5px; }
 
-.header { position:fixed; top:0; left:0; width:100%; height:60px; background:rgba(36,38,59,.95); display:flex; justify-content:space-between; align-items:center; padding:0 20px; z-index:1000; }
-.logo h1 { margin:0; font-size:1.8em; } .logo span { color:var(--accent-cyan); }
-.nav-links { display:flex; gap:20px; }
-.nav-links a { font-size:1em; cursor:pointer; }
+#auth-section, #app-section { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; }
 
-#auth-section, #app-section { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding-top:60px; }
-form { display:flex; flex-direction:column; background:var(--bg-secondary); padding:25px; border-radius:8px; margin:10px; width:300px; }
-input { margin:10px 0; padding:12px; border-radius:6px; border:none; background:#2D3748; color:white; }
-button { margin-top:10px; padding:12px; font-weight:bold; }
-.google-btn { background:#DB4437; color:white; display:flex; align-items:center; justify-content:center; gap:8px; }
-#logoutBtn { background:var(--accent-cyan); color:#1A1A2E; padding:12px 20px; margin-bottom:20px; }
+form { display:flex; flex-direction:column; background:var(--bg-secondary); padding:20px; border-radius:8px; margin:10px; width:300px; }
+input, select { margin:8px 0; padding:10px; border-radius:5px; border:none; }
+button { margin-top:10px; padding:10px; font-weight:bold; }
+
+.google-btn { background:#DB4437; color:white; margin-top:10px; padding:10px; width:300px; }
+#logoutBtn { background:var(--accent-cyan); color:#1A1A2E; padding:10px; margin-bottom:20px; }
 
 .container { max-width:1200px; margin:30px auto; padding:0 20px; width:100%; }
 .results-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(320px,1fr)); gap:25px; width:100%; }
-
 .duo-card { background:var(--card-color); color:#1A1A2E; border-radius:12px; overflow:hidden; border-top:5px solid var(--accent-cyan); transition:.3s; }
 .duo-card:hover { transform:translateY(-5px); box-shadow:0 12px 20px rgba(0,255,255,.2); }
 .card-header { padding:15px 20px; display:flex; border-bottom:1px solid #edf2f7; }
 .avatar { width:50px;height:50px; background:var(--accent-cyan); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:15px; }
 .bio { padding:15px 20px; font-size:0.9em; color:#4A5568; }
-.action-button { width:100%; padding:12px; background:var(--accent-cyan); border:none; font-weight:bold; cursor:pointer; }
+.action-button { width:100%; padding:12px; background:var(--accent-cyan); color:#1A1A2E; font-weight:bold; margin-bottom:20px; }
 
 .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); justify-content:center; align-items:center; z-index:2000; }
 .chat-container { width:400px; height:500px; background:var(--bg-secondary); border-radius:10px; display:flex; flex-direction:column; }
-.chat-header { padding:10px 15px; background:#313349; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--accent-cyan); }
-.status-dot { width:8px;height:8px; background:var(--status-online); border-radius:50%; margin-right:8px; }
+.chat-header { padding:10px 15px; background:#313349; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--accent-cyan); color:var(--text-light); }
+.status-dot { width:8px;height:8px; border-radius:50%; margin-right:8px; background:var(--status-online); }
 .message-area { flex:1; padding:15px; overflow-y:auto; }
 .message { max-width:80%; margin-bottom:10px; }
 .message.self { margin-left:auto; }
@@ -59,26 +56,17 @@ button { margin-top:10px; padding:12px; font-weight:bold; }
 .message.self .message-content { background:var(--accent-cyan); color:#1A1A2E; }
 .chat-input-area { display:flex; padding:15px; }
 .chat-input { flex:1; padding:10px; border:none; background:#2D3748; color:white; }
-.send-button { padding:10px 15px; border:none; background:var(--accent-cyan); font-weight:bold; }
+.send-button { padding:10px 15px; border:none; background:var(--accent-cyan); color:#1A1A2E; font-weight:bold; }
 .chat-locked { text-align:center; color:var(--text-muted); padding-top:50px; }
 
-/* Profile Tabs */
-.tabs { display:flex; gap:10px; margin-bottom:15px; }
-.tab { padding:10px 15px; border-radius:5px; background:#2D3748; cursor:pointer; }
-.tab.active { background:var(--accent-cyan); color:#1A1A2E; }
-.tab-content { background:var(--bg-secondary); padding:20px; border-radius:8px; width:100%; max-width:800px; }
+.tab-header { display:flex; gap:10px; margin-bottom:20px; }
+.tab-header button { padding:8px 15px; background:var(--bg-secondary); color:var(--text-light); font-weight:bold; }
+.tab-header button:hover { background:var(--accent-cyan); color:#1A1A2E; }
+
+#tab-profile form { max-width:400px; width:100%; }
 </style>
 </head>
 <body>
-
-<header class="header">
-  <div class="logo"><h1>DUO<span>UP</span></h1></div>
-  <div class="nav-links">
-    <a onclick="showSection('profile')">Profile</a>
-    <a onclick="showSection('duos')">Find Duo</a>
-    <a onclick="openChat('General',true)">Messages</a>
-  </div>
-</header>
 
 <!-- AUTH SECTION -->
 <div id="auth-section">
@@ -101,31 +89,56 @@ button { margin-top:10px; padding:12px; font-weight:bold; }
   </button>
 </div>
 
-<!-- APP SECTION -->
+<!-- MAIN APP SECTION -->
 <div id="app-section" style="display:none;">
   <button id="logoutBtn">Logout</button>
 
+  <div class="tab-header">
+    <button onclick="switchTab('home')">Home</button>
+    <button onclick="switchTab('profile')">Profile</button>
+    <button onclick="switchTab('messages')">Messages</button>
+  </div>
+
   <!-- Tabs -->
-  <div class="tabs">
-    <div class="tab active" data-tab="profile" onclick="switchTab('profile')">Profile</div>
-    <div class="tab" data-tab="duos" onclick="switchTab('duos')">Find Duo</div>
-    <div class="tab" data-tab="messages" onclick="switchTab('messages')">Messages</div>
+  <div id="tab-home">
+    <div class="container">
+      <div class="results-grid">
+        <div class="duo-card">
+          <div class="card-header">
+            <div class="avatar">LF</div>
+            <div>
+              <h3>LunarFox_88</h3>
+              <p>PS5 & Switch</p>
+            </div>
+          </div>
+          <div class="bio">Casual gamer, co-op focused.</div>
+          <button class="action-button" onclick="openChat('LunarFox_88', true)">Send Duo Request</button>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <div id="profile" class="tab-content">
-    <h2>My Profile</h2>
-    <p><strong>Username:</strong> <span id="profile-username"></span></p>
-    <p><strong>Platform:</strong> <span id="profile-platform"></span></p>
-    <p><strong>Games:</strong> <span id="profile-games"></span></p>
-    <p><strong>Playstyle:</strong> <span id="profile-playstyle"></span></p>
+  <div id="tab-profile" style="display:none;">
+    <h2>Your Profile</h2>
+    <form id="profileForm">
+      <input type="text" id="profile-username" placeholder="Username" required>
+      <select id="profile-platform">
+        <option value="PC">PC</option>
+        <option value="PS5">PS5</option>
+        <option value="Switch">Switch</option>
+      </select>
+      <input type="text" id="profile-games" placeholder="Games (comma separated)">
+      <select id="profile-playstyle">
+        <option value="Casual">Casual</option>
+        <option value="Competitive">Competitive</option>
+      </select>
+      <button type="submit">Save Profile</button>
+    </form>
   </div>
 
-  <div id="duos" class="tab-content" style="display:none;">
-    <div class="results-grid"></div>
-  </div>
-
-  <div id="messages" class="tab-content" style="display:none;">
-    <p>Select a user from Duos to chat.</p>
+  <div id="tab-messages" style="display:none;">
+    <h2>Messages</h2>
+    <p>Click on a duo to chat.</p>
   </div>
 </div>
 
@@ -144,7 +157,7 @@ button { margin-top:10px; padding:12px; font-weight:bold; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, collection, getDocs, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase Config
 const firebaseConfig = {
@@ -161,11 +174,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// DOM
+// DOM Elements
 const authSection = document.getElementById("auth-section");
 const appSection = document.getElementById("app-section");
 const logoutBtn = document.getElementById("logoutBtn");
-const duoCards = document.querySelector(".results-grid");
 const chatModal = document.getElementById('chatModal');
 const chatHeader = document.getElementById('chatHeader');
 const messageArea = document.getElementById('messageArea');
@@ -174,120 +186,119 @@ const chatInput = document.getElementById('chatInput');
 let currentDuo = '';
 let chatActive = false;
 
-// --- AUTH ---
-document.getElementById("signup").addEventListener("submit", async e=>{
+// AUTH
+document.getElementById("signup").addEventListener("submit", async e => {
   e.preventDefault();
   const email = document.getElementById("signup-email").value;
   const password = document.getElementById("signup-password").value;
-  try { await createUserWithEmailAndPassword(auth,email,password); } catch(err){ alert(err.message);}
+  try { await createUserWithEmailAndPassword(auth, email, password); }
+  catch(err){ alert(err.message); }
 });
-document.getElementById("signin").addEventListener("submit", async e=>{
+
+document.getElementById("signin").addEventListener("submit", async e => {
   e.preventDefault();
   const email = document.getElementById("signin-email").value;
   const password = document.getElementById("signin-password").value;
-  try{ await signInWithEmailAndPassword(auth,email,password); } catch(err){ alert(err.message);}
+  try { await signInWithEmailAndPassword(auth, email, password); }
+  catch(err){ alert(err.message); }
 });
 
-window.googleLogin = async ()=>{
-  try{
+window.googleLogin = async () => {
+  try {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth,provider);
-  }catch(err){ alert(err.message);}
+    await signInWithPopup(auth, provider);
+  } catch(err){ alert(err.message); }
 };
-logoutBtn.addEventListener("click", async ()=>{ await signOut(auth); });
 
-// --- FIRESTORE USERS ---
-async function saveProfile(uid){
-  await setDoc(doc(db,"users",uid),{
-    username: uid,
-    platform:"PC",
-    games:["Valorant","LoL"],
-    playstyle:"Casual",
-    mic:"Preferred",
-    uid
-  });
-}
+logoutBtn.addEventListener("click", async () => { await signOut(auth); });
 
-async function loadDuoCards(){
-  const snapshot = await getDocs(collection(db,"users"));
-  duoCards.innerHTML = "";
-  snapshot.forEach(doc=>{
-    if(doc.id!==auth.currentUser.uid){
-      const data = doc.data();
-      duoCards.innerHTML += `
-      <div class="duo-card">
-        <div class="card-header">
-          <div class="avatar">${data.username.charAt(0).toUpperCase()}</div>
-          <div>
-            <h3>${data.username}</h3>
-            <p>${data.platform}</p>
-          </div>
-        </div>
-        <div class="bio">${data.games.join(", ")} | ${data.playstyle} | Mic: ${data.mic}</div>
-        <button class="action-button" onclick="openChat('${data.username}',true)">Send Duo Request</button>
-      </div>`;
-    }
-  });
-}
-
-// --- AUTH STATE ---
-onAuthStateChanged(auth,user=>{
+// Show/hide app based on auth
+onAuthStateChanged(auth, async user => {
   if(user){
-    authSection.style.display="none";
-    appSection.style.display="flex";
-    saveProfile(user.uid);
-    loadDuoCards();
-    loadProfile(user.uid);
-  }else{
-    authSection.style.display="flex";
-    appSection.style.display="none";
+    authSection.style.display = 'none';
+    appSection.style.display = 'flex';
+
+    // Load or create profile
+    const docRef = doc(db, 'users', user.uid);
+    const docSnap = await getDoc(docRef);
+    if(docSnap.exists()){
+      const data = docSnap.data();
+      document.getElementById('profile-username').value = data.username || '';
+      document.getElementById('profile-platform').value = data.platform || 'PC';
+      document.getElementById('profile-games').value = data.games || '';
+      document.getElementById('profile-playstyle').value = data.playstyle || 'Casual';
+    } else {
+      await setDoc(docRef, {
+        username: user.email.split('@')[0],
+        platform: 'PC',
+        games: '',
+        playstyle: 'Casual'
+      });
+    }
+
+  } else {
+    authSection.style.display = 'flex';
+    appSection.style.display = 'none';
   }
 });
 
-// --- LOAD PROFILE ---
-async function loadProfile(uid){
-  const docSnap = await getDoc(doc(db,"users",uid));
-  if(docSnap.exists()){
-    const data = docSnap.data();
-    document.getElementById("profile-username").innerText = data.username;
-    document.getElementById("profile-platform").innerText = data.platform;
-    document.getElementById("profile-games").innerText = data.games.join(", ");
-    document.getElementById("profile-playstyle").innerText = data.playstyle;
-  }
+// TAB SWITCHING
+const tabHome = document.getElementById('tab-home');
+const tabProfile = document.getElementById('tab-profile');
+const tabMessages = document.getElementById('tab-messages');
+
+window.switchTab = tab => {
+  tabHome.style.display='none';
+  tabProfile.style.display='none';
+  tabMessages.style.display='none';
+  if(tab==='home') tabHome.style.display='block';
+  if(tab==='profile') tabProfile.style.display='block';
+  if(tab==='messages') tabMessages.style.display='block';
 }
 
-// --- TABS ---
-function switchTab(tab){
-  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
-  document.querySelector(`[data-tab="${tab}"]`).classList.add("active");
-  document.querySelectorAll(".tab-content").forEach(c=>c.style.display="none");
-  document.getElementById(tab).style.display="block";
-}
+// SAVE PROFILE
+document.getElementById('profileForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const user = auth.currentUser;
+  if(!user) return;
+  const docRef = doc(db,'users',user.uid);
+  await setDoc(docRef,{
+    username: document.getElementById('profile-username').value,
+    platform: document.getElementById('profile-platform').value,
+    games: document.getElementById('profile-games').value,
+    playstyle: document.getElementById('profile-playstyle').value
+  },{merge:true});
+  alert('Profile updated!');
+});
 
-function showSection(section){ switchTab(section); }
-
-// --- CHAT ---
-window.openChat = (duoName,isAccepted)=>{
+// CHAT FUNCTIONS
+window.openChat = (duoName, isAccepted) => {
   currentDuo = duoName;
   chatActive = isAccepted;
   chatInput.value='';
-  chatInput.disabled=!chatActive;
+  chatInput.disabled = !chatActive;
+
   chatHeader.innerHTML = chatActive
     ? `<div><span class="status-dot"></span>${duoName} (Online)</div><span onclick="closeChat()">×</span>`
     : `<div style="color:#FFC107;">Request Pending with ${duoName}</div><span onclick="closeChat()">×</span>`;
+
   messageArea.innerHTML = chatActive
     ? `<div class="message other"><div class="message-content">Hey! Ready to play?</div></div>`
     : `<p class="chat-locked">Chat locked until request accepted.</p>`;
-  chatModal.style.display="flex";
-};
-function closeChat(){ chatModal.style.display='none'; }
-function sendMessage(){
+
+  chatModal.style.display='flex';
+}
+
+window.closeChat = () => { chatModal.style.display='none'; }
+
+window.sendMessage = () => {
   if(!chatActive || !chatInput.value.trim()) return;
   messageArea.innerHTML += `<div class="message self"><div class="message-content">${chatInput.value}</div></div>`;
   chatInput.value='';
   messageArea.scrollTop = messageArea.scrollHeight;
 }
-window.onclick = e=>{ if(e.target===chatModal) closeChat(); };
+
+window.onclick = e => { if(e.target===chatModal) closeChat(); }
 </script>
 </body>
 </html>
