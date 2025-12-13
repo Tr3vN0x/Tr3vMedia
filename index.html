@@ -36,7 +36,6 @@ header nav { display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
 #notificationBadge { color: var(--duoup-secondary); font-weight:bold; }
 #auth-section { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding-top:60px; }
 form:not(#duoSearchForm) { display:flex; flex-direction:column; background:#141426; padding:25px; border-radius:12px; margin:10px; width:90%; max-width:360px; box-shadow:0 0 20px rgba(0,255,255,0.15); }
-#profileEditForm { background:none; box-shadow:none; padding:0; max-width:500px; width:100%; margin:0; }
 input:not(#searchQuery), textarea { margin:8px 0; padding:12px; border-radius:6px; border:1px solid var(--duoup-primary); background:#2D2D44; color:var(--duoup-light); font-family: var(--font-main); }
 textarea { resize:none; min-height:80px; }
 button:not(.google-btn):not(#duoSearchForm button) { margin-top:10px; padding:12px; font-weight:bold; background:linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent)); color: var(--duoup-dark); text-transform:uppercase; box-shadow:0 0 15px rgba(0,255,255,0.5); }
@@ -55,35 +54,6 @@ button:not(.google-btn):not(#duoSearchForm button):hover { background:linear-gra
 .bio { padding:10px 15px; font-size:0.9em; color: var(--duoup-muted); }
 .action-button { width:100%; padding:12px; background:linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent)); color: var(--duoup-dark); font-weight:bold; border-radius:0 0 12px 12px; text-transform:uppercase; }
 .duo-request-card { border-top:5px solid var(--duoup-secondary); }
-.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; z-index:2000; }
-
-/* MODAL STYLES (for both chat and request) */
-.chat-container, #requestModalContent {
-    background: #141426;
-    border-radius: 12px;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-}
-
-.chat-container { width:90%; max-width:420px; height:80%; display:flex; flex-direction:column; }
-.chat-header { padding:10px 15px; background:#1A1A2E; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--duoup-primary); color: var(--duoup-light);}
-.status-dot { width:8px; height:8px; border-radius:50%; margin-right:8px; display:inline-block;}
-.status-dot.online { background: var(--status-online); }
-.status-dot.offline { background: var(--status-offline); }
-.message-area { flex:1; padding:10px; overflow-y:auto; }
-.message { max-width:80%; margin-bottom:10px; }
-.message.self { margin-left:auto; }
-.message-content { padding:8px 12px; border-radius:12px; }
-.message.other .message-content { background:linear-gradient(135deg, #2D2D44, #3A3A52); color:white; }
-.message.self .message-content { background:linear-gradient(135deg, var(--duoup-primary), var(--duoup-accent)); color: var(--duoup-dark); }
-.chat-input-area { display:flex; padding:10px; gap:5px; }
-.chat-input { flex:1; padding:10px; border-radius:6px; border:none; background:#2D2D44; color:white; }
-.send-button { padding:10px 15px; border:none; background:linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent)); color: var(--duoup-dark); font-weight:bold; border-radius:6px; }
-
-#requestModalContent { width: 90%; max-width: 400px; padding: 20px; display: flex; flex-direction: column; }
-#requestModalContent h3 { color: var(--duoup-secondary); border-bottom: 2px solid var(--duoup-primary); padding-bottom: 10px; margin-bottom: 15px; font-size: 1.5em; }
-#requestModalContent button { margin-top: 15px; }
-#requestMessage { min-height: 100px; max-height: 150px; background: #1A1A2E; }
-
 #quickAddSection { margin-bottom:30px; }
 @media(max-width:500px){ header h1 { font-size:1.6em; } .results-grid { grid-template-columns:1fr; } }
 </style>
@@ -132,7 +102,6 @@ button:not(.google-btn):not(#duoSearchForm button):hover { background:linear-gra
             <button type="submit" style="padding:12px 20px;"><i class="fas fa-search"></i> Find Duo</button>
         </form>
 
-        <!-- Quick Add Section -->
         <div id="quickAddSection">
             <h3>Quick Add Random Players</h3>
             <div class="results-grid" id="quickAddGrid"></div>
@@ -141,19 +110,25 @@ button:not(.google-btn):not(#duoSearchForm button):hover { background:linear-gra
         <div class="results-grid" id="usersGrid"></div>
     </div>
 
-    <!-- Profile and Messages sections unchanged... -->
+    <div id="profile-section" class="container" style="display:none;">
+      <h2>My Profile</h2>
+      <p>Username: <span id="profileUsername"></span></p>
+      <p>Email: <span id="profileEmail"></span></p>
+      <p>Platform: <span id="profilePlatform"></span></p>
+      <p>Games: <span id="profileGames"></span></p>
+    </div>
+
+    <div id="messages-section" class="container" style="display:none;">
+      <h2>Messages</h2>
+      <div id="messagesList"></div>
+    </div>
 </div>
 
-<!-- Modals unchanged... -->
-
 <script type="module">
-// Firebase Imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-import { getFirestore, collection, doc, setDoc, addDoc, getDoc, updateDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
-import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
+import { getFirestore, collection, doc, setDoc, addDoc, getDoc, query, where, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
-// Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw", 
   authDomain: "duoup-cfae6.firebaseapp.com",
@@ -167,10 +142,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
-// DOM Elements
 const signinForm = document.getElementById("signin");
 const signupForm = document.getElementById("signup");
 const googleBtn = document.querySelector(".google-btn");
@@ -182,9 +155,8 @@ const usersGrid = document.getElementById("usersGrid");
 const userCountElement = document.getElementById("userCount");
 const quickAddGrid = document.getElementById("quickAddGrid");
 
-// State
+// STATE
 let allUsersData = [];
-let acceptedDuosMap = new Map();
 
 // AUTH
 signinForm.addEventListener("submit", async e=>{ e.preventDefault(); try{ await signInWithEmailAndPassword(auth, document.getElementById("signin-email").value, document.getElementById("signin-password").value); } catch(err){ alert(err.message); } });
@@ -240,12 +212,7 @@ function loadQuickAdd(){
         allUsersData = allUsers; // keep full copy for search
         // Shuffle
         allUsers.sort(()=>Math.random()-0.5);
-        let randomUsers=[];
-        if(allUsers.length<=4){
-            while(randomUsers.length<4){
-                randomUsers.push(allUsers[randomUsers.length % allUsers.length]);
-            }
-        } else { randomUsers = allUsers.slice(0,4); }
+        let randomUsers = allUsers.slice(0, Math.min(4, allUsers.length));
 
         quickAddGrid.innerHTML="";
         randomUsers.forEach(u=>{
@@ -256,6 +223,64 @@ function loadQuickAdd(){
             quickAddGrid.appendChild(card);
         });
     });
+}
+
+// OPEN REQUEST MODAL -> SEND MESSAGE
+window.openRequestModal = async function(uid, username){
+  const currentUser = auth.currentUser;
+  if(!currentUser) return;
+  try{
+    await addDoc(collection(db,"messages"),{
+      from: currentUser.uid,
+      to: uid,
+      message: `${currentUser.email} sent you a Quick Add request!`,
+      timestamp: serverTimestamp(),
+      type: "quickAdd"
+    });
+    alert(`Quick Add request sent to ${username}`);
+  } catch(err){ alert(err.message); }
+}
+
+// LOAD PROFILE
+async function loadProfile(){
+  const currentUser = auth.currentUser;
+  const docRef = doc(db,"users",currentUser.uid);
+  const docSnap = await getDoc(docRef);
+  if(docSnap.exists()){
+    const data = docSnap.data();
+    document.getElementById("profileUsername").textContent = data.username;
+    document.getElementById("profileEmail").textContent = data.email;
+    document.getElementById("profilePlatform").textContent = data.platform || "N/A";
+    document.getElementById("profileGames").textContent = data.games || "N/A";
+  }
+}
+
+// LOAD MESSAGES
+async function loadMessages(){
+  const currentUser = auth.currentUser;
+  const messagesList = document.getElementById("messagesList");
+  messagesList.innerHTML = "Loading...";
+  const q = query(collection(db,"messages"), where("to", "==", currentUser.uid), orderBy("timestamp","desc"));
+  onSnapshot(q, snap=>{
+    messagesList.innerHTML = "";
+    snap.forEach(doc=>{
+      const msg = doc.data();
+      const div = document.createElement("div");
+      div.className = "duo-card duo-request-card";
+      div.innerHTML = `<div class="card-header"><strong>${msg.type==="quickAdd" ? "Quick Add Request" : "Message"}</strong></div>
+      <div class="bio">${msg.message}</div>`;
+      messagesList.appendChild(div);
+    });
+  });
+}
+
+// SHOW SECTION
+window.showSection = function(section){
+  document.getElementById("home-section").style.display = section==="home" ? "block" : "none";
+  document.getElementById("profile-section").style.display = section==="profile" ? "block" : "none";
+  document.getElementById("messages-section").style.display = section==="messages" ? "block" : "none";
+  if(section==="profile") loadProfile();
+  if(section==="messages") loadMessages();
 }
 
 // ON AUTH STATE
@@ -272,17 +297,6 @@ onAuthStateChanged(auth, user=>{
         mainHeader.style.display="none";
     }
 });
-
-// PLACEHOLDER FOR OPEN REQUEST MODAL
-window.openRequestModal = function(uid,username){
-    alert(`Quick Add request to ${username} (uid:${uid}) would open modal here.`);
-}
-
-// SHOW SECTION FUNCTION
-window.showSection = function(section){
-    // placeholder, could toggle profile/messages/home sections
-    alert(`Switching to section: ${section}`);
-}
 </script>
 
 </body>
