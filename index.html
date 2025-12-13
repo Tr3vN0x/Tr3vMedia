@@ -24,14 +24,14 @@ header nav{display:flex;align-items:center;gap:15px;flex-wrap:wrap;}
 #auth-section{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding-top:60px;}
 form:not(#duoSearchForm):not(#postForm){display:flex;flex-direction:column;background:#141426;padding:25px;border-radius:12px;margin:10px;width:90%;max-width:360px;}
 input,textarea{margin:8px 0;padding:12px;border-radius:6px;border:1px solid var(--duoup-primary);background:#2D2D44;color:var(--duoup-light);}
-button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;font-weight:bold;background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));color:var(--duoup-dark);}
+button:not(.google-btn):not(#duoSearchForm button):not(.like-btn){margin-top:10px;padding:12px;font-weight:bold;background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));color:var(--duoup-dark);}
 .google-btn{background:linear-gradient(90deg,#DB4437,#EA4335);color:white;width:90%;max-width:360px;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:15px;}
 #app-section{width:100%;padding-top:60px;display:none;}
 .container{max-width:1200px;margin:20px auto;padding:0 15px;}
 .results-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;}
 .duo-card{background:linear-gradient(145deg,#1A1A2E,#2D2D44);color:var(--duoup-light);border-radius:12px;overflow:hidden;border:1px solid #3A3A52;transition:.3s;box-shadow:0 4px 8px rgba(0,0,0,0.4);margin-bottom:15px;}
 .card-header{display:flex;align-items:center;padding:10px 15px;border-bottom:1px solid #3A3A52;}
-.avatar{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:15px;background:var(--duoup-secondary);color:var(--duoup-dark);flex-shrink: 0;} /* Added flex-shrink: 0 */
+.avatar{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:15px;background:var(--duoup-secondary);color:var(--duoup-dark);flex-shrink: 0;}
 .bio, .post-content{padding:10px 15px;font-size:0.9em;color:var(--duoup-muted);white-space: pre-wrap;}
 .action-button{width:100%;padding:12px;background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));color:var(--duoup-dark);font-weight:bold;border-radius:0 0 12px 12px;}
 .username-display{display:flex;align-items:center;font-size:1.1em;}
@@ -46,6 +46,21 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
 #postBtn{background:var(--duoup-secondary);color:var(--duoup-dark);font-weight:bold;padding:10px;}
 .post-meta{font-size:0.8em;color:var(--duoup-muted);margin-top:5px;}
 .post-list{max-width:700px;margin:0 auto;}
+
+.post-footer { display: flex; align-items: center; justify-content: space-between; padding: 0 15px 10px; }
+.like-btn { 
+    background: transparent; 
+    color: var(--duoup-muted); 
+    padding: 5px 10px; 
+    font-size: 1em;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.like-btn:hover { color: var(--duoup-primary); }
+.like-btn.liked { color: var(--duoup-secondary); }
+.like-btn.liked i { color: var(--duoup-secondary); }
+
 @media(max-width:500px){.results-grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -116,7 +131,7 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
 
 // --- Firebase Config & Initialization ---
@@ -156,7 +171,6 @@ const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
 let activityInterval; 
 let currentUsername = ""; // Tracks username fetched from DB/last saved
 let currentBio = "";      // Tracks bio fetched from DB/last saved
-let allUsersData = {}; // Cache all user data for joining with posts
 
 // --- Utility Functions ---
 function getVerifiedBadge(username) {
@@ -397,36 +411,75 @@ postForm.addEventListener("submit", async e => {
     if (!user) return;
     
     try {
-        // FIX: Include currentUsername and currentBio in the post data
         await addDoc(collection(db, "posts"), {
             authorUid: user.uid,
-            authorUsername: currentUsername, // Save the username directly
+            authorUsername: currentUsername,
             content: content,
             timestamp: Date.now(),
+            likes: [], // Initialize likes array
         });
-        document.getElementById("postContent").value = ""; // Clear form
-        loadPosts(); // Reload posts
+        document.getElementById("postContent").value = ""; 
+        loadPosts(); 
     } catch (err) {
         console.error("Error creating post:", err);
         alert("Failed to create post.");
     }
 });
 
+/**
+ * Toggles the like status of a post.
+ * @param {string} postId - The ID of the post document.
+ * @param {boolean} isLiked - True if the post is currently liked by the user.
+ */
+window.toggleLikePost = async function(postId, isLiked) {
+    const user = auth.currentUser;
+    if (!user) return alert("You must be logged in to like posts.");
+
+    const postRef = doc(db, "posts", postId);
+    try {
+        if (isLiked) {
+            // Unlike: Remove UID from the likes array
+            await updateDoc(postRef, {
+                likes: arrayRemove(user.uid)
+            });
+        } else {
+            // Like: Add UID to the likes array
+            await updateDoc(postRef, {
+                likes: arrayUnion(user.uid)
+            });
+        }
+        
+        // Refresh the feed to reflect the change
+        loadPosts(); 
+
+    } catch (err) {
+        console.error("Error toggling like:", err);
+        alert("Failed to update like status.");
+    }
+}
+
+
 async function loadPosts() {
     postsList.innerHTML = '';
-    
+    const user = auth.currentUser;
+
     const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
     const postSnap = await getDocs(postsQuery);
 
     postSnap.forEach(doc => {
         const post = doc.data();
+        const postId = doc.id;
         
-        // Use the saved username from the post document itself
         const username = post.authorUsername || 'Unknown User';
         const avatarChar = username ? username[0] : 'U';
-        
-        // Check for verified badge using the username
         const verifiedBadgeHtml = getVerifiedBadge(username);
+        
+        const likesArray = post.likes || [];
+        const likeCount = likesArray.length;
+        const isLiked = user && likesArray.includes(user.uid);
+        
+        const likeIcon = isLiked ? 'fas fa-heart' : 'far fa-heart';
+        const likeClass = isLiked ? 'liked' : '';
         
         postsList.innerHTML += `
         <div class="duo-card">
@@ -441,6 +494,11 @@ async function loadPosts() {
                 </div>
             </div>
             <div class="post-content">${post.content}</div>
+            <div class="post-footer">
+                <button class="like-btn ${likeClass}" onclick="toggleLikePost('${postId}', ${isLiked})">
+                    <i class="${likeIcon}"></i> ${likeCount}
+                </button>
+            </div>
         </div>
         `;
     });
@@ -468,13 +526,9 @@ onAuthStateChanged(auth,async user=>{
         appSection.style.display="block";
         mainHeader.style.display="flex";
         
-        // Ensure user data is set and cache all user data for feed loading
         const userData = await ensureUserProfileLoaded(user);
         currentUsername = userData.username || '';
         currentBio = userData.bio || '';
-        
-        // NOTE: We no longer need to cache all user data here, as the username is saved directly in the post.
-        // allUsersData will now only be used for the User Search (loadUsers) if needed in the future.
         
         await updateLastActiveStatus(user.uid); 
         
@@ -494,6 +548,7 @@ onAuthStateChanged(auth,async user=>{
 
 // Expose functions
 window.showSection = showSection;
+window.toggleLikePost = toggleLikePost;
 </script>
 
 </body>
