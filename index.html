@@ -113,28 +113,26 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
+// DOM Elements
 const signinForm = document.getElementById("signin");
 const signupForm = document.getElementById("signup");
 const googleBtn = document.querySelector(".google-btn");
 const authSection = document.getElementById("auth-section");
 const appSection = document.getElementById("app-section");
 const mainHeader = document.getElementById("mainHeader");
-
 const usersGrid = document.getElementById("usersGrid");
 const userCountElement = document.getElementById("userCount");
-
 const profileUsername = document.getElementById("profile-username");
 const profileAbout = document.getElementById("profile-about");
 const profilePhoto = document.getElementById("profile-photo");
 const saveProfileBtn = document.getElementById("saveProfileBtn");
 const profilePreviewContainer = document.getElementById("profilePreviewContainer");
 
-// --- Auth ---
+// --- Auth Handlers ---
 signinForm.addEventListener("submit", async e=>{
     e.preventDefault();
     try{
         await signInWithEmailAndPassword(auth, document.getElementById("signin-email").value, document.getElementById("signin-password").value);
-        loadUsers();
     } catch(err){ alert(err.message); }
 });
 signupForm.addEventListener("submit", async e=>{
@@ -147,14 +145,11 @@ signupForm.addEventListener("submit", async e=>{
             username:"New Player",
             bio:"",
             profileImageUrl:"",
-            friends:"",
+            friends:""
         });
-        loadUsers();
     } catch(err){ alert(err.message); }
 });
-googleBtn.addEventListener("click", async ()=>{
-    try{ await signInWithPopup(auth, provider); loadUsers(); } catch(err){ alert(err.message); }
-});
+googleBtn.addEventListener("click", async ()=>{ try{ await signInWithPopup(auth,provider); } catch(err){ alert(err.message); }});
 document.getElementById("logoutBtnHeader").addEventListener("click", async ()=>{ await signOut(auth); });
 
 // --- Profile ---
@@ -200,7 +195,7 @@ profilePhoto.addEventListener("change", async e=>{
     loadProfile();
 });
 
-// --- Duo Search ---
+// --- Load Users ---
 async function loadUsers(){
     const currentUser = auth.currentUser;
     if(!currentUser) return;
@@ -209,7 +204,7 @@ async function loadUsers(){
     let count=0;
     qSnap.forEach(doc=>{
         const data = doc.data();
-        if(!data.uid || !data.email || data.uid===currentUser.uid) return; // only real users
+        if(!data.uid || data.uid===currentUser.uid) return; // skip current user
         count++;
         usersGrid.innerHTML+=`
         <div class="duo-card">
@@ -225,7 +220,7 @@ async function loadUsers(){
     userCountElement.innerText = count+" players online";
 }
 
-// --- Friend Requests Placeholder ---
+// --- Send Friend Request ---
 async function sendFriendRequest(receiverId){
     const senderId = auth.currentUser.uid;
     await setDoc(doc(db,"friendRequests",senderId+"_"+receiverId),{
