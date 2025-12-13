@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Ink - Multi-User Hub</title>
+    <title>Neon Ink - Simplified Login Hub</title>
     <style>
         /* --- GLOBAL STYLES (Neon Theme) --- */
         :root {
@@ -110,7 +110,7 @@
         .form-switch:hover { text-decoration: underline; }
         #createView textarea { height: 300px; }
 
-        /* --- STORY LIST VIEW STYLES --- */
+        /* --- STORY LIST VIEW STYLES (Unchanged) --- */
         #storyList { 
             display: grid; 
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
@@ -149,7 +149,7 @@
             margin-top: 10px;
         }
 
-        /* --- PROFILE VIEW --- */
+        /* --- PROFILE VIEW (Unchanged) --- */
         #profileView { text-align: center; }
         #profilePicture { 
             width: 150px; 
@@ -175,7 +175,7 @@
         .story-card-profile h4 { margin: 0; color: var(--color-text); }
         .story-card-profile a { color: var(--color-accent); text-decoration: none; }
 
-        /* --- READ VIEW STYLES --- */
+        /* --- READ VIEW STYLES (Unchanged) --- */
         #readView { font-family: var(--font-display); padding: 20px; }
         #readView .story-title { font-size: 2.8em; color: var(--color-neon); }
         #readView .story-author { color: var(--color-accent); font-style: italic; margin-bottom: 20px; }
@@ -216,28 +216,33 @@
             
             <section id="authView" class="hidden">
                 <h2>🔑 Account Access</h2>
+                
                 <div id="signInForm" class="auth-form">
-                    <h3>Sign In</h3>
+                    <h3>Find My Account</h3>
+                    <p style="color: var(--color-neon);">
+                        *No password required. Enter your existing username to sign in.*
+                    </p>
                     <label for="signinUsername">Username:</label>
-                    <input type="text" id="signinUsername" placeholder="Enter your username">
-                    <label for="signinPassword">Password (simulated):</label>
-                    <input type="password" id="signinPassword" placeholder="Any password">
-                    <button class="nav-btn" onclick="signIn()">Sign In</button>
-                    <p class="form-switch" onclick="switchAuthMode('signUp')">Need an account? Sign Up.</p>
+                    <input type="text" id="signinUsername" placeholder="Enter your existing username">
+                    <button class="nav-btn" onclick="signIn()">Sign In / Find Account</button>
+                    <p class="form-switch" onclick="switchAuthMode('signUp')">New here? Create an account.</p>
                 </div>
 
                 <div id="signUpForm" class="auth-form hidden">
-                    <h3>Sign Up</h3>
+                    <h3>Create New Account</h3>
+                    <p style="color: var(--color-accent);">
+                        *You must choose a username and a simple password now.*
+                    </p>
                     <label for="signupUsername">Username:</label>
-                    <input type="text" id="signupUsername" placeholder="Choose a username">
-                    <label for="signupPassword">Password (simulated):</label>
-                    <input type="password" id="signupPassword" placeholder="Choose a password">
+                    <input type="text" id="signupUsername" placeholder="Choose a unique username">
+                    <label for="signupPassword">Password (Simulated):</label>
+                    <input type="password" id="signupPassword" placeholder="Choose a simple password for creation">
                     <label for="signupBio">Bio (Optional):</label>
                     <textarea id="signupBio" placeholder="Tell us about yourself..." rows="3"></textarea>
                     <label for="signupPic">Profile Picture URL (Optional):</label>
                     <input type="text" id="signupPic" placeholder="Link to a profile image">
-                    <button class="nav-btn" onclick="signUp()">Sign Up</button>
-                    <p class="form-switch" onclick="switchAuthMode('signIn')">Already have an account? Sign In.</p>
+                    <button class="nav-btn" onclick="signUp()">Create Account & Sign In</button>
+                    <p class="form-switch" onclick="switchAuthMode('signIn')">I have an account. Go back to Sign In.</p>
                 </div>
             </section>
             
@@ -299,7 +304,7 @@
         const LOGGED_IN_USER_KEY = 'loggedInUser';
         let currentFilter = 'All';
 
-        // --- DATA RETRIEVAL/STORAGE UTILITIES ---
+        // --- DATA RETRIEVAL/STORAGE UTILITIES (Unchanged) ---
         function getStories() {
             const storiesJSON = localStorage.getItem(STORIES_KEY);
             return storiesJSON ? JSON.parse(storiesJSON) : [];
@@ -308,7 +313,6 @@
             localStorage.setItem(STORIES_KEY, JSON.stringify(storiesArray));
         }
         function getUsers() {
-            // Initialize with an empty array if USERS_KEY is not found
             const usersJSON = localStorage.getItem(USERS_KEY);
             return usersJSON ? JSON.parse(usersJSON) : [];
         }
@@ -352,26 +356,25 @@
         }
         
         function switchAuthMode(mode) {
-            // This function toggles visibility between the Sign In and Sign Up forms
             document.getElementById('signInForm').classList.toggle('hidden', mode === 'signUp');
             document.getElementById('signUpForm').classList.toggle('hidden', mode === 'signIn');
         }
 
         function signUp() {
             const username = document.getElementById('signupUsername').value.trim();
-            const password = document.getElementById('signupPassword').value.trim(); 
+            const password = document.getElementById('signupPassword').value.trim(); // Required for creation
             const bio = document.getElementById('signupBio').value.trim();
             const pic = document.getElementById('signupPic').value.trim();
 
             if (!username || !password) {
-                alert('Username and Password are required.');
+                alert('Username and Password are required to create an account.');
                 return;
             }
 
             let users = getUsers();
             
             if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-                alert('Username already exists!');
+                alert('Username already exists! Please go back to the Sign In screen.');
                 return;
             }
 
@@ -386,30 +389,43 @@
             saveUsers(users);
             setLoggedInUser(username);
             alert(`Welcome, ${username}! Account created.`);
+            
+            // Clear sign up form fields
+            document.getElementById('signupUsername').value = '';
+            document.getElementById('signupPassword').value = '';
+            document.getElementById('signupBio').value = '';
+            document.getElementById('signupPic').value = '';
+            
             showView('listView');
         }
 
         function signIn() {
-            const username = document.getElementById('signinUsername').value.trim();
-            const password = document.getElementById('signinPassword').value.trim();
+            // SIMPLIFIED LOGIN: Only checks for username existence.
+            const usernameInput = document.getElementById('signinUsername');
+            const username = usernameInput.value.trim();
 
-            if (!username || !password) {
-                alert('Please enter both username and password.');
+            if (!username) {
+                alert('Please enter your username to find your account.');
                 return;
             }
 
             const users = getUsers();
 
-            // Find user, check case-insensitively for username and case-sensitively for password
-            const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
+            // Find user (case-insensitively)
+            const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
 
             if (user) {
-                // Set the logged-in user using the stored casing
+                // Login is successful if the user exists.
                 setLoggedInUser(user.username); 
-                alert(`Signed in as ${user.username}.`);
+                alert(`Signed in instantly as ${user.username}.`);
+                usernameInput.value = ''; // Clear input field
                 showView('listView');
             } else {
-                alert('Invalid username or password.');
+                alert(`Account not found for "${username}". Please Sign Up.`);
+                // Direct the user to the Sign Up form
+                switchAuthMode('signUp');
+                // Pre-fill the username field to make sign up easier
+                document.getElementById('signupUsername').value = username;
             }
         }
 
@@ -421,7 +437,7 @@
         }
 
 
-        // --- NAVIGATION & VIEW MANAGEMENT (Mostly Unchanged) ---
+        // --- NAVIGATION & VIEW MANAGEMENT (Unchanged) ---
         function showView(viewId) {
             document.getElementById('listView').classList.add('hidden');
             document.getElementById('createView').classList.add('hidden');
@@ -435,7 +451,7 @@
             if (viewId === 'listView') {
                 renderStoryList();
             } else if (viewId === 'profileView') {
-                renderProfileView(getLoggedInUser()); // Pass the currently logged-in user
+                renderProfileView(getLoggedInUser()); 
             } else if (viewId === 'readView') {
                 document.getElementById('sidebar').classList.add('hidden');
             } else if (viewId === 'authView') {
@@ -526,7 +542,7 @@
             const newStory = {
                 id: generateId(),
                 title: title,
-                author: loggedInUser, // Use the actual logged-in user
+                author: loggedInUser, 
                 category: category,
                 thumbnailUrl: thumbnailUrl,
                 chapters: [{
@@ -576,7 +592,7 @@
             showView('readView');
         }
 
-        // --- 4. PROFILE VIEW LOGIC (Updated to pull specific user data) ---
+        // --- 4. PROFILE VIEW LOGIC (Unchanged) ---
         function renderProfileView(targetUsername) {
             if (!targetUsername) {
                 alert('You must be signed in to view your profile.');
@@ -587,10 +603,8 @@
             const users = getUsers();
             const user = users.find(u => u.username === targetUsername);
             
+            // Fallback for user data not found
             if (!user) {
-                // This handles clicking on an author's name from the list view
-                // if they don't have a full profile, or if the logged-in user's
-                // data was manually removed from Local Storage.
                 document.getElementById('profileUsername').textContent = targetUsername;
                 document.getElementById('profileBio').textContent = `Profile details for ${targetUsername} are unavailable.`;
                 document.getElementById('profilePicture').src = 'https://via.placeholder.com/150/1a1a1a/00ffcc?text=U';
@@ -633,7 +647,6 @@
             filterStories('All'); 
             showView('listView');
             
-            // Ensure Sign Up is initially hidden
             switchAuthMode('signIn'); 
         });
     </script>
