@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tr3vMedia Neon Swipe Interface with Viewer</title>
+    <title>Tr3vMedia Neon Swipe Interface with Viewer & Diagonal Header</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         /* --- NEON LED THEME STYLES --- */
@@ -34,7 +34,7 @@
             font-size: 2em;
         }
 
-        /* --- CARD & SWIPE STYLES (Unchanged) --- */
+        /* --- CARD & SWIPE STYLES --- */
         .swipe-container {
             position: relative;
             width: 320px;
@@ -62,6 +62,26 @@
             text-align: center;
         }
         
+        /* --- DIAGONAL HEADER STYLES (NEW) --- */
+        .card-header {
+            position: absolute;
+            top: 20px; /* Distance from the top */
+            left: -45px; /* Adjust to center the text after rotation */
+            width: 200px; /* Width must be large enough to contain text */
+            padding: 5px 0;
+            background-color: rgba(0, 255, 102, 0.8); /* Semi-transparent neon background */
+            color: var(--bg-dark); /* Dark text on bright background */
+            text-align: center;
+            font-size: 0.9em;
+            font-weight: bold;
+            letter-spacing: 1px;
+            
+            /* The magic rotation */
+            transform: rotate(-45deg);
+            transform-origin: 0 0; /* Rotate around the top-left corner */
+            z-index: 10;
+        }
+
         .card:active { cursor: grabbing; }
         .card-image { width: 100%; height: 70%; object-fit: cover; border-bottom: 1px solid var(--neon-green); }
         .card-info { padding: 15px; height: 30%; display: flex; flex-direction: column; justify-content: center; }
@@ -87,7 +107,7 @@
             box-shadow: var(--neon-glow); display: none;
         }
         
-        /* --- MODAL STYLES (Shared) --- */
+        /* --- MODAL STYLES (Unchanged) --- */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.85); display: flex; justify-content: center;
@@ -105,38 +125,17 @@
         }
         .modal-actions { display: flex; justify-content: space-between; margin-top: 30px; }
         
-        /* --- MEDIA VIEWER SPECIFIC STYLES --- */
-        #mediaViewerModal .modal-content {
-            max-width: 700px;
-            padding: 20px;
-        }
+        /* --- MEDIA VIEWER SPECIFIC STYLES (Unchanged) --- */
+        #mediaViewerModal .modal-content { max-width: 700px; padding: 20px; }
         .media-container {
-            width: 100%;
-            /* 16:9 Aspect Ratio for video players (56.25% of width) */
-            padding-bottom: 56.25%; 
-            position: relative;
-            background: var(--bg-dark);
-            border: 1px solid var(--neon-green);
-            margin-bottom: 15px;
+            width: 100%; padding-bottom: 56.25%; position: relative;
+            background: var(--bg-dark); border: 1px solid var(--neon-green); margin-bottom: 15px;
         }
         .media-container iframe, .media-container img, .media-container video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover;
         }
-        
-        .viewer-nav-controls {
-            display: flex;
-            justify-content: space-around;
-            margin-top: 20px;
-        }
-        .viewer-nav-controls button {
-            width: 45%;
-            padding: 10px;
-        }
+        .viewer-nav-controls { display: flex; justify-content: space-around; margin-top: 20px; }
+        .viewer-nav-controls button { width: 45%; padding: 10px; }
 
     </style>
 </head>
@@ -206,45 +205,46 @@
     <script>
         // --- JAVASCRIPT LOGIC ---
 
-        // Mock Database of Cards (Added fullUrl field)
+        // Mock Database of Cards (Added 'age' for demonstration)
         let CARD_DATA = [
-            { id: 1, title: "City Sunset Time-lapse", user: "@trev_photo", description: "A beautiful 4K time-lapse project.", imageUrl: "https://picsum.photos/320/280?random=1", mediaType: 'video', fullUrl: 'https://www.youtube.com/embed/s3yYvVw84e4?autoplay=1&mute=1' },
-            { id: 2, title: "Street Interview Series", user: "@urban_media", description: "Asking strangers about their biggest dreams.", imageUrl: "https://picsum.photos/320/280?random=2", mediaType: 'image', fullUrl: 'https://picsum.photos/600/400?random=5&grayscale' },
-            { id: 3, title: "Experimental Film Trailer", user: "@arthouse_vid", description: "A sneak peek at my new short film.", imageUrl: "https://picsum.photos/320/280?random=3", mediaType: 'video', fullUrl: 'https://www.youtube.com/embed/Q5S-JjG6f3s?autoplay=1&mute=1' },
-            { id: 4, title: "Nature Photography Gallery", user: "@wildlens", description: "Capturing the beauty of the PNW forests.", imageUrl: "https://picsum.photos/320/280?random=4", mediaType: 'image', fullUrl: 'https://picsum.photos/600/400?random=6' },
+            { id: 1, title: "City Sunset Time-lapse", user: "@trev_photo", age: 28, description: "A beautiful 4K time-lapse project.", imageUrl: "https://picsum.photos/320/280?random=1", mediaType: 'video', fullUrl: 'https://www.youtube.com/embed/s3yYvVw84e4?autoplay=1&mute=1' },
+            { id: 2, title: "Street Interview Series", user: "@urban_media", age: 22, description: "Asking strangers about their biggest dreams.", imageUrl: "https://picsum.photos/320/280?random=2", mediaType: 'image', fullUrl: 'https://picsum.photos/600/400?random=5&grayscale' },
+            { id: 3, title: "Experimental Film Trailer", user: "@arthouse_vid", age: 35, description: "A sneak peek at my new short film.", imageUrl: "https://picsum.photos/320/280?random=3", mediaType: 'video', fullUrl: 'https://www.youtube.com/embed/Q5S-JjG6f3s?autoplay=1&mute=1' },
+            { id: 4, title: "Nature Photography Gallery", user: "@wildlens", age: 19, description: "Capturing the beauty of the PNW forests.", imageUrl: "https://picsum.photos/320/280?random=4", mediaType: 'image', fullUrl: 'https://picsum.photos/600/400?random=6' },
         ];
         
-        // --- NEW GLOBAL STATE FOR VIEWER ---
+        // --- GLOBAL STATE ---
         let viewerHistory = [];
         let viewerHistoryIndex = -1;
-
-        // --- UI ELEMENTS ---
         const swipeContainer = document.querySelector('.swipe-container');
         const dislikeBtn = document.getElementById('dislikeBtn');
         const likeBtn = document.getElementById('likeBtn');
         const noMoreCards = document.getElementById('noMoreCards');
         const prevMediaBtn = document.getElementById('prevMediaBtn');
         const nextMediaBtn = document.getElementById('nextMediaBtn');
-
         let currentCardIndex = 0;
         let isUserLoggedIn = false;
         let userCardData = JSON.parse(localStorage.getItem('userCard')) || {
-            id: 'user_custom', title: "My Custom Media Card", user: localStorage.getItem('userHandle') || "@Guest",
+            id: 'user_custom', title: "My Custom Media Card", user: localStorage.getItem('userHandle') || "@Guest", age: 99,
             description: "Customize this description in the modal!", imageUrl: "https://picsum.photos/320/280?user=tr3vmedia",
             mediaType: 'image', fullUrl: 'https://picsum.photos/600/400?user=tr3vmedia'
         };
 
 
-        // --- 1. CARD RENDERING (Unchanged) ---
+        // --- 1. CARD RENDERING (UPDATED) ---
+
         function createCard(data) {
             const card = document.createElement('div');
             card.className = 'card';
             card.dataset.id = data.id;
+
+            // NEW DIAGONAL HEADER HTML
             card.innerHTML = `
+                <div class="card-header">${data.user.toUpperCase()}, ${data.age}</div>
                 <img class="card-image" src="${data.imageUrl}" alt="${data.title}">
                 <div class="card-info">
                     <h3>${data.title.toUpperCase()}</h3>
-                    <p>By ${data.user} | ${data.description}</p>
+                    <p>${data.description}</p>
                 </div>
             `;
             return card;
@@ -270,27 +270,22 @@
             }
         }
 
-        // --- 2. SWIPE LOGIC (Modified to trigger viewer on 'right' swipe) ---
+        // --- 2. SWIPE LOGIC (Unchanged) ---
 
         function swipeCard(card, direction) {
             card.classList.add(`swipe-${direction}`);
             
             if (direction === 'right') {
-                // Find the full data object based on the card's ID
                 const cardId = card.dataset.id;
                 const data = CARD_DATA.find(d => d.id == cardId) || (cardId === userCardData.id ? userCardData : null);
                 
                 if (data) {
-                    // 1. Add to viewer history
                     viewerHistory.push(data);
                     viewerHistoryIndex = viewerHistory.length - 1;
-                    
-                    // 2. Open the viewer
                     showMediaViewer(data);
                 }
             }
 
-            // Remove the card after animation
             setTimeout(() => {
                 card.remove();
                 loadNextCard();
@@ -298,17 +293,16 @@
         }
         
         function addSwipeListeners(card) {
-            // [EXISTING DRAG/TOUCH LOGIC - OMITTED FOR BREVITY, ASSUMING IT'S HERE]
             let startX, isDragging = false;
             
-            function handleStart(e) { /* ... set startX, isDragging = true ... */
+            function handleStart(e) {
                 e.preventDefault();
                 isDragging = true;
                 startX = e.clientX || e.touches[0].clientX;
                 card.style.transition = 'none';
             }
 
-            function handleMove(e) { /* ... calculate deltaX, rotate, and transform card ... */
+            function handleMove(e) {
                 if (!isDragging) return;
                 const currentX = e.clientX || e.touches[0].clientX;
                 const deltaX = currentX - startX;
@@ -316,7 +310,7 @@
                 card.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
             }
 
-            function handleEnd(e) { /* ... check threshold, call swipeCard ... */
+            function handleEnd(e) {
                 if (!isDragging) return;
                 isDragging = false;
                 card.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
@@ -325,9 +319,9 @@
                 const threshold = 100;
 
                 if (deltaX > threshold) {
-                    swipeCard(card, 'right'); // ENGAGE!
+                    swipeCard(card, 'right'); 
                 } else if (deltaX < -threshold) {
-                    swipeCard(card, 'left'); // SKIP!
+                    swipeCard(card, 'left');
                 } else {
                     card.style.transform = 'translate(0) rotate(0)';
                 }
@@ -339,26 +333,24 @@
             document.addEventListener('touchmove', handleMove);
             document.addEventListener('mouseup', handleEnd);
             document.addEventListener('touchend', handleEnd);
-            card.addEventListener('remove', () => { /* ... remove event listeners ... */});
+            card.addEventListener('remove', () => { /* Cleanup listeners */});
         }
 
 
-        // --- 4. MEDIA VIEWER LOGIC (NEW) ---
+        // --- 3. MEDIA VIEWER LOGIC (Unchanged) ---
 
         function renderMedia(data) {
             const mediaContainer = document.querySelector('#mediaViewerModal .media-container');
-            mediaContainer.innerHTML = ''; // Clear previous content
+            mediaContainer.innerHTML = ''; 
 
             let mediaElement;
             if (data.mediaType === 'video' || data.fullUrl.includes('youtube.com/embed')) {
-                // Use iframe for YouTube/Vimeo embeds
                 mediaElement = document.createElement('iframe');
                 mediaElement.setAttribute('src', data.fullUrl);
                 mediaElement.setAttribute('frameborder', '0');
                 mediaElement.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture');
                 mediaElement.setAttribute('allowfullscreen', 'true');
             } else {
-                // Assume image or other direct file link
                 mediaElement = document.createElement('img');
                 mediaElement.setAttribute('src', data.fullUrl);
                 mediaElement.setAttribute('alt', data.title);
@@ -381,7 +373,6 @@
         }
 
         function closeMediaViewer() {
-            // Stop any playing media by clearing the iframe src
             document.querySelector('#mediaViewerModal .media-container').innerHTML = '';
             document.getElementById('mediaViewerModal').style.display = 'none';
         }
@@ -401,28 +392,88 @@
             }
         });
         
-        // --- EXISTING LOGIC (Login/Customization/Init - OMITTED FOR BREVITY, ASSUMING IT'S HERE) ---
+        // --- 4. AUTH/CUSTOMIZATION MOCK (Functions included but body reduced) ---
 
-        // Login/Auth Mock functions (updateLoginState, logout, closeLoginModal, etc.) remain the same.
-        // Customization Mock functions (closeCustomizeModal, form handler) remain the same.
+        function updateLoginState(handle, isLoggedIn) {
+            isUserLoggedIn = isLoggedIn;
+            localStorage.setItem('isLoggedIn', isLoggedIn);
+            localStorage.setItem('userHandle', handle);
+            
+            document.getElementById('loginBtn').textContent = isLoggedIn ? `🔒 LOGOUT (${handle})` : '🔓 LOGIN/LOGOUT';
+            document.getElementById('loggedInUser').textContent = handle;
+            document.getElementById('logoutSection').style.display = isLoggedIn ? 'block' : 'none';
+            document.getElementById('loginForm').style.display = isLoggedIn ? 'none' : 'block';
+            document.getElementById('loginTitle').textContent = isLoggedIn ? 'System Status' : 'System Login';
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            if (username) {
+                updateLoginState(username, true);
+                closeLoginModal();
+                alert(`[API Mock] Token received. Welcome, ${username}!`);
+                loadNextCard(); 
+            } else {
+                alert('Please enter a username.');
+            }
+        });
         
-        function updateLoginState(handle, isLoggedIn) { /* ... */ }
-        function logout() { /* ... */ }
-        function closeLoginModal() { /* ... */ }
-        document.getElementById('loginForm').addEventListener('submit', function(e) { /* ... */ });
-        document.getElementById('loginBtn').addEventListener('click', () => { /* ... */ });
+        function logout() {
+            updateLoginState('@Guest', false);
+            localStorage.removeItem('userToken');
+            closeLoginModal();
+            alert('[API Mock] Session Terminated.');
+            window.location.reload();
+        }
         
-        document.getElementById('customizeBtn').addEventListener('click', () => { /* ... */ });
-        document.getElementById('cardCustomizationForm').addEventListener('submit', function(e) { /* ... */ });
-        function closeCustomizeModal() { /* ... */ }
+        document.getElementById('loginBtn').addEventListener('click', () => {
+            document.getElementById('loginModal').style.display = 'flex';
+        });
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        document.getElementById('customizeBtn').addEventListener('click', () => {
+            if (!isUserLoggedIn) {
+                alert('ACCESS DENIED. Please log in to customize your card.');
+                return;
+            }
+            document.getElementById('cardTitle').value = userCardData.title;
+            document.getElementById('cardDesc').value = userCardData.description;
+            document.getElementById('cardMedia').value = userCardData.imageUrl;
+            document.getElementById('customizeModal').style.display = 'flex';
+        });
+
+        function closeCustomizeModal() {
+            document.getElementById('customizeModal').style.display = 'none';
+        }
+
+        document.getElementById('cardCustomizationForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            userCardData.title = document.getElementById('cardTitle').value;
+            userCardData.description = document.getElementById('cardDesc').value;
+            userCardData.imageUrl = document.getElementById('cardMedia').value;
+            userCardData.user = localStorage.getItem('userHandle');
+            userCardData.age = 99; // Mock age for custom user
+            localStorage.setItem('userCard', JSON.stringify(userCardData));
+            console.log(`[API Mock] User Card Saved to Server:`, userCardData);
+            alert('Card data successfully saved and updated!');
+            closeCustomizeModal();
+            window.location.reload(); 
+        });
 
 
+        // --- INITIALIZATION ---
         function init() {
             const handle = localStorage.getItem('userHandle') || '@Guest';
             const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
             updateLoginState(handle, loggedIn);
             loadNextCard();
         }
+
+        // --- BUTTON CONTROLS ---
 
         dislikeBtn.addEventListener('click', () => {
             const topCard = swipeContainer.querySelector('.card:last-child');
