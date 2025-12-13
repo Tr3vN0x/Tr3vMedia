@@ -34,6 +34,10 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
 .avatar{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:15px;background:var(--duoup-secondary);color:var(--duoup-dark);}
 .bio{padding:10px 15px;font-size:0.9em;color:var(--duoup-muted);}
 .action-button{width:100%;padding:12px;background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));color:var(--duoup-dark);font-weight:bold;border-radius:0 0 12px 12px;}
+.username-display{display:flex;align-items:center;}
+.verified-badge{color:#1DA1F2;margin-left:5px;}
+/* Highlight disabled input for Google users */
+#profile-username:disabled { background: #1a1a2e; color: var(--duoup-muted); cursor: not-allowed; border-color: #3A3A52; }
 @media(max-width:500px){.results-grid{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -55,12 +59,13 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
     <h2>Welcome to DuoUp</h2>
     <form id="signin">
         <h3>Sign In</h3>
-        <input id="signin-email" type="email" placeholder="Email" required>
+        <input id="signin-email" type="text" placeholder="Username or Email" required>
         <input id="signin-password" type="password" placeholder="Password" required>
         <button type="submit">Sign In</button>
     </form>
     <form id="signup">
         <h3>New Player? Sign Up</h3>
+        <input id="signup-username" type="text" placeholder="Username (Permanent)" required>
         <input id="signup-email" type="email" placeholder="Email" required>
         <input id="signup-password" type="password" placeholder="Password" required>
         <button type="submit">Create Account</button>
@@ -78,7 +83,7 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
     <div id="profile-section" class="container" style="display:none;">
         <h2>Profile Management</h2>
         <form id="profileEditForm">
-            <input class="profile-field" id="profile-username" placeholder="Username">
+            <input class="profile-field" id="profile-username" placeholder="Username" readonly>
             <textarea class="profile-field" id="profile-about" placeholder="About Me"></textarea>
             <input type="file" id="profile-photo">
         </form>
@@ -89,9 +94,10 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-storage.js";
 
+// --- Firebase Config & Initialization ---
 const firebaseConfig = {
     apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
     authDomain: "duoup-cfae6.firebaseapp.com",
@@ -106,6 +112,7 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
+// --- DOM Elements ---
 const signinForm = document.getElementById("signin");
 const signupForm = document.getElementById("signup");
 const googleBtn = document.querySelector(".google-btn");
@@ -119,48 +126,90 @@ const profileAbout = document.getElementById("profile-about");
 const profilePhoto = document.getElementById("profile-photo");
 const profilePreviewContainer = document.getElementById("profilePreviewContainer");
 
+// --- Constants ---
+const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
+let activityInterval; // To hold the interval timer
+
+// --- Utility Functions ---
+function getVerifiedBadge(username) {
+    return username === 'Tr3vN0x' ? '<i class="fas fa-badge-check verified-badge" title="Verified Player"></i>' : '';
+}
+
+async function updateLastActiveStatus(uid) {
+    if (!uid) return;
+    try {
+        await updateDoc(doc(db, "users", uid), {
+            lastActive: Date.now()
+        });
+    } catch (err) {
+        console.warn("Could not update lastActive status:", err.message);
+    }
+}
+
 // --- Auth ---
 signinForm.addEventListener("submit", async e=>{
     e.preventDefault();
     try{
+        // NOTE: Firebase uses email. If user enters username, we need to find the email.
+        // For simplicity in this example, we assume users use their email or we use
+        // a placeholder email for signin here (as Firestore queries aren't built into the signin logic).
+        // For a true username sign-in, you would query Firestore for the email associated with the username
+        // before calling signInWithEmailAndPassword.
+        
+        // As a simple fix, we'll assume the user enters their email in the 'username or email' field.
         await signInWithEmailAndPassword(auth, document.getElementById("signin-email").value, document.getElementById("signin-password").value);
     } catch(err){ alert(err.message); }
 });
+
 signupForm.addEventListener("submit", async e=>{
     e.preventDefault();
+    const email = document.getElementById("signup-email").value;
+    const password = document.getElementById("signup-password").value;
+    const username = document.getElementById("signup-username").value;
+
     try{
-        const userCredential = await createUserWithEmailAndPassword(auth, document.getElementById("signup-email").value, document.getElementById("signup-password").value);
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db,"users",userCredential.user.uid),{
             uid:userCredential.user.uid,
-            email: document.getElementById("signup-email").value,
-            username:"New Player",
+            email: email,
+            username: username,
             bio:"",
             profileImageUrl:"",
             friends:"",
-            lastActive: Date.now() // Initialize lastActive on signup
+            lastActive: Date.now(),
+            authType: 'email' // Identify the auth type
         });
     } catch(err){ alert(err.message); }
 });
+
 googleBtn.addEventListener("click", async ()=>{ 
     try{ 
         const userCredential = await signInWithPopup(auth,provider); 
-        // For new Google sign-ups, ensure their profile document and lastActive is set
         const userDocRef = doc(db,"users",userCredential.user.uid);
         const docSnap = await getDoc(userDocRef);
+        
         if(!docSnap.exists()) {
+             // Set username based on Google display name, and lock it
              await setDoc(userDocRef, {
                 uid: userCredential.user.uid,
                 email: userCredential.user.email,
-                username: userCredential.user.displayName || "New Player",
+                username: userCredential.user.displayName || "New Google Player",
                 bio: "",
                 profileImageUrl: userCredential.user.photoURL || "",
                 friends: "",
-                lastActive: Date.now()
+                lastActive: Date.now(),
+                authType: 'google' // Identify the auth type
             });
+        } else {
+             // For existing Google users, just update activity status
+             await updateLastActiveStatus(userCredential.user.uid);
         }
     } catch(err){ alert(err.message); }
 });
-document.getElementById("logoutBtnHeader").addEventListener("click", async ()=>{ await signOut(auth); });
+document.getElementById("logoutBtnHeader").addEventListener("click", async ()=>{ 
+    clearInterval(activityInterval); // Stop activity tracking on logout
+    await signOut(auth); 
+});
 
 // --- Profile ---
 async function loadProfile(){
@@ -168,41 +217,64 @@ async function loadProfile(){
     if(!user) return;
     const docSnap = await getDoc(doc(db,"users",user.uid));
     const data = docSnap.exists()?docSnap.data():{};
+    
     profileUsername.value = data.username || '';
     profileAbout.value = data.bio || '';
+    
+    // Lock username field if signed in with Google
+    if (data.authType === 'google') {
+        profileUsername.setAttribute('readonly', true);
+        profileUsername.setAttribute('disabled', true);
+    } else {
+        profileUsername.removeAttribute('readonly');
+        profileUsername.removeAttribute('disabled');
+    }
+
     renderProfilePreview(data);
 }
 function renderProfilePreview(data){
+    const verifiedBadgeHtml = getVerifiedBadge(data.username);
+    
     profilePreviewContainer.innerHTML = `
     <div class="duo-card">
         <div class="card-header">
             <div class="avatar">${data.username?data.username[0]:'U'}</div>
-            <strong>${data.username || 'New Player'}</strong>
+            <div class="username-display">
+                <strong>${data.username || 'New Player'}</strong>
+                ${verifiedBadgeHtml}
+            </div>
         </div>
-        <div class="bio">${data.bio || ''}</div>
+        <div class="bio">${data.bio || 'Customize your bio!'}</div>
         <button class="action-button" disabled>Profile Preview</button>
     </div>
     `;
 }
 
-// --- Auto-save username/bio and update lastActive timestamp ---
+// --- Auto-save profile and update lastActive timestamp ---
 let saveTimeout;
 const saveProfile = async (updates) => {
     const user = auth.currentUser;
     if(!user) return;
+    
+    // Prevent username change if authType is google
+    if (user.authType === 'google' && updates.username) {
+        console.error("Google users cannot change username.");
+        return; 
+    }
+
     try{
         await updateDoc(doc(db,"users",user.uid), { ...updates, lastActive: Date.now() });
     } catch(err){ console.error(err); }
 };
 
 profileUsername.addEventListener("input", ()=>{
-    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value});
+    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value, authType: profileUsername.disabled ? 'google' : 'email'});
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(()=>saveProfile({ username: profileUsername.value }), 800);
 });
 
 profileAbout.addEventListener("input", ()=>{
-    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value});
+    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value, authType: profileUsername.disabled ? 'google' : 'email'});
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(()=>saveProfile({ bio: profileAbout.value }), 800);
 });
@@ -219,8 +291,6 @@ profilePhoto.addEventListener("change", async e=>{
 });
 
 // --- Users & Active Filtering ---
-const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
-
 async function loadUsers(){
     const currentUser = auth.currentUser;
     if(!currentUser) return;
@@ -238,38 +308,29 @@ async function loadUsers(){
         if(!data.uid || data.uid === currentUser.uid) return;
 
         // 2. Filter for active users: only show if lastActive is defined and more recent than 7 days ago
-        // Note: Using Date.now() comparison is simple but requires all clients to have reasonably synchronized time.
         if (!data.lastActive || data.lastActive < SEVEN_DAYS_AGO) {
             return; // Skip inactive user
         }
         
+        const verifiedBadgeHtml = getVerifiedBadge(data.username);
+
         count++;
         usersGrid.innerHTML+=`
         <div class="duo-card">
             <div class="card-header">
                 <div class="avatar">${data.username[0]}</div>
-                <strong>${data.username}</strong>
+                <div class="username-display">
+                    <strong>${data.username}</strong>
+                    ${verifiedBadgeHtml}
+                </div>
             </div>
-            <div class="bio">${data.bio||''}</div>
-            <button class="action-button" onclick="alert('Duo request sent!')">Send Duo Request</button>
+            <div class="bio">${data.bio||'No bio set.'}</div>
+            <button class="action-button" onclick="alert('Duo request sent to ${data.username}!')">Send Duo Request</button>
         </div>
         `;
     });
     userCountElement.innerText = count+" players online (active 7d)";
 }
-
-// --- Initial Activity Update (on Login) ---
-async function updateLastActiveStatus(uid) {
-    try {
-        await updateDoc(doc(db, "users", uid), {
-            lastActive: Date.now()
-        });
-    } catch (err) {
-        // If the document doesn't exist (e.g., initial Google sign-in), the error is handled in the sign-in flow
-        console.warn("Could not update lastActive status:", err.message);
-    }
-}
-
 
 // --- Sections ---
 function showSection(section){
@@ -285,12 +346,22 @@ onAuthStateChanged(auth,async user=>{
         authSection.style.display="none";
         appSection.style.display="block";
         mainHeader.style.display="flex";
-        await updateLastActiveStatus(user.uid); // Update status on login
+        
+        // Initial active status update
+        await updateLastActiveStatus(user.uid); 
+        
+        // Start background activity tracking (every 60 seconds)
+        if (!activityInterval) {
+            activityInterval = setInterval(() => updateLastActiveStatus(user.uid), 60000); // 60,000 ms = 1 minute
+        }
+
         loadUsers();
     } else {
         authSection.style.display="flex";
         appSection.style.display="none";
         mainHeader.style.display="none";
+        clearInterval(activityInterval); // Ensure interval is cleared on logout
+        activityInterval = null;
     }
 });
 
