@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tr3vMedia NEON Messenger Terminal - Multi-Channel</title>
+    <title>Tr3vMedia NEON Messenger Terminal - User Only</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- CORE NEON STYLES --- */
+        /* --- CORE NEON STYLES (Unchanged) --- */
         :root {
             --bg-dark: #07090F; 
             --neon-primary: #00FF66; /* Main Green Neon */
@@ -15,7 +15,7 @@
             --neon-glow-secondary: 0 0 8px var(--neon-secondary);
             --interface-bg: #101520; 
             --text-light: #E0E0E0;
-            --unread-badge: #FF4444; /* Red for notifications */
+            --unread-badge: #FF4444; 
         }
 
         body {
@@ -32,17 +32,17 @@
         }
 
         /* --- HEADER (Unchanged) --- */
-        .app-header { /* ... */
+        .app-header { 
             width: 100%; height: 100px; background-color: var(--interface-bg);
             border-bottom: 3px solid var(--neon-primary); box-shadow: 0 0 15px rgba(0, 255, 102, 0.5);
             display: flex; align-items: center; justify-content: flex-start; padding: 0 20px;
             margin-bottom: 20px;
         }
-        .header-icon { /* ... */
+        .header-icon { 
             width: 100px; height: 65px; object-fit: contain;
             filter: drop-shadow(0 0 5px var(--neon-primary));
         }
-        .header-title { /* ... */
+        .header-title { 
             color: var(--neon-primary); font-size: 2.2em; text-shadow: var(--neon-glow-primary);
             margin-left: 20px; letter-spacing: 2px;
         }
@@ -54,12 +54,12 @@
             box-shadow: var(--neon-glow-primary); border-radius: 10px; overflow: hidden;
         }
 
-        /* --- CONTACTS / SIDEBAR (Updated) --- */
+        /* --- CONTACTS / SIDEBAR (Unchanged) --- */
         .contact-list {
             width: 300px; border-right: 1px solid var(--neon-primary);
             background-color: rgba(0, 0, 0, 0.3); overflow-y: auto;
         }
-        .contact-header { /* ... */
+        .contact-header { 
             padding: 15px; border-bottom: 1px solid var(--neon-primary);
             color: var(--neon-secondary); text-shadow: var(--neon-glow-secondary);
             font-size: 1.1em; text-align: center;
@@ -101,7 +101,7 @@
         }
 
 
-        /* --- CHAT WINDOW --- */
+        /* --- CHAT WINDOW (Unchanged) --- */
         .chat-window {
             flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-dark);
         }
@@ -114,13 +114,12 @@
             flex-grow: 1; padding: 20px; overflow-y: auto;
         }
         
-        /* Message Bubbles (Updated for Image content) */
+        /* Message Bubbles (Unchanged) */
         .message { margin-bottom: 15px; display: flex; }
         .message.self { justify-content: flex-end; }
         
         .message-content {
-            display: flex; /* Allows image to sit next to text in the bubble */
-            flex-direction: column;
+            display: flex; flex-direction: column;
         }
         .message-bubble {
             max-width: 60%; padding: 10px 15px; border-radius: 15px; font-size: 0.9em;
@@ -136,31 +135,25 @@
         }
         
         .message-image-preview {
-            max-width: 100%;
-            max-height: 200px; /* Limit size in chat */
-            margin-top: 5px;
-            border-radius: 8px;
-            object-fit: contain;
+            max-width: 100%; max-height: 200px;
+            margin-top: 5px; border-radius: 8px; object-fit: contain;
             border: 2px solid var(--bg-dark);
         }
         
-        /* Input Area (Extended) */
+        /* Input Area (Unchanged) */
         .chat-input {
             display: flex; padding: 10px 15px; border-top: 2px solid var(--neon-primary);
             background-color: var(--interface-bg); align-items: center;
         }
         .input-controls {
-            display: flex;
-            gap: 5px;
-            margin-right: 10px;
+            display: flex; gap: 5px; margin-right: 10px;
         }
         .input-controls button, .send-button {
             width: 40px; height: 40px; padding: 0; border: none; border-radius: 50%;
             background-color: var(--neon-secondary); color: var(--bg-dark);
             font-weight: bold; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s;
             box-shadow: 0 0 5px var(--neon-secondary);
-            font-size: 1.2em;
-            line-height: 1;
+            font-size: 1.2em; line-height: 1;
         }
         .send-button {
             width: auto; padding: 0 15px; border-radius: 5px; background-color: var(--neon-primary);
@@ -178,7 +171,7 @@
             box-shadow: 0 0 8px rgba(0, 136, 255, 0.5);
         }
         .file-upload-input {
-            display: none; /* Hide the default file input */
+            display: none; 
         }
 
     </style>
@@ -189,7 +182,7 @@
         <img src="https://see.fontimg.com/api/rf5/vXL4/YTM3ZmYyMWFkMzNiNGY5MGEwY2ZmZTZmNDhiZGI4NzkudHRm/VHIzdk1lZGlh/chimpanzee-website-report.png?r=fs&h=65&w=1000&fg=E8E4E4&bg=27E2A1&tb=1&s=65" 
              alt="Tr3vMedia Icon" 
              class="header-icon">
-        <h1 class="header-title">NEON MESSENGER // MULTI-CHANNEL COMMS</h1>
+        <h1 class="header-title">NEON MESSENGER // P2P COMMS</h1>
     </header>
 
     <div class="messenger-container">
@@ -203,7 +196,7 @@
                 </div>
                 <div class="contact-info">
                     <strong>@CyberGhost</strong>
-                    <span>Awaiting data transfer...</span>
+                    <span>[You]: Awaiting data...</span>
                 </div>
                 <span class="unread-badge">3</span>
             </div>
@@ -214,7 +207,7 @@
                 </div>
                 <div class="contact-info">
                     <strong>Project_SYNAPSE_G-01</strong>
-                    <span><span class="group-indicator">👥</span> @Bot Alpha: System up.</span>
+                    <span><span class="group-indicator">👥</span> @Peer1: Ready for deployment.</span>
                 </div>
             </div>
 
@@ -296,7 +289,7 @@
         let currentChatId = 1;
         let pendingImageURL = null;
 
-        // Mock chat history data (for switching chats)
+        // Mock chat history data (representing peer-to-peer conversations)
         const mockChatHistories = {
             1: [ // @CyberGhost
                 { type: 'other', content: 'Establishing secure connection... Protocol 7 initiated. Have you seen the new firmware update?' },
@@ -304,8 +297,8 @@
                 { type: 'self', content: 'Affirmative. Running diagnostics now. The latency is almost zero. Neon is looking sharper than ever.' }
             ],
             2: [ // Project_SYNAPSE_G-01 (Group)
-                { type: 'other', content: '@Bot Alpha: System check passed. All nodes green.' },
-                { type: 'other', content: '@Bot Beta: Ready for code deployment at 0800 hours.' },
+                { type: 'other', content: '@Peer1: System check passed. All nodes green.' },
+                { type: 'other', content: '@Peer2: Ready for code deployment at 0800 hours.' },
                 { type: 'self', content: 'Understood. Deploying a new TCG patch soon.' }
             ],
             3: [ // @CodeMonkey
@@ -429,18 +422,7 @@
             const messageArea = document.getElementById('messageArea');
             messageArea.scrollTop = messageArea.scrollHeight;
             
-            // 4. Mock Bot Response
-            setTimeout(() => {
-                const responseText = (messageText || pendingImageURL) 
-                    ? `[BOT] Received data. Processing...` 
-                    : `[BOT] Standby.`;
-                appendMessage('other', responseText);
-                 mockChatHistories[currentChatId].push({
-                    type: 'other',
-                    content: responseText
-                });
-                messageArea.scrollTop = messageArea.scrollHeight;
-            }, 1500);
+            // **NOTE:** Bot response logic has been fully removed, leaving only the user's action.
         }
     </script>
 </body>
