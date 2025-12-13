@@ -27,7 +27,7 @@ header h1 { font-size:1.8em; }
 header nav a { margin-left:20px; }
 #auth-section, #app-section { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding-top:60px; }
 form { display:flex; flex-direction:column; background:var(--bg-secondary); padding:20px; border-radius:8px; margin:10px; width:300px; }
-input { margin:8px 0; padding:10px; border-radius:5px; border:none; }
+input, textarea { margin:8px 0; padding:10px; border-radius:5px; border:none; }
 button { margin-top:10px; padding:10px; font-weight:bold; }
 .google-btn { background:#DB4437; color:white; margin-top:10px; padding:10px; width:300px; }
 #logoutBtn { background:var(--accent-cyan); color:#1A1A2E; padding:10px; margin-bottom:20px; width:150px; }
@@ -36,7 +36,8 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
 .duo-card { background:var(--card-color); color:#1A1A2E; border-radius:12px; overflow:hidden; border-top:5px solid var(--accent-cyan); transition:.3s; }
 .duo-card:hover { transform:translateY(-5px); box-shadow:0 12px 20px rgba(0,255,255,.2); }
 .card-header { padding:15px 20px; display:flex; border-bottom:1px solid #edf2f7; align-items:center; }
-.avatar { width:50px;height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:15px; background:var(--accent-cyan); }
+.avatar { width:50px;height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:15px; background:var(--accent-cyan); overflow:hidden; }
+.avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
 .bio { padding:15px 20px; font-size:0.9em; color:#4A5568; }
 .action-button { width:100%; padding:12px; background:var(--accent-cyan); color:#1A1A2E; font-weight:bold; margin-bottom:10px; }
 .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); justify-content:center; align-items:center; z-index:2000; }
@@ -54,6 +55,7 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
 .send-button { padding:10px 15px; border:none; background:var(--accent-cyan); color:#1A1A2E; font-weight:bold; }
 .chat-locked { text-align:center; color:var(--text-muted); padding-top:50px; }
 .profile-field { margin:10px 0; width:100%; padding:8px; border-radius:5px; border:none; }
+textarea.profile-field { resize:none; }
 </style>
 </head>
 <body>
@@ -65,7 +67,7 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
     <a href="#" onclick="showHome()">Home</a>
     <a href="#" onclick="showProfile()">Profile</a>
     <a href="#" onclick="showMessages()">Messages</a>
-    <a href="#" id="logoutBtn">Logout</a>
+    <a href="#" id="logoutBtnHeader">Logout</a>
   </nav>
 </header>
 
@@ -92,11 +94,13 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
 
 <!-- APP SECTION -->
 <div id="app-section" style="display:none; width:100%; padding-top:60px;">
+  <!-- HOME -->
   <div id="home-section" class="container">
     <h2>Available Duos</h2>
     <div class="results-grid" id="usersGrid"></div>
   </div>
 
+  <!-- PROFILE -->
   <div id="profile-section" class="container" style="display:none;">
     <h2>Your Profile</h2>
     <input class="profile-field" id="profile-username" placeholder="Username">
@@ -108,8 +112,9 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
     <button onclick="updateProfile()">Save Profile</button>
   </div>
 
+  <!-- MESSAGES -->
   <div id="messages-section" class="container" style="display:none;">
-    <h2>Messages</h2>
+    <h2>Messages & Requests</h2>
     <div class="results-grid" id="messagesGrid"></div>
   </div>
 </div>
@@ -129,18 +134,17 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
-// Firebase Config
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
   authDomain: "duoup-cfae6.firebaseapp.com",
   projectId: "duoup-cfae6",
   storageBucket: "duoup-cfae6.appspot.com",
   messagingSenderId: "812263060524",
-  appId: "1:812263060524:web:ac09c3ae610db1cd110d89",
-  measurementId: "G-46B67F90FK"
+  appId: "1:812263060524:web:ac09c3ae610db1cd110d89"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -148,48 +152,49 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// DOM Elements
+// DOM
 const authSection = document.getElementById("auth-section");
 const appSection = document.getElementById("app-section");
 const mainHeader = document.getElementById("mainHeader");
-const logoutBtn = document.getElementById("logoutBtn");
-
+const logoutBtnHeader = document.getElementById("logoutBtnHeader");
 const usersGrid = document.getElementById("usersGrid");
 const messagesGrid = document.getElementById("messagesGrid");
 
 // --- AUTH ---
-document.getElementById("signup").addEventListener("submit", async e => {
+document.getElementById("signup").addEventListener("submit", async e=>{
   e.preventDefault();
   const email = document.getElementById("signup-email").value;
   const password = document.getElementById("signup-password").value;
-  try {
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  try{
+    const userCredential = await createUserWithEmailAndPassword(auth,email,password);
     const uid = userCredential.user.uid;
-    await setDoc(doc(db,"users",uid), { username:"NewUser", platform:"PC", games:"", playstyle:"Casual", about:"", photoURL:"" });
+    await setDoc(doc(db,"users",uid),{ username:"NewUser", platform:"PC", games:"", playstyle:"Casual", about:"", photoURL:"" });
   } catch(err){ alert(err.message); }
 });
 
-document.getElementById("signin").addEventListener("submit", async e => {
+document.getElementById("signin").addEventListener("submit", async e=>{
   e.preventDefault();
   const email = document.getElementById("signin-email").value;
   const password = document.getElementById("signin-password").value;
-  try { await signInWithEmailAndPassword(auth,email,password); }
+  try{ await signInWithEmailAndPassword(auth,email,password); }
   catch(err){ alert(err.message); }
 });
 
-window.googleLogin = async () => {
-  try {
+window.googleLogin = async ()=>{
+  try{
     const provider = new GoogleAuthProvider();
-    const result = await signInWithPopup(auth, provider);
+    const result = await signInWithPopup(auth,provider);
     const uid = result.user.uid;
     const userDoc = await getDoc(doc(db,"users",uid));
-    if(!userDoc.exists()) await setDoc(doc(db,"users",uid), { username:result.user.displayName, platform:"PC", games:"", playstyle:"Casual", about:"", photoURL:result.user.photoURL || "" });
+    if(!userDoc.exists()) await setDoc(doc(db,"users",uid),{ username:result.user.displayName, platform:"PC", games:"", playstyle:"Casual", about:"", photoURL:result.user.photoURL || "" });
   } catch(err){ alert(err.message); }
 };
 
-logoutBtn.addEventListener("click", async () => { await signOut(auth); });
+logoutBtnHeader.addEventListener("click", async ()=>{
+  await signOut(auth);
+});
 
-// --- SHOW/HIDE SECTIONS ---
+// --- SHOW SECTIONS ---
 function showHome(){ document.getElementById("home-section").style.display="block"; document.getElementById("profile-section").style.display="none"; document.getElementById("messages-section").style.display="none"; loadUsers(); }
 function showProfile(){ document.getElementById("home-section").style.display="none"; document.getElementById("profile-section").style.display="block"; document.getElementById("messages-section").style.display="none"; loadProfile(); }
 function showMessages(){ document.getElementById("home-section").style.display="none"; document.getElementById("profile-section").style.display="none"; document.getElementById("messages-section").style.display="block"; loadMessages(); }
@@ -212,33 +217,31 @@ onAuthStateChanged(auth,user=>{
 
 // --- PROFILE ---
 async function loadProfile(){
-  const uid=currentUser.uid;
-  const docSnap = await getDoc(doc(db,"users",uid));
+  const docSnap = await getDoc(doc(db,"users",currentUser.uid));
   if(docSnap.exists()){
     const data=docSnap.data();
-    document.getElementById("profile-username").value=data.username || "";
-    document.getElementById("profile-platform").value=data.platform || "";
-    document.getElementById("profile-games").value=data.games || "";
-    document.getElementById("profile-playstyle").value=data.playstyle || "";
-    document.getElementById("profile-about").value=data.about || "";
+    document.getElementById("profile-username").value=data.username||"";
+    document.getElementById("profile-platform").value=data.platform||"";
+    document.getElementById("profile-games").value=data.games||"";
+    document.getElementById("profile-playstyle").value=data.playstyle||"";
+    document.getElementById("profile-about").value=data.about||"";
   }
 }
 
 async function updateProfile(){
-  const uid=currentUser.uid;
-  const username = document.getElementById("profile-username").value;
-  const platform = document.getElementById("profile-platform").value;
-  const games = document.getElementById("profile-games").value;
-  const playstyle = document.getElementById("profile-playstyle").value;
-  const about = document.getElementById("profile-about").value;
-  const photoFile = document.getElementById("profile-photo").files[0];
-  let photoURL = "";
+  const username=document.getElementById("profile-username").value;
+  const platform=document.getElementById("profile-platform").value;
+  const games=document.getElementById("profile-games").value;
+  const playstyle=document.getElementById("profile-playstyle").value;
+  const about=document.getElementById("profile-about").value;
+  const photoFile=document.getElementById("profile-photo").files[0];
+  let photoURL="";
   if(photoFile){
-    const storageRef = ref(storage,"profilePhotos/"+uid);
+    const storageRef = ref(storage,"profilePhotos/"+currentUser.uid);
     await uploadBytes(storageRef,photoFile);
     photoURL = await getDownloadURL(storageRef);
   }
-  await updateDoc(doc(db,"users",uid), { username, platform, games, playstyle, about, ...(photoURL && {photoURL}) });
+  await updateDoc(doc(db,"users",currentUser.uid),{ username, platform, games, playstyle, about, ...(photoURL && {photoURL}) });
   alert("Profile Updated!");
 }
 
@@ -249,11 +252,12 @@ async function loadUsers(){
   querySnap.forEach(docSnap=>{
     if(docSnap.id===currentUser.uid) return;
     const data = docSnap.data();
+    const avatarHTML = data.photoURL ? `<img src="${data.photoURL}" alt="Avatar">` : data.username[0];
     const card = document.createElement("div");
     card.className="duo-card";
-    card.innerHTML=`<div class="card-header"><div class="avatar">${data.username[0]}</div>
-    <div><h3>${data.username}</h3><p>${data.platform}</p></div></div>
-    <div class="bio">${data.about || "No bio set."}</div>
+    card.innerHTML=`<div class="card-header"><div class="avatar">${avatarHTML}</div>
+    <div><h3>${data.username}</h3><p>${data.platform} | ${data.playstyle}</p></div></div>
+    <div class="bio">${data.about||"No bio set."}</div>
     <button class="action-button" onclick="sendDuoRequest('${docSnap.id}')">Send Duo Request</button>`;
     usersGrid.appendChild(card);
   });
@@ -266,7 +270,7 @@ async function sendDuoRequest(targetUid){
   alert("Duo Request Sent!");
 }
 
-// --- LOAD MESSAGES/REQUESTS ---
+// --- LOAD MESSAGES ---
 async function loadMessages(){
   messagesGrid.innerHTML="";
   const reqsSnap = await getDocs(collection(db,"users",currentUser.uid,"requests"));
@@ -275,9 +279,10 @@ async function loadMessages(){
     if(reqData.status==="pending"){
       const senderSnap = await getDoc(doc(db,"users",reqData.from));
       const senderData = senderSnap.data();
+      const avatarHTML = senderData.photoURL ? `<img src="${senderData.photoURL}" alt="Avatar">` : senderData.username[0];
       const card = document.createElement("div");
       card.className="duo-card";
-      card.innerHTML=`<div class="card-header"><div class="avatar">${senderData.username[0]}</div>
+      card.innerHTML=`<div class="card-header"><div class="avatar">${avatarHTML}</div>
       <div><h3>${senderData.username}</h3><p>${senderData.platform}</p></div></div>
       <div class="bio">Duo Request Pending</div>
       <button class="action-button" onclick="acceptRequest('${reqDoc.id}')">Accept</button>
@@ -293,7 +298,6 @@ async function acceptRequest(reqId){
   alert("Request Accepted!");
   loadMessages();
 }
-
 async function rejectRequest(reqId){
   await updateDoc(doc(db,"users",currentUser.uid,"requests",reqId),{status:"rejected"});
   alert("Request Rejected!");
@@ -308,24 +312,22 @@ const chatHeader=document.getElementById("chatHeader");
 const messageArea=document.getElementById("messageArea");
 const chatInput=document.getElementById("chatInput");
 
-function openChat(duoName, isAccepted){
+function openChat(duoName,isAccepted){
   currentDuo=duoName;
   chatActive=isAccepted;
   chatInput.value="";
   chatInput.disabled=!chatActive;
-  chatHeader.innerHTML = chatActive
+  chatHeader.innerHTML=chatActive
     ? `<div><span class="status-dot"></span>${duoName} (Online)</div><span onclick="closeChat()">×</span>`
     : `<div style="color:#FFC107;">Request Pending with ${duoName}</div><span onclick="closeChat()">×</span>`;
-  messageArea.innerHTML = chatActive
+  messageArea.innerHTML=chatActive
     ? `<div class="message other"><div class="message-content">Hey! Ready to play?</div></div>`
     : `<p class="chat-locked">Chat locked until request accepted.</p>`;
   chatModal.style.display="flex";
 }
-
 function closeChat(){ chatModal.style.display="none"; }
-function sendMessage(){ if(!chatActive || !chatInput.value.trim()) return; messageArea.innerHTML += `<div class="message self"><div class="message-content">${chatInput.value}</div></div>`; chatInput.value=""; messageArea.scrollTop=messageArea.scrollHeight; }
+function sendMessage(){ if(!chatActive || !chatInput.value.trim()) return; messageArea.innerHTML+=`<div class="message self"><div class="message-content">${chatInput.value}</div></div>`; chatInput.value=""; messageArea.scrollTop=messageArea.scrollHeight; }
 window.onclick=e=>{if(e.target===chatModal) closeChat();}
-
 </script>
 </body>
 </html>
