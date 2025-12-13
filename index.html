@@ -150,13 +150,7 @@ async function updateLastActiveStatus(uid) {
 signinForm.addEventListener("submit", async e=>{
     e.preventDefault();
     try{
-        // NOTE: Firebase uses email. If user enters username, we need to find the email.
-        // For simplicity in this example, we assume users use their email or we use
-        // a placeholder email for signin here (as Firestore queries aren't built into the signin logic).
-        // For a true username sign-in, you would query Firestore for the email associated with the username
-        // before calling signInWithEmailAndPassword.
-        
-        // As a simple fix, we'll assume the user enters their email in the 'username or email' field.
+        // NOTE: For simplicity, we assume the user enters their email in the 'username or email' field.
         await signInWithEmailAndPassword(auth, document.getElementById("signin-email").value, document.getElementById("signin-password").value);
     } catch(err){ alert(err.message); }
 });
@@ -233,14 +227,15 @@ async function loadProfile(){
     renderProfilePreview(data);
 }
 function renderProfilePreview(data){
-    const verifiedBadgeHtml = getVerifiedBadge(data.username);
+    const username = data.username || 'New Player';
+    const verifiedBadgeHtml = getVerifiedBadge(username);
     
     profilePreviewContainer.innerHTML = `
     <div class="duo-card">
         <div class="card-header">
-            <div class="avatar">${data.username?data.username[0]:'U'}</div>
+            <div class="avatar">${username[0]}</div>
             <div class="username-display">
-                <strong>${data.username || 'New Player'}</strong>
+                <strong>${username}</strong>
                 ${verifiedBadgeHtml}
             </div>
         </div>
@@ -257,8 +252,14 @@ const saveProfile = async (updates) => {
     if(!user) return;
     
     // Prevent username change if authType is google
-    if (user.authType === 'google' && updates.username) {
-        console.error("Google users cannot change username.");
+    const docSnap = await getDoc(doc(db,"users",user.uid));
+    const userData = docSnap.exists() ? docSnap.data() : {};
+
+    if (userData.authType === 'google' && updates.username) {
+        // If they are trying to change the username and they are a google user, revert the preview and stop save
+        profileUsername.value = userData.username; 
+        renderProfilePreview(userData);
+        alert("Google users cannot change their username.");
         return; 
     }
 
@@ -268,13 +269,13 @@ const saveProfile = async (updates) => {
 };
 
 profileUsername.addEventListener("input", ()=>{
-    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value, authType: profileUsername.disabled ? 'google' : 'email'});
+    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value});
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(()=>saveProfile({ username: profileUsername.value }), 800);
 });
 
 profileAbout.addEventListener("input", ()=>{
-    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value, authType: profileUsername.disabled ? 'google' : 'email'});
+    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value});
     clearTimeout(saveTimeout);
     saveTimeout = setTimeout(()=>saveProfile({ bio: profileAbout.value }), 800);
 });
@@ -352,7 +353,7 @@ onAuthStateChanged(auth,async user=>{
         
         // Start background activity tracking (every 60 seconds)
         if (!activityInterval) {
-            activityInterval = setInterval(() => updateLastActiveStatus(user.uid), 60000); // 60,000 ms = 1 minute
+            activityInterval = setInterval(() => updateLastActiveStatus(user.uid), 60000); // 1 minute
         }
 
         loadUsers();
