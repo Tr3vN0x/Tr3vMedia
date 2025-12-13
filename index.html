@@ -1,1 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duo Up Profile Card Mockup</title>
+    <style>
+        /* Basic Reset and Variables */
+        :root {
+            --primary-color: #4a5568; /* Dark Text */
+            --secondary-color: #e53e3e; /* Accent Red */
+            --bg-color: #f7fafc; /* Light Background */
+            --card-bg: #ffffff; /* Card White */
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--bg-color);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        /* Profile Card Styling */
+        .duo-card {
+            width: 350px;
+            background-color: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            border-top: 5px solid var(--secondary-color);
+        }
+        .header {
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #edf2f7;
+        }
+        .avatar {
+            width: 50px;
+            height: 50px;
+            background-color: #cbd5e0;
+            border-radius: 50%;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .name-platform h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.2em;
+        }
+        .name-platform p {
+            margin: 0;
+            color: #718096;
+            font-size: 0.85em;
+        }
+        .bio, .game-details, .connection-links {
+            padding: 15px 20px;
+        }
+        .bio p {
+            font-size: 0.9em;
+            color: var(--primary-color);
+            line-height: 1.4;
+            margin-top: 0;
+        }
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .tag {
+            background-color: #fbd38d;
+            color: #975a16;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.9em;
+            padding-bottom: 15px;
+        }
+        .detail-item strong {
+            display: block;
+            color: #718096;
+            font-size: 0.8em;
+            margin-bottom: 2px;
+        }
+        .detail-item span {
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+        .action-button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .action-button:hover {
+            background-color: #c53030;
+        }
+    </style>
+</head>
+<body>
 
+<div class="duo-card">
+    <div class="header">
+        <div class="avatar">
+            DU
+        </div>
+        <div class="name-platform">
+            <h3>DuoMasterFlex</h3>
+            <p>Playing on: PC & PS5</p>
+        </div>
+    </div>
+
+    <div class="bio">
+        <p>Chill support main looking for a consistent ADC to climb in the evenings. Positive vibes only! Also dabble in Baldur's Gate co-op.</p>
+    </div>
+
+    <div class="game-details">
+        <h4>🔥 Top Active Game: Valorant</h4>
+        
+        <div class="details-grid">
+            <div class="detail-item">
+                <strong>Rank/Level</strong>
+                <span>Platinum 2</span>
+            </div>
+            <div class="detail-item">
+                <strong>Role Focus</strong>
+                <span>Controller/Sentinel</span>
+            </div>
+            <div class="detail-item">
+                <strong>Time Zone</strong>
+                <span>EST (UTC-5)</span>
+            </div>
+            <div class="detail-item">
+                <strong>Availability</strong>
+                <span>Weekdays 7 PM - 11 PM</span>
+            </div>
+        </div>
+        
+        <div class="tag-list">
+            <span class="tag">Competitive/Ranked</span>
+            <span class="tag">Advanced Skill</span>
+            <span class="tag">Mic Preferred</span>
+            <span class="tag">Strategy Focus</span>
+        </div>
+    </div>
+    
+    <button class="action-button">Send Duo Request</button>
+
+</div>
+
+</body>
+</html>
