@@ -1,142 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8">
 <title>Duoup – Professional Gaming Network</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
 <style>
 :root {
-  --bg-dark:#0F0F1A;
-  --panel:#1A1A2E;
-  --cyan:#00FFFF;
-  --pink:#FF3366;
-  --text:#C0C0D8;
-  --border:#33335A;
-  --radius:10px;
+  --bg: #0F0F1A;
+  --panel: #1A1A2E;
+  --cyan: #00FFFF;
+  --pink: #FF3366;
+  --text: #C0C0D8;
+  --radius: 10px;
+}
+* { box-sizing: border-box; margin:0; padding:0; }
+
+body {
+  font-family: Inter, Segoe UI, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
 }
 
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:'Segoe UI',Tahoma,sans-serif;
-  background:var(--bg-dark);
-  color:var(--text);
-}
-
-.navbar{
+nav {
   display:none;
-  justify-content:space-between;
-  padding:15px 30px;
-  background:var(--panel);
-  border-bottom:2px solid var(--cyan);
+  justify-content: space-between;
+  padding: 15px 30px;
+  background: var(--panel);
+  border-bottom: 2px solid var(--cyan);
 }
-.logo{color:var(--cyan);font-size:2rem}
-.nav-link{margin-left:20px;cursor:pointer}
+nav span { cursor:pointer; margin-left:20px; }
 
-.app-view{display:none;padding:30px}
+section { display:none; padding:30px; }
 
-.card{
-  background:var(--panel);
-  border:1px solid var(--border);
-  padding:20px;
-  border-radius:var(--radius);
-  box-shadow:0 0 10px rgba(0,255,255,.2);
+.card {
+  background: var(--panel);
+  padding: 25px;
+  border-radius: var(--radius);
+  max-width: 400px;
+  margin: auto;
 }
 
-input{
+input, select {
+  width: 100%;
+  margin-bottom: 15px;
+  padding: 12px;
+  background: #0F0F1A;
+  border: 1px solid #333;
+  color: #fff;
+  border-radius: var(--radius);
+}
+
+button {
   width:100%;
-  padding:12px;
-  margin-bottom:15px;
-  background:var(--bg-dark);
-  border:1px solid var(--border);
-  color:#E0FFFF;
-  border-radius:var(--radius);
-}
-
-.btn{
-  width:100%;
-  padding:12px;
-  background:var(--pink);
+  padding: 12px;
   border:none;
+  border-radius: var(--radius);
   font-weight:bold;
-  border-radius:var(--radius);
   cursor:pointer;
 }
-.btn.google{
-  background:#4285F4;
-  color:white;
-  margin-top:10px;
-}
 
-#home-view{display:flex;gap:30px}
-.player-grid{
+.btn-primary { background: var(--pink); }
+.btn-secondary { background: var(--cyan); color:#000; }
+
+.player-grid {
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px,1fr));
   gap:20px;
 }
-
-@media(max-width:900px){
-  #home-view{flex-direction:column}
+.player {
+  background: var(--panel);
+  padding:15px;
+  border-radius: var(--radius);
 }
 </style>
 </head>
 
 <body>
 
-<nav class="navbar" id="nav">
-  <div class="logo">📡 Duoup</div>
+<nav id="nav">
+  <strong style="color:var(--cyan)">📡 Duoup</strong>
   <div>
-    <span class="nav-link" data-view="home-view">Home</span>
-    <span class="nav-link" data-view="profile-view">Profile</span>
-    <span class="nav-link" id="logout">Logout</span>
+    <span onclick="showView('home')">Home</span>
+    <span onclick="logout()">Logout</span>
   </div>
 </nav>
 
-<!-- SIGNUP -->
-<section id="signup-view" class="app-view">
-  <div class="card" style="width:360px;margin:10vh auto;">
-    <h2 style="color:var(--cyan);margin-bottom:15px;">Access Network</h2>
-
-    <form id="signup-form">
-      <input id="email" type="email" placeholder="Email" required>
-      <input id="password" type="password" placeholder="Password" required>
-      <input id="username" placeholder="Gamertag">
-      <input id="game" placeholder="Main Game">
-      <button class="btn">Authorize</button>
-    </form>
-
-    <button class="btn google" id="googleSignIn">
-      <i class="fab fa-google"></i> Sign in with Google
+<!-- SIGN IN -->
+<section id="auth">
+  <div class="card">
+    <h2 style="color:var(--cyan);margin-bottom:20px;">Sign In</h2>
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+    <button class="btn-primary" onclick="emailSignup()">Continue</button>
+    <br><br>
+    <button class="btn-secondary" onclick="googleSignIn()">
+      <i class="fab fa-google"></i> Google Sign In
     </button>
   </div>
 </section>
 
-<!-- HOME -->
-<section id="home-view" class="app-view">
-  <div class="card" style="width:260px;">
-    <button class="btn" id="refresh">Refresh Feed</button>
-  </div>
-  <div style="flex:1;">
-    <h2 style="color:var(--cyan);margin-bottom:20px;">Live Duoup Requests</h2>
-    <div class="player-grid" id="feed"></div>
+<!-- ONBOARDING -->
+<section id="onboarding">
+  <div class="card">
+    <h2 style="color:var(--cyan);margin-bottom:15px;">Quick Setup</h2>
+    <input id="username" placeholder="Gamertag">
+    <input id="game" placeholder="Main Game (Valorant, Fortnite...)">
+    <select id="availability">
+      <option value="">Availability</option>
+      <option>Casual</option>
+      <option>Competitive</option>
+      <option>Anytime</option>
+    </select>
+    <button class="btn-primary" onclick="completeOnboarding()">Enter Network</button>
   </div>
 </section>
 
-<!-- PROFILE -->
-<section id="profile-view" class="app-view">
-  <div class="card" style="max-width:600px;">
-    <h2 id="profile-name" style="color:var(--cyan);"></h2>
-    <p id="profile-game"></p>
-  </div>
+<!-- HOME -->
+<section id="home">
+  <h2 style="color:var(--cyan);margin-bottom:20px;">Live Duoup Feed</h2>
+  <div class="player-grid" id="feed"></div>
 </section>
 
 <script>
-/* FIREBASE */
+/* 🔥 FIREBASE CONFIG */
 firebase.initializeApp({
   apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
   authDomain: "duoup-cfae6.firebaseapp.com",
@@ -145,92 +139,101 @@ firebase.initializeApp({
 
 const auth = firebase.auth();
 const db = firebase.firestore();
-const provider = new firebase.auth.GoogleAuthProvider();
 
-/* VIEW */
-const views = document.querySelectorAll('.app-view');
-const nav = document.getElementById('nav');
+const views = {
+  auth: document.getElementById('auth'),
+  onboarding: document.getElementById('onboarding'),
+  home: document.getElementById('home')
+};
 
-function showView(id){
-  views.forEach(v=>v.style.display='none');
-  document.getElementById(id).style.display='block';
-  nav.style.display = id === 'signup-view' ? 'none' : 'flex';
+function showView(id) {
+  Object.values(views).forEach(v => v.style.display = 'none');
+  views[id].style.display = 'block';
+  document.getElementById('nav').style.display = id === 'auth' ? 'none' : 'flex';
 }
 
-/* AUTH STATE */
-auth.onAuthStateChanged(async user=>{
-  if(!user){
-    showView('signup-view');
+/* 🔐 AUTH STATE */
+auth.onAuthStateChanged(async user => {
+  if (!user) {
+    showView('auth');
     return;
   }
 
   const ref = db.collection('users').doc(user.uid);
   const doc = await ref.get();
 
-  if(!doc.exists){
+  if (!doc.exists) {
     await ref.set({
-      uid:user.uid,
-      username:user.displayName || 'Agent',
-      game:'Unknown',
-      created:firebase.firestore.FieldValue.serverTimestamp()
+      uid: user.uid,
+      username: user.displayName || '',
+      game: '',
+      availability: '',
+      onboarded: false,
+      created: firebase.firestore.FieldValue.serverTimestamp()
     });
+    showView('onboarding');
+    return;
   }
 
-  showView('home-view');
+  if (!doc.data().onboarded) {
+    showView('onboarding');
+    return;
+  }
+
+  showView('home');
   loadFeed();
 });
 
-/* EMAIL SIGNUP */
-document.getElementById('signup-form').onsubmit = async e=>{
-  e.preventDefault();
-  try{
-    const cred = await auth.createUserWithEmailAndPassword(
-      email.value,
-      password.value
-    );
-    await db.collection('users').doc(cred.user.uid).set({
-      uid:cred.user.uid,
-      username:username.value || 'Agent',
-      game:game.value || 'Unknown',
-      created:firebase.firestore.FieldValue.serverTimestamp()
-    });
-  }catch(err){ alert(err.message); }
-};
+/* ✉️ EMAIL SIGNUP */
+async function emailSignup() {
+  await auth.createUserWithEmailAndPassword(
+    email.value,
+    password.value
+  );
+}
 
-/* GOOGLE SIGN IN */
-document.getElementById('googleSignIn').onclick = async ()=>{
-  try{
-    await auth.signInWithPopup(provider);
-  }catch(err){
-    alert(err.message);
-    console.error(err);
-  }
-};
+/* 🔑 GOOGLE SIGN IN */
+async function googleSignIn() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  await auth.signInWithPopup(provider);
+}
 
-/* FEED */
-async function loadFeed(){
-  const feed=document.getElementById('feed');
-  feed.innerHTML='';
-  const snap=await db.collection('users').orderBy('uid').limit(12).get();
+/* 🧭 COMPLETE ONBOARDING */
+async function completeOnboarding() {
+  const user = auth.currentUser;
+  await db.collection('users').doc(user.uid).update({
+    username: username.value,
+    game: game.value,
+    availability: availability.value,
+    onboarded: true
+  });
+  showView('home');
+  loadFeed();
+}
 
-  snap.forEach(doc=>{
-    if(doc.id===auth.currentUser.uid)return;
-    const u=doc.data();
-    feed.innerHTML+=`
-      <div class="card">
-        <h3 style="color:#E0FFFF">${u.username}</h3>
+/* 📡 FEED */
+async function loadFeed() {
+  const snap = await db.collection('users')
+    .where('uid','!=',auth.currentUser.uid)
+    .limit(12)
+    .get();
+
+  feed.innerHTML = '';
+  snap.forEach(doc => {
+    const u = doc.data();
+    feed.innerHTML += `
+      <div class="player">
+        <strong>${u.username}</strong>
         <p>${u.game}</p>
-        <button class="btn">Duo Up</button>
+        <small>${u.availability}</small>
       </div>`;
   });
 }
 
-/* NAV */
-document.addEventListener('click',e=>{
-  if(e.target.dataset.view) showView(e.target.dataset.view);
-});
-document.getElementById('logout').onclick=()=>auth.signOut();
-document.getElementById('refresh').onclick=loadFeed;
+/* 🚪 LOGOUT */
+function logout() {
+  auth.signOut();
+}
 </script>
 
 </body>
