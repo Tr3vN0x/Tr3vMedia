@@ -118,13 +118,35 @@ button:not(.google-btn):not(#duoSearchForm button):not(.like-btn){margin-top:10p
         <div class="results-grid" id="usersGrid"></div>
     </div>
     
-    </div>
+</div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-// Removed getStorage, ref, uploadBytes, getDownloadURL since photo feature is gone
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, query, orderBy, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+'use strict';
+
+import { 
+    initializeApp 
+} from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { 
+    getAuth, 
+    createUserWithEmailAndPassword, 
+    signInWithEmailAndPassword, 
+    signOut, 
+    onAuthStateChanged 
+} from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+import { 
+    getFirestore, 
+    doc, 
+    setDoc, 
+    getDoc, 
+    updateDoc, 
+    collection, 
+    getDocs, 
+    query, 
+    orderBy, 
+    addDoc, 
+    arrayUnion, 
+    arrayRemove 
+} from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 // --- Firebase Config & Initialization ---
 const firebaseConfig = {
@@ -138,7 +160,6 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
-// const storage = getStorage(app); // Storage is no longer used
 
 // --- DOM Elements ---
 const signinForm = document.getElementById("signin");
@@ -148,7 +169,6 @@ const appSection = document.getElementById("app-section");
 const mainHeader = document.getElementById("mainHeader");
 const usersGrid = document.getElementById("usersGrid");
 const userCountElement = document.getElementById("userCount");
-// Profile elements removed: profileNickname, profileAbout, profilePhoto, profilePreviewContainer, nicknameHelp
 const postForm = document.getElementById("postForm"); 
 const postsList = document.getElementById("postsList"); 
 
@@ -156,7 +176,7 @@ const postsList = document.getElementById("postsList");
 const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
 let activityInterval; 
 let currentNickname = ""; 
-let currentBio = ""; // Retained to fill the bio in the user search cards
+let currentBio = ""; 
 
 // --- Utility Functions ---
 function getVerifiedBadge(nickname) {
@@ -198,7 +218,6 @@ async function loadUserData(user) {
     let userData = docSnap.exists() ? docSnap.data() : {};
 
     if (!docSnap.exists() || !userData.nickname) { 
-        // Logic for setting up a profile if it doesn't exist (only needed on first sign-up)
         const authType = 'email'; 
         const defaultNickname = user.email.split('@')[0] || "New Player";
 
@@ -217,15 +236,19 @@ async function loadUserData(user) {
     return userData;
 }
 
-// --- Auth ---
-signinForm.addEventListener("submit", async e=>{
+// --- Auth Functions ---
+async function handleSignIn(e) {
     e.preventDefault();
+    const email = document.getElementById("signin-email").value;
+    const password = document.getElementById("signin-password").value;
     try{
-        await signInWithEmailAndPassword(auth, document.getElementById("signin-email").value, document.getElementById("signin-password").value);
-    } catch(err){ alert(err.message); }
-});
+        await signInWithEmailAndPassword(auth, email, password);
+    } catch(err){ 
+        alert(err.message); 
+    }
+}
 
-signupForm.addEventListener("submit", async e=>{
+async function handleSignUp(e) {
     e.preventDefault();
     const email = document.getElementById("signup-email").value;
     const password = document.getElementById("signup-password").value;
@@ -233,25 +256,35 @@ signupForm.addEventListener("submit", async e=>{
 
     try{
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db,"users",userCredential.user.uid),{
-            uid:userCredential.user.uid,
+        const { user } = userCredential;
+
+        await setDoc(doc(db,"users", user.uid), {
+            uid: user.uid,
             email: email,
             nickname: nickname, 
-            bio:"",
-            profileImageUrl:"",
-            friends:"",
+            bio: "",
+            profileImageUrl: "",
+            friends: [], // Initialize as an array for future friend features
             lastActive: Date.now(),
             authType: 'email' 
         });
-    } catch(err){ alert(err.message); }
-});
+    } catch(err){ 
+        alert(err.message); 
+    }
+}
 
-document.getElementById("logoutBtnHeader").addEventListener("click", async ()=>{ 
+async function handleLogout() {
     clearInterval(activityInterval); 
+    activityInterval = null;
     await signOut(auth); 
-});
+}
 
-// --- User Search (No profile updates here) ---
+// Attach Auth Listeners
+signinForm.addEventListener("submit", handleSignIn);
+signupForm.addEventListener("submit", handleSignUp);
+document.getElementById("logoutBtnHeader").addEventListener("click", handleLogout);
+
+// --- User Search (Duo Search) ---
 async function loadUsers(){
     const currentUser = auth.currentUser;
     if(!currentUser) return;
@@ -267,6 +300,7 @@ async function loadUsers(){
         
         if(!data.uid || data.uid === currentUser.uid) return;
 
+        // Filter out users who haven't been active in 7 days
         if (!data.lastActive || data.lastActive < SEVEN_DAYS_AGO) {
             return; 
         }
@@ -284,7 +318,7 @@ async function loadUsers(){
                     ${verifiedBadgeHtml}
                 </div>
             </div>
-            <div class="bio">${data.bio||'No bio set.'}</div>
+            <div class="bio">${data.bio || 'No bio set.'}</div>
             <button class="action-button" onclick="alert('Duo request sent to ${nickname}!')">Send Duo Request</button>
         </div>
         `;
@@ -293,9 +327,10 @@ async function loadUsers(){
 }
 
 // --- Feed/Posts ---
-postForm.addEventListener("submit", async e => {
+async function handlePostSubmit(e) {
     e.preventDefault();
-    const content = document.getElementById("postContent").value.trim();
+    const postContent = document.getElementById("postContent");
+    const content = postContent.value.trim();
     if (!content) return;
 
     const user = auth.currentUser;
@@ -309,13 +344,16 @@ postForm.addEventListener("submit", async e => {
             timestamp: Date.now(),
             likes: [], 
         });
-        document.getElementById("postContent").value = ""; 
-        loadPosts(); 
+        postContent.value = ""; 
+        await loadPosts(); 
     } catch (err) {
         console.error("Error creating post:", err);
         alert("Failed to create post.");
     }
-});
+}
+
+postForm.addEventListener("submit", handlePostSubmit);
+
 
 /**
  * Toggles the like status of a post.
@@ -326,17 +364,13 @@ window.toggleLikePost = async function(postId, isLiked) {
 
     const postRef = doc(db, "posts", postId);
     try {
-        if (isLiked) {
-            await updateDoc(postRef, {
-                likes: arrayRemove(user.uid)
-            });
-        } else {
-            await updateDoc(postRef, {
-                likes: arrayUnion(user.uid)
-            });
-        }
+        const updateOperation = isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid);
         
-        loadPosts(); 
+        await updateDoc(postRef, {
+            likes: updateOperation
+        });
+        
+        await loadPosts(); 
 
     } catch (err) {
         console.error("Error toggling like:", err);
@@ -352,9 +386,9 @@ async function loadPosts() {
     const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
     const postSnap = await getDocs(postsQuery);
 
-    postSnap.forEach(doc => {
-        const post = doc.data();
-        const postId = doc.id;
+    postSnap.forEach(postDoc => {
+        const post = postDoc.data();
+        const postId = postDoc.id;
         
         const nickname = post.authorNickname || 'Unknown User'; 
         const avatarChar = nickname ? nickname[0] : 'U';
@@ -397,23 +431,25 @@ async function loadPosts() {
 
 // --- Sections ---
 function showSection(section){
-    // Removed 'profile' from this list
-    ["feed","home"].forEach(s=>document.getElementById(s+"-section").style.display="none");
-    document.getElementById(section+"-section").style.display="block";
+    const sections = ["feed", "home"];
+    sections.forEach(s => document.getElementById(s + "-section").style.display = "none");
     
-    // loadProfile() removed
-    if(section==="home") loadUsers();
-    if(section==="feed") loadPosts();
+    const targetSection = document.getElementById(section + "-section");
+    if (targetSection) {
+        targetSection.style.display = "block";
+    }
+    
+    if(section === "home") loadUsers();
+    if(section === "feed") loadPosts();
 }
 
-// --- Auth State ---
-onAuthStateChanged(auth,async user=>{
+// --- Auth State Handler ---
+onAuthStateChanged(auth, async user => {
     if(user){
-        authSection.style.display="none";
-        appSection.style.display="block";
-        mainHeader.style.display="flex";
+        authSection.style.display = "none";
+        appSection.style.display = "block";
+        mainHeader.style.display = "flex";
         
-        // Load data just to set currentNickname/currentBio for posting/search cards
         const userData = await loadUserData(user); 
         currentNickname = userData.nickname || ''; 
         currentBio = userData.bio || '';
@@ -424,11 +460,11 @@ onAuthStateChanged(auth,async user=>{
             activityInterval = setInterval(() => updateLastActiveStatus(user.uid), 60000); // 1 minute
         }
 
-        showSection('feed'); // Set default view to the Feed
+        showSection('feed'); 
     } else {
-        authSection.style.display="flex";
-        appSection.style.display="none";
-        mainHeader.style.display="none";
+        authSection.style.display = "flex";
+        appSection.style.display = "none";
+        mainHeader.style.display = "none";
         clearInterval(activityInterval); 
         activityInterval = null;
     }
