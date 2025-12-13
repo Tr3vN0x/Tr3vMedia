@@ -34,6 +34,7 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
 .avatar{width:50px;height:50px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;margin-right:15px;background:var(--duoup-secondary);color:var(--duoup-dark);}
 .bio{padding:10px 15px;font-size:0.9em;color:var(--duoup-muted);}
 .action-button{width:100%;padding:12px;background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));color:var(--duoup-dark);font-weight:bold;border-radius:0 0 12px 12px;}
+@media(max-width:500px){.results-grid{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
@@ -112,14 +113,12 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
-// DOM Elements
 const signinForm = document.getElementById("signin");
 const signupForm = document.getElementById("signup");
 const googleBtn = document.querySelector(".google-btn");
 const authSection = document.getElementById("auth-section");
 const appSection = document.getElementById("app-section");
 const mainHeader = document.getElementById("mainHeader");
-const logoutBtn = document.getElementById("logoutBtnHeader");
 
 const usersGrid = document.getElementById("usersGrid");
 const userCountElement = document.getElementById("userCount");
@@ -135,6 +134,7 @@ signinForm.addEventListener("submit", async e=>{
     e.preventDefault();
     try{
         await signInWithEmailAndPassword(auth, document.getElementById("signin-email").value, document.getElementById("signin-password").value);
+        loadUsers();
     } catch(err){ alert(err.message); }
 });
 signupForm.addEventListener("submit", async e=>{
@@ -149,12 +149,13 @@ signupForm.addEventListener("submit", async e=>{
             profileImageUrl:"",
             friends:"",
         });
+        loadUsers();
     } catch(err){ alert(err.message); }
 });
 googleBtn.addEventListener("click", async ()=>{
-    try{ await signInWithPopup(auth, provider); } catch(err){ alert(err.message); }
+    try{ await signInWithPopup(auth, provider); loadUsers(); } catch(err){ alert(err.message); }
 });
-logoutBtn.addEventListener("click", async ()=>{ await signOut(auth); });
+document.getElementById("logoutBtnHeader").addEventListener("click", async ()=>{ await signOut(auth); });
 
 // --- Profile ---
 async function loadProfile(){
@@ -199,15 +200,16 @@ profilePhoto.addEventListener("change", async e=>{
     loadProfile();
 });
 
-// --- Duo Search (only real signed-in users) ---
+// --- Duo Search ---
 async function loadUsers(){
     const currentUser = auth.currentUser;
+    if(!currentUser) return;
     const qSnap = await getDocs(collection(db,"users"));
     usersGrid.innerHTML='';
     let count=0;
     qSnap.forEach(doc=>{
         const data = doc.data();
-        if(!data.uid || !data.email || data.uid===currentUser.uid) return; // show only real users
+        if(!data.uid || !data.email || data.uid===currentUser.uid) return; // only real users
         count++;
         usersGrid.innerHTML+=`
         <div class="duo-card">
@@ -243,17 +245,19 @@ function showSection(section){
 }
 
 // --- Auth State ---
-onAuthStateChanged(auth, user=>{
-    if(user){
-        authSection.style.display="none";
-        appSection.style.display="block";
-        mainHeader.style.display="flex";
-        loadUsers();
-    } else {
-        authSection.style.display="flex";
-        appSection.style.display="none";
-        mainHeader.style.display="none";
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    onAuthStateChanged(auth, user=>{
+        if(user){
+            authSection.style.display="none";
+            appSection.style.display="block";
+            mainHeader.style.display="flex";
+            loadUsers();
+        } else {
+            authSection.style.display="flex";
+            appSection.style.display="none";
+            mainHeader.style.display="none";
+        }
+    });
 });
 
 // Expose to window
