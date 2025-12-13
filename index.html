@@ -3,439 +3,205 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tr3vMedia NEON Story Repository - User Only</title>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <title>Story Hub MVP - One Page</title>
     <style>
-        /* --- CORE NEON STYLES (Unchanged) --- */
-        :root {
-            --bg-dark: #07090F;
-            --neon-primary: #00FF66; /* Main Green Neon */
-            --neon-secondary: #0088FF; /* Blue accent */
-            --neon-glow-primary: 0 0 10px var(--neon-primary), 0 0 20px rgba(0, 255, 102, 0.7);
-            --neon-glow-secondary: 0 0 8px var(--neon-secondary);
-            --interface-bg: #101520;
-            --text-light: #E0E0E0;
-            --info-accent: #FFCC00; /* Amber for Read Counts/Rating */
-        }
+        /* --- GLOBAL STYLES --- */
+        body { font-family: Arial, sans-serif; margin: 0; background-color: #f8f8f8; color: #333; }
+        header { background-color: #ff5757; color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { margin: 0; cursor: pointer; }
+        .nav-btn { background-color: #f8f8f8; color: #ff5757; padding: 8px 15px; text-decoration: none; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; margin-left: 10px; }
+        .nav-btn:hover { background-color: #fff; }
+        .container { max-width: 900px; margin: 20px auto; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); }
+        .hidden { display: none; }
 
-        body {
-            font-family: 'Share Tech Mono', monospace, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            margin: 0;
-            padding: 0;
-            overflow-x: hidden;
-        }
+        /* --- STORY LIST VIEW STYLES --- */
+        #storyList { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 20px; }
+        .story-card { border: 1px solid #eee; padding: 15px; border-radius: 8px; transition: transform 0.2s; }
+        .story-card:hover { transform: translateY(-3px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); }
+        .story-card h3 { color: #333; margin-top: 0; }
+        .read-link { color: #007bff; text-decoration: none; font-weight: bold; cursor: pointer; display: block; margin-top: 10px; }
 
-        /* --- HEADER (Updated Title) --- */
-        .app-header {
-            width: 100%; height: 100px; background-color: var(--interface-bg);
-            border-bottom: 3px solid var(--neon-primary); box-shadow: 0 0 15px rgba(0, 255, 102, 0.5);
-            display: flex; align-items: center; justify-content: flex-start; padding: 0 20px;
-            margin-bottom: 20px;
-        }
-        .header-icon {
-            width: 100px; height: 65px; object-fit: contain;
-            filter: drop-shadow(0 0 5px var(--neon-primary));
-        }
-        .header-title {
-            color: var(--neon-primary); font-size: 2.2em; text-shadow: var(--neon-glow-primary);
-            margin-left: 20px; letter-spacing: 2px;
-        }
+        /* --- CREATE VIEW STYLES --- */
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: bold; color: #333; }
+        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
+        textarea { height: 350px; resize: vertical; font-family: inherit; }
+        #publishButton { padding: 12px 25px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; font-weight: bold; }
+        #publishButton:hover { background-color: #218838; }
 
-        /* --- LIBRARY LAYOUT (Updated) --- */
-        .library-container {
-            display: flex; width: 90%; max-width: 1200px; height: 80vh;
-            background-color: var(--interface-bg); border: 2px solid var(--neon-primary);
-            box-shadow: var(--neon-glow-primary); border-radius: 10px; overflow: hidden;
-        }
-
-        /* --- BOOK BROWSER / SIDEBAR (The main list) --- */
-        .book-browser {
-            width: 350px; /* Slightly wider than the chat list */
-            border-right: 1px solid var(--neon-primary);
-            background-color: rgba(0, 0, 0, 0.3); overflow-y: auto;
-            padding: 10px 0;
-        }
-        .browser-header {
-            padding: 15px; border-bottom: 1px solid var(--neon-primary);
-            color: var(--neon-secondary); text-shadow: var(--neon-glow-secondary);
-            font-size: 1.1em; text-align: center; margin-bottom: 5px;
-        }
-        .book-listing {
-            display: flex; align-items: flex-start; padding: 10px; cursor: pointer;
-            transition: background-color 0.2s, border-left 0.2s; border-bottom: 1px dotted rgba(0, 255, 102, 0.2);
-        }
-        .book-listing:hover, .book-listing.active {
-            background-color: rgba(0, 255, 102, 0.15); border-left: 5px solid var(--neon-primary);
-            padding-left: 5px;
-        }
-        .book-thumbnail {
-            width: 60px; height: 90px; object-fit: cover;
-            border: 2px solid var(--neon-secondary);
-            margin-right: 10px; box-shadow: 0 0 5px rgba(0, 136, 255, 0.5);
-        }
-        .book-info {
-            flex-grow: 1;
-        }
-        .book-info strong {
-            font-weight: bold;
-            color: var(--neon-primary);
-            font-size: 1em;
-            display: block;
-            margin-bottom: 3px;
-            line-height: 1.2;
-        }
-        .book-info em {
-            display: block;
-            font-style: normal;
-            font-size: 0.8em;
-            opacity: 0.7;
-            color: var(--text-light);
-            margin-bottom: 2px;
-        }
-        .book-stats {
-            font-size: 0.7em;
-            color: var(--info-accent);
-            opacity: 0.9;
-        }
-        .book-stats span {
-            margin-right: 10px;
-        }
-
-        /* --- BOOK VIEWER / DETAIL AREA --- */
-        .book-viewer {
-            flex-grow: 1; display: flex; flex-direction: column; background-color: var(--bg-dark);
-        }
-        .detail-header {
-            padding: 15px 20px; border-bottom: 1px solid var(--neon-primary);
-            color: var(--neon-primary); text-shadow: 0 0 5px rgba(0, 255, 102, 0.5);
-            font-size: 1.2em;
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .detail-header-title {
-            max-width: 70%;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .detail-author {
-            font-size: 0.8em;
-            color: var(--neon-secondary);
-            text-shadow: var(--neon-glow-secondary);
-        }
-        .detail-area {
-            flex-grow: 1; padding: 20px; overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        /* Detail Components */
-        .book-cover-detail {
-            float: left;
-            width: 150px;
-            height: 225px;
-            object-fit: cover;
-            border: 3px solid var(--neon-primary);
-            box-shadow: var(--neon-glow-primary);
-            margin-right: 20px;
-            margin-bottom: 10px;
-        }
-        .detail-description {
-            line-height: 1.6;
-            font-size: 0.9em;
-            opacity: 0.85;
-            text-align: justify;
-        }
-        .detail-info-box {
-            clear: both;
-            border: 1px solid var(--neon-secondary);
-            padding: 15px;
-            border-radius: 5px;
-            background-color: rgba(0, 136, 255, 0.1);
-            margin-top: 15px;
-        }
-        .detail-info-box h3 {
-            margin-top: 0;
-            color: var(--info-accent);
-            text-shadow: 0 0 5px var(--info-accent);
-            font-size: 1em;
-            border-bottom: 1px dashed var(--neon-secondary);
-            padding-bottom: 5px;
-            margin-bottom: 10px;
-        }
-        .detail-info-box p {
-            margin: 5px 0;
-            font-size: 0.85em;
-        }
-
-        /* Action/Interaction Area (Replaces Input) */
-        .book-actions {
-            display: flex; padding: 10px 15px; border-top: 2px solid var(--neon-primary);
-            background-color: var(--interface-bg); align-items: center; justify-content: space-between;
-        }
-        .action-button {
-            padding: 10px 20px; border: none; border-radius: 5px;
-            font-family: 'Share Tech Mono', monospace; font-size: 1em;
-            font-weight: bold; cursor: pointer; transition: background-color 0.2s, box-shadow 0.2s;
-        }
-        .read-button {
-            background-color: var(--neon-primary); color: var(--bg-dark);
-            box-shadow: var(--neon-glow-primary);
-        }
-        .read-button:hover {
-            background-color: #33FF99;
-            box-shadow: 0 0 15px #33FF99;
-        }
-        .save-button {
-            background-color: var(--neon-secondary); color: var(--bg-dark);
-            box-shadow: var(--neon-glow-secondary);
-        }
-        .save-button:hover {
-            background-color: #33AAFF;
-            box-shadow: 0 0 10px #33AAFF;
-        }
-
+        /* --- READ VIEW STYLES --- */
+        #readView { font-family: Georgia, serif; }
+        #readView .story-title { font-size: 2.5em; color: #5c6c70; margin-bottom: 5px; }
+        #readView .story-author { color: #a1887f; font-style: italic; margin-bottom: 20px; }
+        #readView .chapter-text { font-size: 1.1em; line-height: 1.7; margin-top: 20px; white-space: pre-wrap; }
+        #readView hr { margin: 30px 0; border: 0; border-top: 1px solid #eee; }
     </style>
 </head>
 <body>
 
-    <header class="app-header">
-        <img src="https://see.fontimg.com/api/rf5/vXL4/YTM3ZmYyMWFkMzNiNGY5MGEwY2ZmZTZmNDhiZGI4NzkudHRm/VHIzdk1lZGlh/chimpanzee-website-report.png?r=fs&h=65&w=1000&fg=E8E4E4&bg=27E2A1&tb=1&s=65"
-             alt="Tr3vMedia Icon"
-             class="header-icon">
-        <h1 class="header-title">NEON REPOSITORY // FICTION & DATA STREAMS</h1>
+    <header>
+        <h1 onclick="showView('listView')">📚 Story Hub</h1>
+        <nav>
+            <button class="nav-btn" onclick="showView('createView')">✍️ Write a Story</button>
+            <button class="nav-btn" onclick="showView('listView')">📖 Read Stories</button>
+        </nav>
     </header>
 
-    <div class="library-container">
+    <div class="container">
 
-        <div class="book-browser">
-            <div class="browser-header">DISCOVER NEW DATA STREAMS (6)</div>
+        <section id="listView">
+            <h2>Featured Stories</h2>
+            <div id="storyList">
+                <p>Loading stories...</p>
+            </div>
+        </section>
 
-            <div class="book-listing active" data-id="1">
-                <img src="https://picsum.photos/60/90?random=10" alt="Book 1 Thumbnail" class="book-thumbnail">
-                <div class="book-info">
-                    <strong>THE SILENT SECTOR</strong>
-                    <em>by @CyberGhost</em>
-                    <div class="book-stats">
-                        <span>⭐ 4.8</span>
-                        <span>Views: 1.2M</span>
-                    </div>
+        <section id="createView" class="hidden">
+            <h2>✍️ Create a New Story</h2>
+            <div class="form-group">
+                <label for="storyTitle">Story Title (Required)</label>
+                <input type="text" id="storyTitle" placeholder="e.g., The Secret of the Ancient Clock" required>
+            </div>
+            <div class="form-group">
+                <label for="storyContent">Chapter 1 Content (Required)</label>
+                <textarea id="storyContent" placeholder="Start writing your story here..." required></textarea>
+            </div>
+            <button id="publishButton">Publish Story</button>
+        </section>
+
+        <section id="readView" class="hidden">
+            <button class="nav-btn" onclick="showView('listView')">← Back to Stories</button>
+            <div id="storyContentContainer">
                 </div>
-            </div>
+        </section>
 
-            <div class="book-listing" data-id="2">
-                <img src="https://picsum.photos/60/90?random=11" alt="Book 2 Thumbnail" class="book-thumbnail">
-                <div class="book-info">
-                    <strong>Project Synapse: Protocol Breach</strong>
-                    <em>by @TheArchitect</em>
-                    <div class="book-stats">
-                        <span>⭐ 4.5</span>
-                        <span>Views: 850K</span>
-                    </div>
-                </div>
-            </div>
+    </div> <script>
+        // --- DATA AND UTILITY FUNCTIONS ---
+        const STORAGE_KEY = 'stories';
 
-            <div class="book-listing" data-id="3">
-                <img src="https://picsum.photos/60/90?random=12" alt="Book 3 Thumbnail" class="book-thumbnail">
-                <div class="book-info">
-                    <strong>Latency Dreams</strong>
-                    <em>by @CodeMonkey</em>
-                    <div class="book-stats">
-                        <span>⭐ 4.1</span>
-                        <span>Views: 320K</span>
-                    </div>
-                </div>
-            </div>
+        function getStories() {
+            const storiesJSON = localStorage.getItem(STORAGE_KEY);
+            return storiesJSON ? JSON.parse(storiesJSON) : [];
+        }
 
-            <div class="book-listing" data-id="4">
-                <img src="https://picsum.photos/60/90?random=13" alt="Book 4 Thumbnail" class="book-thumbnail">
-                <div class="book-info">
-                    <strong>The TCG Engine: A Dev's Tale</strong>
-                    <em>by @PeerZero</em>
-                    <div class="book-stats">
-                        <span>⭐ 3.9</span>
-                        <span>Views: 150K</span>
-                    </div>
-                </div>
-            </div>
+        function saveStories(storiesArray) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(storiesArray));
+        }
 
-            <div class="book-listing" data-id="5">
-                <img src="https://picsum.photos/60/90?random=14" alt="Book 5 Thumbnail" class="book-thumbnail">
-                <div class="book-info">
-                    <strong>Echoes of the Grid</strong>
-                    <em>by @NeonWriter</em>
-                    <div class="book-stats">
-                        <span>⭐ 5.0</span>
-                        <span>Views: 2.1M</span>
-                    </div>
-                </div>
-            </div>
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substring(2);
+        }
 
-            <div class="book-listing" data-id="6">
-                <img src="https://picsum.photos/60/90?random=15" alt="Book 6 Thumbnail" class="book-thumbnail">
-                <div class="book-info">
-                    <strong>Binary Sunset</strong>
-                    <em>by @DataDrifter</em>
-                    <div class="book-stats">
-                        <span>⭐ 4.7</span>
-                        <span>Views: 900K</span>
-                    </div>
-                </div>
-            </div>
-            </div>
+        // --- NAVIGATION LOGIC ---
+        function showView(viewId) {
+            // Hide all views
+            document.getElementById('listView').classList.add('hidden');
+            document.getElementById('createView').classList.add('hidden');
+            document.getElementById('readView').classList.add('hidden');
 
-        <div class="book-viewer">
+            // Show the requested view
+            document.getElementById(viewId).classList.remove('hidden');
 
-            <div class="detail-header">
-                <span class="detail-header-title" id="currentBookTitle">THE SILENT SECTOR</span>
-                <span class="detail-author" id="currentBookAuthor">by @CyberGhost</span>
-            </div>
-
-            <div class="detail-area" id="detailArea">
-                </div>
-
-            <div class="book-actions">
-                <button class="action-button save-button" onclick="alert('Added to your Personal Databank (Library)!')">💾 SAVE TO LIBRARY</button>
-                <button class="action-button read-button" onclick="alert('Initiating Read Stream: THE SILENT SECTOR - Chapter 1')">READ STREAM >></button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // Mock Book Data (Replacing Chat Histories)
-        const mockBookData = {
-            1: {
-                title: 'THE SILENT SECTOR',
-                author: '@CyberGhost',
-                cover: 'https://picsum.photos/150/225?random=10',
-                description: "In the chrome-plated sprawl of Neo-Kyoto, Sector 7 went dark. Not a power outage, but a complete data void. KAI, a black-hat data courier, is hired to find out why. He soon uncovers a conspiracy that stretches beyond the electric rain and into the very core of the governing AI, a system known only as 'The Eye'. His only ally is a ghostly presence in his comms, a voice claiming to be the sector's forgotten creator. A gripping techno-thriller where trust is a fatal vulnerability.",
-                genre: 'Cyberpunk / Thriller',
-                chapters: 42,
-                status: 'Ongoing',
-                rating: '4.8 (1.2M Views)',
-            },
-            2: {
-                title: 'Project Synapse: Protocol Breach',
-                author: '@TheArchitect',
-                cover: 'https://picsum.photos/150/225?random=11',
-                description: "The Synapse network was supposed to link all human thought into a single, perfect consciousness. But when a glitch introduces a rogue, self-aware echo, lead engineer Dr. Lena Kros must decide if she should terminate the project, or risk a global mind-break to save the new life form she accidentally created. A tale of ethics, artificial life, and the cost of connection.",
-                genre: 'Sci-Fi / Philosophical',
-                chapters: 15,
-                status: 'Completed',
-                rating: '4.5 (850K Views)',
-            },
-            3: {
-                title: 'Latency Dreams',
-                author: '@CodeMonkey',
-                cover: 'https://picsum.photos/150/225?random=12',
-                description: "A coder trapped in a perpetual state of 'low-latency sleep' experiences parallel realities based on his code's execution paths. Each chapter is a new bug-fix, a new world, a new life. Can he find the core truth of his existence before his processor overloads? A surreal journey through the digital subconscious.",
-                genre: 'Surreal / Glitch Fiction',
-                chapters: 28,
-                status: 'Ongoing',
-                rating: '4.1 (320K Views)',
-            },
-            4: {
-                title: 'The TCG Engine: A Dev\'s Tale',
-                author: '@PeerZero',
-                cover: 'https://picsum.photos/150/225?random=13',
-                description: "This is the non-fiction, highly technical documentation of building the Tr3vMedia Communication Gateway (TCG) from the ground up. Not for the faint of heart, but essential reading for aspiring network architects and security specialists. Includes never-before-seen schematics.",
-                genre: 'Non-Fiction / Technical',
-                chapters: 12,
-                status: 'Completed',
-                rating: '3.9 (150K Views)',
-            },
-            5: {
-                title: 'Echoes of the Grid',
-                author: '@NeonWriter',
-                cover: 'https://picsum.photos/150/225?random=14',
-                description: "A collection of short, interconnected stories detailing the lives of street poets, data traffickers, and corporate enforcers in the glowing, dangerous underbelly of a city powered by pure neon energy. Each echo tells a piece of the greater, darker story.",
-                genre: 'Short Stories / Dystopian',
-                chapters: 10,
-                status: 'Completed',
-                rating: '5.0 (2.1M Views)',
-            },
-            6: {
-                title: 'Binary Sunset',
-                author: '@DataDrifter',
-                cover: 'https://picsum.photos/150/225?random=15',
-                description: "When the network finally collapses, civilization doesn't end—it simply slows down. A post-digital western set in the irradiated wastelands where old server farms are the new gold mines, and a lone drifter searches for a single, uncorrupted byte of his family's history.",
-                genre: 'Post-Apocalyptic / Western',
-                chapters: 36,
-                status: 'Ongoing',
-                rating: '4.7 (900K Views)',
+            // Special case: always re-render the list when going to the list view
+            if (viewId === 'listView') {
+                renderStoryList();
             }
-        };
+        }
 
-        let currentBookId = 1;
+        // --- 1. LIST VIEW LOGIC ---
+        function renderStoryList() {
+            const stories = getStories();
+            const listContainer = document.getElementById('storyList');
+            listContainer.innerHTML = ''; // Clear previous content
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Initial render for the default active book (ID 1)
-            renderBookDetails(1);
+            if (stories.length === 0) {
+                listContainer.innerHTML = '<p>No stories published yet. Be the first!</p>';
+                return;
+            }
 
-            // Event listeners for switching books
-            document.querySelectorAll('.book-listing').forEach(item => {
-                item.addEventListener('click', function() {
-                    const newBookId = parseInt(this.getAttribute('data-id'));
-                    if (newBookId === currentBookId) return;
-
-                    // Update active class
-                    document.querySelector('.book-listing.active')?.classList.remove('active');
-                    this.classList.add('active');
-
-                    // Render new details
-                    currentBookId = newBookId;
-                    renderBookDetails(newBookId);
-                });
+            stories.forEach(story => {
+                const storyCard = document.createElement('div');
+                storyCard.className = 'story-card';
+                storyCard.innerHTML = `
+                    <h3>${story.title}</h3>
+                    <p><strong>By:</strong> ${story.author}</p>
+                    <p><strong>Published:</strong> ${story.dateCreated}</p>
+                    <a class="read-link" onclick="renderStory('${story.id}')">Start Reading &rarr;</a>
+                `;
+                listContainer.appendChild(storyCard);
             });
+        }
+
+        // --- 2. CREATE VIEW LOGIC ---
+        document.getElementById('publishButton').addEventListener('click', () => {
+            const titleInput = document.getElementById('storyTitle');
+            const contentInput = document.getElementById('storyContent');
+
+            const title = titleInput.value.trim();
+            const content = contentInput.value.trim();
+
+            if (!title || !content) {
+                alert('Please enter a title and content for your story.');
+                return;
+            }
+
+            const newStory = {
+                id: generateId(),
+                title: title,
+                author: 'Anonymous Writer', 
+                chapters: [{
+                    title: 'Chapter 1',
+                    content: content,
+                    datePublished: new Date().toLocaleDateString()
+                }],
+                dateCreated: new Date().toLocaleDateString()
+            };
+
+            const stories = getStories();
+            stories.push(newStory);
+            saveStories(stories);
+
+            // Clear form
+            titleInput.value = '';
+            contentInput.value = '';
+            alert('Story published successfully!');
+            
+            // Switch back to the list view
+            showView('listView');
         });
 
-        // --- BOOK DETAIL RENDERING FUNCTION ---
+        // --- 3. READ VIEW LOGIC ---
+        function renderStory(storyId) {
+            const stories = getStories();
+            const story = stories.find(s => s.id === storyId);
+            const container = document.getElementById('storyContentContainer');
+            
+            if (!story) {
+                container.innerHTML = '<h1>Story Not Found</h1>';
+                showView('readView');
+                return;
+            }
 
-        function renderBookDetails(bookId) {
-            const book = mockBookData[bookId];
-            const detailArea = document.getElementById('detailArea');
+            const chapter = story.chapters[0]; 
 
-            // Update Header
-            document.getElementById('currentBookTitle').textContent = book.title;
-            document.getElementById('currentBookAuthor').textContent = 'by ' + book.author;
-
-            // Update Action Button
-            document.querySelector('.read-button').setAttribute('onclick', `alert('Initiating Read Stream: ${book.title} - Chapter 1')`);
-
-            // Generate Details HTML
-            detailArea.innerHTML = `
-                <img src="${book.cover}" alt="${book.title} Cover" class="book-cover-detail">
-
-                <div class="detail-description">
-                    <p><strong>[Synopsis]</strong></p>
-                    <p>${book.description}</p>
-                </div>
-
-                <div class="detail-info-box">
-                    <h3>// METADATA STREAM //</h3>
-                    <p><strong>Designation:</strong> ${book.title}</p>
-                    <p><strong>Author ID:</strong> ${book.author}</p>
-                    <p><strong>Primary Genre:</strong> ${book.genre}</p>
-                    <p><strong>Total Chapters:</strong> ${book.chapters}</p>
-                    <p><strong>Status:</strong> ${book.status}</p>
-                    <p><strong>Rating/Views:</strong> ${book.rating}</p>
-                </div>
-
-                <div class="detail-info-box" style="clear: both; margin-top: 10px;">
-                    <h3>// USER INTERFACE COMM //</h3>
-                    <p>Placeholder for Comments, Reviews, and Community Tags. Users can post direct data blocks.</p>
-                </div>
+            container.innerHTML = `
+                <h1 class="story-title">${story.title}</h1>
+                <p class="story-author">By: ${story.author}</p>
+                <hr>
+                <h2 class="chapter-title">${chapter.title}</h2>
+                <div class="chapter-text">${chapter.content.replace(/\n/g, '<br>')}</div>
+                <p class="publish-date">Published on: ${chapter.datePublished}</p>
             `;
 
-            // Scroll to top of detail area
-            detailArea.scrollTop = 0;
+            // Display the read view
+            showView('readView');
         }
+
+        // --- INITIALIZATION ---
+        // Start by showing the list view when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            showView('listView');
+        });
     </script>
 </body>
 </html>
