@@ -3,32 +3,37 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DuoUp - Social Gaming</title> <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+<title>DuoUp - Social Gaming</title>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-/* --- RESTORED ORIGINAL COLORS AND THEME --- */
+/* --- DUOUP DARK THEME COLORS --- */
 :root {
   --bg-primary:#1A1A2E; /* Deep Indigo/Black */
   --bg-secondary:#24263B; /* Slightly Lighter Dark Blue */
   --accent-cyan:#00FFFF; /* Bright Cyan Accent */
   --text-light:#F0F0F0; /* Off-White Text */
   --text-muted:#A0AEC0; /* Muted Gray */
-  --card-color:#ffffff; /* White Card Background */
+  --card-color:#ffffff; /* WHITE CARD (For contrast on dark BG) */
   --font-main:'Rajdhani',sans-serif;
   --font-header:'Orbitron',sans-serif;
   --status-online:#38A169; /* Green Status */
 }
+/* This ensures the entire page background is dark */
 body { margin:0; font-family:var(--font-main); background:var(--bg-primary); color:var(--text-light); min-height:100vh; }
 h1,h2,h3 {font-family:var(--font-header); margin:0;}
 a {color:var(--accent-cyan); text-decoration:none;}
 button { cursor:pointer; border:none; border-radius:5px; }
 header { position:fixed; top:0; width:100%; height:60px; background:rgba(36,38,59,.95); display:flex; justify-content:space-between; align-items:center; padding:0 20px; z-index:1000; }
+/* Logo image is correctly referenced here */
 header h1 { font-size:1.8em; display:flex; align-items:center; }
 header h1 img { height:40px; margin-right:8px; }
 header nav a { margin-left:20px; transition: color 0.2s; }
 header nav a:hover { color:#00cccc; }
 #auth-section, #app-section { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding-top:60px; }
+/* Auth form uses the dark secondary background */
 form { display:flex; flex-direction:column; background:var(--bg-secondary); padding:20px; border-radius:8px; margin:10px; width:300px; }
+/* Input fields use a dark tertiary background */
 input, textarea { margin:8px 0; padding:10px; border-radius:5px; border:none; background:#2D3748; color:var(--text-light); }
 textarea.profile-field { resize:none; }
 button { margin-top:10px; padding:10px; font-weight:bold; }
@@ -38,19 +43,21 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
     color:#1A1A2E; 
     padding:10px; 
     margin-bottom:20px; 
-    width:auto; /* Adjusted width for icon button */
+    width:auto;
     display: flex;
     align-items: center;
     gap: 5px;
 }
 .container { max-width:1200px; margin:30px auto; padding:0 20px; width:100%; }
 .results-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:25px; width:100%; }
+/* Cards have a white background, which is why you see white, but it's contained within the card on the dark background */
 .duo-card { background:var(--card-color); color:#1A1A2E; border-radius:12px; overflow:hidden; border-top:5px solid var(--accent-cyan); transition:.3s; }
 .duo-card:hover { transform:translateY(-5px); box-shadow:0 12px 20px rgba(0,255,255,.2); }
 .card-header { padding:15px 20px; display:flex; border-bottom:1px solid #edf2f7; align-items:center; }
 .avatar { width:50px;height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:15px; background:var(--accent-cyan); overflow:hidden; }
 .avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
 .bio { padding:15px 20px; font-size:0.9em; color:#4A5568; }
+/* Action button is the cyan accent color */
 .action-button { width:100%; padding:12px; background:var(--accent-cyan); color:#1A1A2E; font-weight:bold; margin-bottom:10px; transition: background 0.2s; }
 .action-button:hover { background:#00cccc; }
 .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); justify-content:center; align-items:center; z-index:2000; }
@@ -76,8 +83,7 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
 
 <header style="display:none;" id="mainHeader">
   <h1>
-    <img src="https://i.imgur.com/7aX0hXW.png" alt="DuoUp Logo">
-    DUO<span>UP</span>
+    <img src="https://i.imgur.com/7aX0hXW.png" alt="DuoUp Logo">     DUO<span>UP</span>
   </h1>
   <nav>
     <a href="#" onclick="showHome()">Home</a>
@@ -124,6 +130,7 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
     <textarea class="profile-field" id="profile-about" placeholder="About Me"></textarea>
     <input type="file" id="profile-photo">
     <button onclick="updateProfile()">Save Profile</button>
+    <p style="color: var(--text-muted); margin-top: 15px;">Note: Profile picture upload requires Firebase Storage to be configured.</p>
   </div>
 
   <div id="messages-section" class="container" style="display:none;">
