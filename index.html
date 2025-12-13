@@ -299,7 +299,7 @@
         const LOGGED_IN_USER_KEY = 'loggedInUser';
         let currentFilter = 'All';
 
-        // --- DATA RETRIEVAL ---
+        // --- DATA RETRIEVAL/STORAGE UTILITIES ---
         function getStories() {
             const storiesJSON = localStorage.getItem(STORIES_KEY);
             return storiesJSON ? JSON.parse(storiesJSON) : [];
@@ -351,6 +351,7 @@
         }
         
         function switchAuthMode(mode) {
+            // This function toggles visibility between the Sign In and Sign Up forms
             document.getElementById('signInForm').classList.toggle('hidden', mode === 'signUp');
             document.getElementById('signUpForm').classList.toggle('hidden', mode === 'signIn');
         }
@@ -361,12 +362,18 @@
             const bio = document.getElementById('signupBio').value.trim();
             const pic = document.getElementById('signupPic').value.trim();
 
+            console.log("--- SIGN UP ATTEMPT ---");
+            console.log("Input Username:", username);
+            console.log("Input Password:", password);
+
             if (!username || !password) {
                 alert('Username and Password are required.');
                 return;
             }
 
             let users = getUsers();
+            console.log("Current Users in Storage:", users);
+
             if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
                 alert('Username already exists!');
                 return;
@@ -382,6 +389,7 @@
             users.push(newUser);
             saveUsers(users);
             setLoggedInUser(username);
+            console.log("User successfully created and logged in:", newUser);
             alert(`Welcome, ${username}! Account created.`);
             showView('listView');
         }
@@ -390,19 +398,28 @@
             const username = document.getElementById('signinUsername').value.trim();
             const password = document.getElementById('signinPassword').value.trim();
 
+            console.log("--- SIGN IN ATTEMPT ---");
+            console.log("Input Username:", username);
+            console.log("Input Password:", password);
+
             if (!username || !password) {
                 alert('Please enter both username and password.');
                 return;
             }
 
             const users = getUsers();
+            console.log("Current Users in Storage:", users);
+
+            // Find user, case-insensitive check for username
             const user = users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.password === password);
 
             if (user) {
-                setLoggedInUser(username);
-                alert(`Signed in as ${username}.`);
+                setLoggedInUser(user.username); // Use the username exactly as stored (correct casing)
+                console.log("Sign In successful. Logged in user:", user.username);
+                alert(`Signed in as ${user.username}.`);
                 showView('listView');
             } else {
+                console.log("Sign In failed: User not found or password incorrect.");
                 alert('Invalid username or password.');
             }
         }
@@ -415,9 +432,8 @@
         }
 
 
-        // --- NAVIGATION & VIEW MANAGEMENT ---
+        // --- NAVIGATION & VIEW MANAGEMENT (Mostly Unchanged) ---
         function showView(viewId) {
-            // Hide all main content views
             document.getElementById('listView').classList.add('hidden');
             document.getElementById('createView').classList.add('hidden');
             document.getElementById('readView').classList.add('hidden');
@@ -425,7 +441,6 @@
             document.getElementById('profileView').classList.add('hidden');
             document.getElementById('sidebar').classList.remove('hidden');
 
-            // Show the requested view
             document.getElementById(viewId).classList.remove('hidden');
 
             if (viewId === 'listView') {
@@ -438,12 +453,11 @@
         }
 
 
-        // --- 1. LIST VIEW & CATEGORY FILTERING LOGIC ---
+        // --- 1. LIST VIEW & CATEGORY FILTERING LOGIC (Unchanged) ---
         function filterStories(category) {
             currentFilter = category;
             
             document.querySelectorAll('.category-item').forEach(el => el.classList.remove('active'));
-            // This relies on the hardcoded onclick value in the HTML
             document.querySelector(`.category-item[onclick*="'${category}'"]`).classList.add('active');
             
             renderStoryList(); 
@@ -456,11 +470,9 @@
 
             let filteredStories = allStories;
 
-            // Filter by category
             if (currentFilter !== 'All' && !filterByUsername) {
                 filteredStories = allStories.filter(s => s.category === currentFilter);
             }
-            // Filter by user (used for profile view)
             if (filterByUsername) {
                 filteredStories = allStories.filter(s => s.author === filterByUsername);
             }
@@ -469,7 +481,7 @@
                 listContainer.innerHTML = `<p style="color: var(--color-accent);">
                     ${filterByUsername ? 'This user has not published any stories yet.' : `No stories found in the '${currentFilter}' category yet.`}
                 </p>`;
-                return filteredStories; // Return for profile use
+                return filteredStories;
             }
 
             filteredStories.forEach(story => {
@@ -492,7 +504,7 @@
             return filteredStories;
         }
 
-        // --- 2. CREATE VIEW LOGIC ---
+        // --- 2. CREATE VIEW LOGIC (Unchanged) ---
         document.getElementById('publishButton').addEventListener('click', () => {
             if (!getLoggedInUser()) {
                 alert('You must be signed in to publish a story!');
@@ -533,7 +545,6 @@
             stories.push(newStory);
             saveStories(stories);
 
-            // Clear form
             titleInput.value = '';
             thumbnailInput.value = '';
             contentInput.value = '';
@@ -544,7 +555,7 @@
             showView('listView');
         });
 
-        // --- 3. READ VIEW LOGIC (Unchanged from previous version) ---
+        // --- 3. READ VIEW LOGIC (Unchanged) ---
         function renderStory(storyId) {
             const stories = getStories();
             const story = stories.find(s => s.id === storyId);
@@ -569,7 +580,7 @@
             showView('readView');
         }
 
-        // --- 4. PROFILE VIEW LOGIC ---
+        // --- 4. PROFILE VIEW LOGIC (Unchanged) ---
         function renderProfileView(targetUsername = null) {
             const usernameToDisplay = targetUsername || getLoggedInUser();
             
@@ -592,7 +603,6 @@
             document.getElementById('profileBio').textContent = user.bio;
             document.getElementById('profilePicture').src = user.profilePic;
 
-            // Display user's stories
             const userStoriesContainer = document.getElementById('userStoriesList');
             userStoriesContainer.innerHTML = '<h3>' + (targetUsername ? user.username + "'s Stories" : 'My Published Stories') + '</h3>';
             
