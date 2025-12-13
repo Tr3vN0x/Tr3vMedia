@@ -34,10 +34,10 @@
         .logo {
             font-family: var(--font-logo);
             font-size: 3em;
-            color: var(--quiet-green-deep); /* Deep, comforting highlight */
+            color: var(--quiet-green-deep);
             margin: 0;
             font-style: italic;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05); /* Very subtle shadow */
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         .quiet-text {
@@ -49,7 +49,7 @@
         }
 
         .author-name {
-            color: var(--quiet-green-soft); /* Soft accent for author name */
+            color: var(--quiet-green-soft);
             font-weight: 700;
             font-style: italic;
         }
@@ -61,8 +61,8 @@
             justify-content: space-between;
             align-items: center;
             padding: 20px 50px;
-            background-color: #ffffff; /* Clean white header background */
-            border-bottom: 1px solid #e0e0e0; /* Very soft dividing line */
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
         }
 
         nav ul {
@@ -78,17 +78,32 @@
             color: var(--quiet-gray);
             transition: color 0.3s;
             font-weight: 400;
-            text-transform: capitalize; /* More relaxed case than uppercase */
+            text-transform: capitalize;
             letter-spacing: 0.5px;
         }
 
         .quiet-link:hover {
-            color: var(--quiet-green-soft); /* Soft accent on hover */
+            color: var(--quiet-green-soft);
         }
+        
+        /* New Link for Login/Auth */
+        .auth-link {
+            cursor: pointer;
+            text-decoration: none;
+            color: var(--quiet-gray);
+            transition: color 0.3s;
+            font-weight: 400;
+            text-transform: capitalize;
+            letter-spacing: 0.5px;
+        }
+        .auth-link:hover {
+            color: var(--quiet-green-soft);
+        }
+
 
         /* --- BUTTONS --- */
 
-        .quiet-button, .quiet-cta-button {
+        .quiet-button, .quiet-cta-button, .form-button {
             background: var(--quiet-green-soft);
             border: 1px solid var(--quiet-green-soft);
             color: white;
@@ -98,17 +113,17 @@
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 700;
-            border-radius: 20px; /* Fully rounded corners for a soft pill shape */
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* Minimal shadow */
+            border-radius: 20px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
             letter-spacing: 1px;
         }
 
         .quiet-cta-button {
-            background: var(--quiet-green-deep); /* Deeper green for the CTA */
+            background: var(--quiet-green-deep);
             border-color: var(--quiet-green-deep);
         }
 
-        /* Hover Effect: Soften the color and lift minimally */
+        /* Hover Effect */
         .quiet-button:hover {
             background: #90a08b; 
             transform: translateY(-1px);
@@ -119,41 +134,152 @@
             transform: translateY(-1px);
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
         }
+        
+        /* Form Button Specifics */
+        .form-button {
+            width: 100%;
+            margin-top: 20px;
+        }
 
+        /* --- SEARCH AND FILTER AREA --- */
 
-        /* --- MAIN CONTENT: STORY GRID (The Reading Nooks) --- */
+        .search-and-filter-area {
+            padding: 30px 50px 10px;
+            background-color: #f0f0f0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 600px;
+            padding: 12px 20px;
+            font-size: 1em;
+            font-family: var(--font-body);
+            color: var(--quiet-gray);
+            background-color: white;
+            border: 1px solid var(--quiet-green-soft);
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            transition: border-color 0.3s, box-shadow 0.3s;
+            box-sizing: border-box;
+            margin-bottom: 20px;
+        }
+
+        .search-input::placeholder {
+            color: #b0b0b0;
+            font-style: italic;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--quiet-green-deep);
+            box-shadow: 0 0 5px rgba(71, 89, 64, 0.3);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .filter-tag {
+            background-color: #ffffff;
+            color: var(--quiet-gray);
+            border: 1px solid var(--quiet-green-soft);
+            padding: 6px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: var(--font-body);
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .filter-tag:hover {
+            background-color: var(--quiet-green-soft);
+            color: white;
+            border-color: var(--quiet-green-soft);
+        }
+
+        .filter-tag.active {
+            background-color: var(--quiet-green-deep);
+            color: white;
+            border-color: var(--quiet-green-deep);
+            font-weight: 700;
+        }
+
+        /* --- MAIN CONTENT: STORY GRID --- */
 
         .story-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 40px;
+            gap: 60px; /* Increased gap to account for 3D effect */
             padding: 50px;
         }
 
+        /* --- VISUAL POLISH: STORY CARDS (Stacked Books Effect) --- */
+
         .story-card {
+            /* Positioning context for the 3D-like stack */
+            position: relative;
             background-color: #ffffff; 
             padding: 25px;
-            border-radius: 8px; 
-            border: 1px solid #e0e0e0; /* Thin, soft border */
+            border-radius: 4px; /* Sharper corners for a book cover feel */
+            border: 1px solid #e0e0e0; 
             text-align: center;
             transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); /* Very light shadow */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05); 
+            transform: rotateZ(-1deg); /* Slight initial rotation/tilt */
+        }
+        
+        /* The "stacked book" effect using pseudo-elements */
+        .story-card::before, .story-card::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            z-index: -1;
+            transition: transform 0.3s ease-out;
+        }
+        
+        .story-card::before {
+            /* Second layer, slightly offset */
+            transform: translate(5px, 5px) rotateZ(1deg);
+            background-color: #f0f0f0;
+        }
+        
+        .story-card::after {
+            /* Third layer, slightly more offset */
+            transform: translate(10px, 10px) rotateZ(0deg);
+            background-color: #e8e8e8;
+        }
+        
+        .story-card:hover {
+            transform: translateY(-5px) rotateZ(0deg); /* Straighten and lift on hover */
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15); 
+        }
+
+        .story-card:hover::before {
+             transform: translate(0px, 0px) rotateZ(0deg); /* Collapse the stack on hover */
+        }
+        
+        .story-card:hover::after {
+             transform: translate(0px, 0px) rotateZ(0deg); /* Collapse the stack on hover */
         }
 
         .description {
             color: #777;
             font-size: 0.95em;
-            margin: 10px 0;
+            margin: 10px 0 20px; /* Added space below description */
             line-height: 1.5;
         }
 
-        .story-card:hover {
-            /* Subtle lift and shadow change on hover */
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.1); 
-        }
 
-        /* --- FOOTER (The Closing Time) --- */
+        /* --- FOOTER --- */
         .quiet-footer {
             text-align: center;
             padding: 20px;
@@ -164,6 +290,125 @@
             letter-spacing: 1px;
             background-color: #f7f7f7;
         }
+        
+        /* --- USER AUTHENTICATION: LOGIN MODAL --- */
+        
+        .modal-overlay {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.4); /* Dark semi-transparent background */
+            backdrop-filter: blur(2px); /* Subtle blur effect */
+        }
+        
+        .login-modal {
+            background-color: var(--quiet-cream);
+            margin: 10% auto; /* Centered vertically and horizontally */
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 400px;
+            position: relative;
+            text-align: center;
+        }
+        
+        .close-button {
+            color: var(--quiet-gray);
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            line-height: 1;
+        }
+        
+        .close-button:hover, .close-button:focus {
+            color: var(--quiet-green-deep);
+            text-decoration: none;
+        }
+        
+        .modal-title {
+            font-family: var(--font-logo);
+            color: var(--quiet-green-deep);
+            font-size: 2em;
+            margin-bottom: 25px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: var(--font-body);
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+        
+        .form-input:focus {
+            border-color: var(--quiet-green-soft);
+            outline: none;
+        }
+        
+        .switch-auth {
+            font-size: 0.9em;
+            margin-top: 15px;
+            color: #777;
+        }
+        
+        .switch-auth a {
+            color: var(--quiet-green-deep);
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .switch-auth a:hover {
+            text-decoration: underline;
+        }
+
+        /* --- READING PAGE STYLE (For separate page, but defined here for completion) --- */
+        
+        .reading-body {
+            background-color: #fffaf0; /* Off-white paper color */
+            padding: 0;
+            margin: 0;
+        }
+        
+        .reading-content {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 40px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            font-size: 1.15em; /* Larger, comfortable reading font */
+            line-height: 1.8; /* Increased line spacing */
+        }
+        
+        .reading-title {
+            font-family: var(--font-logo);
+            font-size: 3em;
+            color: var(--quiet-green-deep);
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e0e0e0;
+            padding-bottom: 15px;
+        }
+        
+        .reading-paragraph {
+            text-indent: 2em; /* Indent paragraphs like a book */
+            margin-bottom: 1.5em;
+            text-align: justify;
+        }
+
 
         /* --- RESPONSIVENESS --- */
         @media (max-width: 768px) {
@@ -182,9 +427,9 @@
                 gap: 15px;
             }
 
-            .story-grid {
+            .search-and-filter-area, .story-grid {
                 padding: 20px;
-                gap: 20px;
+                gap: 30px;
             }
         }
     </style>
@@ -197,10 +442,24 @@
             <ul>
                 <li><a href="#" class="quiet-link">Reading Nooks</a></li>
                 <li><a href="#" class="quiet-link">My Shelf</a></li>
+                <li><span class="auth-link" onclick="document.getElementById('loginModal').style.display='block'">Sign In</span></li>
                 <li><a href="#" class="quiet-link quiet-cta-button">Publish Quietly</a></li>
             </ul>
         </nav>
     </header>
+
+    <div class="search-and-filter-area">
+        <input type="text" class="search-input" placeholder="Search by title or author...">
+        
+        <div class="filter-tags">
+            <button class="filter-tag active">All Nooks</button>
+            <button class="filter-tag">Mystery & Thrillers</button>
+            <button class="filter-tag">Romantic Tales</button>
+            <button class="filter-tag">Fantasy & Lore</button>
+            <button class="filter-tag">Short Memoirs</button>
+            <button class="filter-tag">Poetry</button>
+        </div>
+    </div>
 
     <main class="story-grid">
 
@@ -226,10 +485,69 @@
         </div>
         
     </main>
+    
+    <div id="loginModal" class="modal-overlay">
+        <div class="login-modal">
+            <span class="close-button" onclick="document.getElementById('loginModal').style.display='none'">&times;</span>
+            <h2 class="modal-title">Welcome Back</h2>
+            
+            <form id="authForm">
+                <div class="form-group">
+                    <input type="email" id="email" class="form-input" placeholder="Email" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" id="password" class="form-input" placeholder="Password" required>
+                </div>
+                <button type="submit" class="form-button">Sign In</button>
+            </form>
+            
+            <p class="switch-auth">
+                Don't have a spot yet? <a href="#" onclick="switchForm()">Create Account</a>
+            </p>
+        </div>
+    </div>
 
     <footer class="quiet-footer">
         <p>&copy; 2025 The Quiet Corner. Find your peace. // Where Every Page is a Moment of Rest // </p>
     </footer>
+    
+    <script>
+        // Simple script to toggle the login/signup form within the modal
+        function switchForm() {
+            const form = document.getElementById('authForm');
+            const title = document.querySelector('.modal-title');
+            const button = document.querySelector('.form-button');
+            const switchText = document.querySelector('.switch-auth');
+            
+            if (button.innerText === "SIGN IN") {
+                title.innerText = "Create Your Account";
+                button.innerText = "SIGN UP";
+                switchText.innerHTML = "Already have an account? <a href='#' onclick='switchForm()'>Sign In</a>";
+                // Add an input for Username for Sign Up
+                const usernameInput = document.createElement('div');
+                usernameInput.className = 'form-group';
+                usernameInput.innerHTML = '<input type="text" id="username" class="form-input" placeholder="Username" required>';
+                form.prepend(usernameInput);
+            } else {
+                title.innerText = "Welcome Back";
+                button.innerText = "SIGN IN";
+                switchText.innerHTML = "Don't have a spot yet? <a href='#' onclick='switchForm()'>Create Account</a>";
+                // Remove the username input
+                const usernameGroup = document.getElementById('username');
+                if (usernameGroup) {
+                    usernameGroup.parentElement.remove();
+                }
+            }
+        }
+        
+        // Close modal when clicking outside of it
+        const modal = document.getElementById('loginModal');
+        window.onclick = function(event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        }
+    </script>
 
 </body>
 </html>
