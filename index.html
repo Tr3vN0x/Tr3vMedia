@@ -7,60 +7,67 @@
 <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
-/* Simplified CSS to use Black/White/Gray */
+/* --- RESTORED ORIGINAL COLORS AND THEME --- */
 :root {
-  /* Replaced custom colors with simple colors */
-  --bg-primary:#111111; /* Dark Gray/Black */
-  --bg-secondary:#222222; /* Slightly Lighter Dark Gray */
-  --accent-default:#CCCCCC; /* Light Gray Accent */
-  --text-light:#FFFFFF; /* White Text */
-  --text-dark:#000000; /* Black Text */
-  --text-muted:#AAAAAA;
-  --card-color:#FFFFFF; 
+  --bg-primary:#1A1A2E; /* Deep Indigo/Black */
+  --bg-secondary:#24263B; /* Slightly Lighter Dark Blue */
+  --accent-cyan:#00FFFF; /* Bright Cyan Accent */
+  --text-light:#F0F0F0; /* Off-White Text */
+  --text-muted:#A0AEC0; /* Muted Gray */
+  --card-color:#ffffff; /* White Card Background */
   --font-main:'Rajdhani',sans-serif;
   --font-header:'Orbitron',sans-serif;
-  --status-online:#00AA00; /* Green for status */
+  --status-online:#38A169; /* Green Status */
 }
 body { margin:0; font-family:var(--font-main); background:var(--bg-primary); color:var(--text-light); min-height:100vh; }
 h1,h2,h3 {font-family:var(--font-header); margin:0;}
-a {color:var(--accent-default); text-decoration:none;}
+a {color:var(--accent-cyan); text-decoration:none;}
 button { cursor:pointer; border:none; border-radius:5px; }
-header { position:fixed; top:0; width:100%; height:60px; background:rgba(34,34,34,.95); display:flex; justify-content:space-between; align-items:center; padding:0 20px; z-index:1000; }
+header { position:fixed; top:0; width:100%; height:60px; background:rgba(36,38,59,.95); display:flex; justify-content:space-between; align-items:center; padding:0 20px; z-index:1000; }
 header h1 { font-size:1.8em; }
 header nav a { margin-left:20px; }
 #auth-section, #app-section { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding-top:60px; }
 form { display:flex; flex-direction:column; background:var(--bg-secondary); padding:20px; border-radius:8px; margin:10px; width:300px; }
-input, textarea { margin:8px 0; padding:10px; border-radius:5px; border:1px solid #666; background:var(--text-light); color:var(--text-dark);}
+/* Input colors restored */
+input, textarea { margin:8px 0; padding:10px; border-radius:5px; border:none; background:#2D3748; color:var(--text-light); }
 button { margin-top:10px; padding:10px; font-weight:bold; }
 .google-btn { background:#DB4437; color:white; margin-top:10px; padding:10px; width:300px; }
-#logoutBtn { background:var(--accent-default); color:var(--text-dark); padding:10px; margin-bottom:20px; width:150px; }
+/* Logout button color restored */
+#logoutBtn { background:var(--accent-cyan); color:#1A1A2E; padding:10px; margin-bottom:20px; width:150px; }
 .container { max-width:1200px; margin:30px auto; padding:0 20px; width:100%; }
 .results-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:25px; width:100%; }
-.duo-card { background:var(--card-color); color:var(--text-dark); border-radius:12px; overflow:hidden; border-top:5px solid var(--accent-default); transition:.3s; }
-.duo-card:hover { transform:translateY(-5px); box-shadow:0 12px 20px rgba(0,0,0,.2); }
-.card-header { padding:15px 20px; display:flex; border-bottom:1px solid #EEEEEE; align-items:center; }
-.avatar { width:50px;height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:15px; background:var(--accent-default); overflow:hidden; }
+/* Card colors restored */
+.duo-card { background:var(--card-color); color:#1A1A2E; border-radius:12px; overflow:hidden; border-top:5px solid var(--accent-cyan); transition:.3s; }
+.duo-card:hover { transform:translateY(-5px); box-shadow:0 12px 20px rgba(0,255,255,.2); }
+.card-header { padding:15px 20px; display:flex; border-bottom:1px solid #edf2f7; align-items:center; }
+/* Avatar color restored */
+.avatar { width:50px;height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:15px; background:var(--accent-cyan); overflow:hidden; }
 .avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-.bio { padding:15px 20px; font-size:0.9em; color:#444444; }
-.action-button { width:100%; padding:12px; background:var(--accent-default); color:var(--text-dark); font-weight:bold; margin-bottom:10px; }
+.bio { padding:15px 20px; font-size:0.9em; color:#4A5568; }
+/* Action button color restored */
+.action-button { width:100%; padding:12px; background:var(--accent-cyan); color:#1A1A2E; font-weight:bold; margin-bottom:10px; }
 .modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); justify-content:center; align-items:center; z-index:2000; }
+/* Chat container colors restored */
 .chat-container { width:400px; height:500px; background:var(--bg-secondary); border-radius:10px; display:flex; flex-direction:column; }
-.chat-header { padding:10px 15px; background:#333333; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--accent-default); color:var(--text-light); }
+.chat-header { padding:10px 15px; background:#313349; display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid var(--accent-cyan); color:var(--text-light); }
 .status-dot { width:8px;height:8px; border-radius:50%; margin-right:8px; background:var(--status-online); }
 .message-area { flex:1; padding:15px; overflow-y:auto; }
 .message { max-width:80%; margin-bottom:10px; }
 .message.self { margin-left:auto; }
 .message-content { padding:8px 12px; border-radius:15px; }
-.message.other .message-content { background:#444444; color:white; }
-.message.self .message-content { background:var(--accent-default); color:var(--text-dark); }
+/* Message colors restored */
+.message.other .message-content { background:#4A5568; color:white; }
+.message.self .message-content { background:var(--accent-cyan); color:#1A1A2E; }
 .chat-input-area { display:flex; padding:15px; }
-.chat-input { flex:1; padding:10px; border:none; background:#333333; color:white; }
-.send-button { padding:10px 15px; border:none; background:var(--accent-default); color:var(--text-dark); font-weight:bold; }
+.chat-input { flex:1; padding:10px; border:none; background:#2D3748; color:white; }
+/* Send button color restored */
+.send-button { padding:10px 15px; border:none; background:var(--accent-cyan); color:#1A1A2E; font-weight:bold; }
 .chat-locked { text-align:center; color:var(--text-muted); padding-top:50px; }
 .profile-field { margin:10px 0; width:100%; padding:8px; border-radius:5px; border:none; }
 textarea.profile-field { resize:none; }
-.messages-container h3 { margin-top: 30px; color: var(--accent-default); border-bottom: 2px solid var(--text-muted); padding-bottom: 5px; }
-.duo-request-card { border-top: 5px solid #FFC107; } /* Yellow for pending */
+/* Messages section separation styles */
+.messages-container h3 { margin-top: 30px; color: var(--accent-cyan); border-bottom: 2px solid var(--text-muted); padding-bottom: 5px; }
+.duo-request-card { border-top: 5px solid #FFC107; } 
 </style>
 </head>
 <body>
@@ -130,6 +137,7 @@ textarea.profile-field { resize:none; }
     <div class="chat-input-area">
       <input id="chatInput" class="chat-input" placeholder="Type message">
       <button class="send-button" onclick="sendMessage()">Send</button>
+      <span onclick="closeChat()" style="cursor:pointer; padding: 10px; margin-left: 10px; color: var(--text-light);">X</span>
     </div>
   </div>
 </div>
@@ -302,7 +310,7 @@ async function loadPendingRequests(){
   try {
     const reqsSnap = await getDocs(query(collection(db,"users",currentUser.uid,"requests"), where("status", "==", "pending")));
     
-    if(reqsSnap.empty) { requestsGrid.innerHTML = "<p style='padding: 10px; color:#FFFFFF;'>No pending requests.</p>"; return; }
+    if(reqsSnap.empty) { requestsGrid.innerHTML = "<p style='padding: 10px; color:var(--text-light);'>No pending requests.</p>"; return; }
 
     reqsSnap.forEach(async reqDoc=>{
       const reqData=reqDoc.data();
@@ -315,7 +323,7 @@ async function loadPendingRequests(){
       <div><h3>${senderData.username}</h3><p>${senderData.platform}</p></div></div>
       <div class="bio">Incoming Duo Request</div>
       <button class="action-button" onclick="acceptRequest('${reqDoc.id}', '${senderData.username}')">Accept</button>
-      <button class="action-button" style="background:#dc3545; color:#FFFFFF;" onclick="rejectRequest('${reqDoc.id}')">Reject</button>`;
+      <button class="action-button" style="background:#dc3545; color:white;" onclick="rejectRequest('${reqDoc.id}')">Reject</button>`;
       requestsGrid.appendChild(card);
     });
   } catch(e) { console.error("Error loading pending requests:", e); }
@@ -327,7 +335,7 @@ async function loadDuos(){
     const duosQuery = query(collection(db, "chats"), where("members", "array-contains", currentUser.uid));
     const duosSnap = await getDocs(duosQuery);
 
-    if(duosSnap.empty) { duosGrid.innerHTML = "<p style='padding: 10px; color:#FFFFFF;'>No accepted duos yet. Accept a request to start chatting!</p>"; return; }
+    if(duosSnap.empty) { duosGrid.innerHTML = "<p style='padding: 10px; color:var(--text-light);'>No accepted duos yet. Accept a request to start chatting!</p>"; return; }
 
     duosSnap.forEach(async duoDoc => {
       const duoData = duoDoc.data();
