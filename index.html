@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Neon Ink - Simplified Login Hub</title>
+    <title>Neon Ink - Public Posting Hub</title>
     <style>
         /* --- GLOBAL STYLES (Neon Theme) --- */
         :root {
@@ -65,7 +65,7 @@
             box-shadow: 0 0 10px var(--color-neon), 0 0 20px var(--color-neon);
         }
 
-        /* User Info in Header */
+        /* User Info in Header - kept for layout, but unused */
         #userInfo { font-size: 0.9em; margin-right: 15px; color: var(--color-text); }
         #userInfo strong { color: var(--color-accent); }
 
@@ -93,8 +93,7 @@
             border: 1px solid var(--color-border);
         }
 
-        /* --- AUTH/FORM STYLES --- */
-        .auth-form input[type="text"], .auth-form input[type="password"], .auth-form textarea, 
+        /* --- FORM STYLES (Create View) --- */
         #createView input[type="text"], #createView textarea, #createView select {
             width: 100%; 
             padding: 10px; 
@@ -105,10 +104,9 @@
             box-sizing: border-box; 
             margin-bottom: 15px;
         }
-        .auth-form label, #createView label { color: var(--color-neon); }
-        .form-switch { margin-top: 15px; cursor: pointer; color: var(--color-accent); }
-        .form-switch:hover { text-decoration: underline; }
+        #createView label { color: var(--color-neon); }
         #createView textarea { height: 300px; }
+
 
         /* --- STORY LIST VIEW STYLES (Unchanged) --- */
         #storyList { 
@@ -149,9 +147,9 @@
             margin-top: 10px;
         }
 
-        /* --- PROFILE VIEW (Unchanged) --- */
-        #profileView { text-align: center; }
-        #profilePicture { 
+        /* --- AUTHOR VIEW (Simplified Profile View) --- */
+        #authorView { text-align: center; }
+        #authorPicture { 
             width: 150px; 
             height: 150px; 
             border-radius: 50%; 
@@ -159,9 +157,9 @@
             border: 4px solid var(--color-accent); 
             margin-bottom: 15px;
         }
-        #profileView h2 { font-size: 2em; margin-bottom: 5px; }
-        #profileBio { font-style: italic; color: #aaa; max-width: 600px; margin: 0 auto 20px; }
-        #userStoriesList { margin-top: 30px; border-top: 1px solid #444; padding-top: 20px; }
+        #authorView h2 { font-size: 2em; margin-bottom: 5px; }
+        #authorBio { font-style: italic; color: #aaa; max-width: 600px; margin: 0 auto 20px; }
+        #authorStoriesList { margin-top: 30px; border-top: 1px solid #444; padding-top: 20px; }
         .story-card-profile {
             display: flex;
             justify-content: space-between;
@@ -190,11 +188,9 @@
             <span style="color: var(--color-accent);">N</span>eon <span style="color: var(--color-accent);">I</span>nk 💡
         </h1>
         <nav>
-            <div id="userInfo"></div>
-            <button class="nav-btn" id="profileBtn" onclick="showView('profileView')" style="display: none;">👤 Profile</button>
-            <button class="nav-btn" id="writeBtn" onclick="showView('createView')" style="display: none;">✍️ Write</button>
-            <button class="nav-btn" id="loginBtn" onclick="showView('authView')">🔑 Sign In</button>
-            <button class="nav-btn" id="logoutBtn" onclick="logout()" style="display: none;">🚪 Sign Out</button>
+            <div id="userInfo"></div> 
+            
+            <button class="nav-btn" onclick="showView('createView')">✍️ Write</button>
             <button class="nav-btn" onclick="showView('listView')">📖 Read</button>
         </nav>
     </header>
@@ -214,38 +210,6 @@
 
         <div class="content">
             
-            <section id="authView" class="hidden">
-                <h2>🔑 Account Access</h2>
-                
-                <div id="signInForm" class="auth-form">
-                    <h3>Find My Account</h3>
-                    <p style="color: var(--color-neon);">
-                        *No password required. Enter your existing username to sign in.*
-                    </p>
-                    <label for="signinUsername">Username:</label>
-                    <input type="text" id="signinUsername" placeholder="Enter your existing username">
-                    <button class="nav-btn" onclick="signIn()">Sign In / Find Account</button>
-                    <p class="form-switch" onclick="switchAuthMode('signUp')">New here? Create an account.</p>
-                </div>
-
-                <div id="signUpForm" class="auth-form hidden">
-                    <h3>Create New Account</h3>
-                    <p style="color: var(--color-accent);">
-                        *You must choose a username and a simple password now.*
-                    </p>
-                    <label for="signupUsername">Username:</label>
-                    <input type="text" id="signupUsername" placeholder="Choose a unique username">
-                    <label for="signupPassword">Password (Simulated):</label>
-                    <input type="password" id="signupPassword" placeholder="Choose a simple password for creation">
-                    <label for="signupBio">Bio (Optional):</label>
-                    <textarea id="signupBio" placeholder="Tell us about yourself..." rows="3"></textarea>
-                    <label for="signupPic">Profile Picture URL (Optional):</label>
-                    <input type="text" id="signupPic" placeholder="Link to a profile image">
-                    <button class="nav-btn" onclick="signUp()">Create Account & Sign In</button>
-                    <p class="form-switch" onclick="switchAuthMode('signIn')">I have an account. Go back to Sign In.</p>
-                </div>
-            </section>
-            
             <section id="listView">
                 <h2>Explore New Worlds</h2>
                 <div id="storyList">
@@ -254,7 +218,14 @@
             </section>
 
             <section id="createView" class="hidden">
-                <h2>✍️ Create Your Masterpiece</h2>
+                <h2>✍️ Post a Story Anonymously</h2>
+                <p style="color: var(--color-neon);">
+                    *Enter your Pen Name below. You can use any name you like.*
+                </p>
+                <div class="form-group">
+                    <label for="storyAuthor">Author / Pen Name</label>
+                    <input type="text" id="storyAuthor" required value="Anonymous Writer">
+                </div>
                 <div class="form-group">
                     <label for="storyTitle">Story Title</label>
                     <input type="text" id="storyTitle" required>
@@ -285,26 +256,24 @@
                 <div id="storyContentContainer"></div>
             </section>
 
-            <section id="profileView" class="hidden">
-                <img id="profilePicture" src="https://via.placeholder.com/150/1a1a1a/00ffcc?text=U" alt="Profile Picture">
-                <h2 id="profileUsername"></h2>
-                <p id="profileBio"></p>
+            <section id="authorView" class="hidden">
+                <img id="authorPicture" src="https://via.placeholder.com/150/1a1a1a/00ffcc?text=PEN" alt="Author Icon">
+                <h2 id="authorName"></h2>
+                <p id="authorBio">This page lists all stories published under this pen name.</p>
                 
-                <div id="userStoriesList">
-                    <h3>My Published Stories</h3>
+                <div id="authorStoriesList">
+                    <h3>Published Stories</h3>
                     </div>
                 
             </section>
 
         </div>
     </div> <script>
-        // --- DATA KEYS ---
+        // --- DATA KEYS (Only stories remain) ---
         const STORIES_KEY = 'stories';
-        const USERS_KEY = 'users';
-        const LOGGED_IN_USER_KEY = 'loggedInUser';
         let currentFilter = 'All';
 
-        // --- DATA RETRIEVAL/STORAGE UTILITIES (Unchanged) ---
+        // --- DATA RETRIEVAL/STORAGE UTILITIES ---
         function getStories() {
             const storiesJSON = localStorage.getItem(STORIES_KEY);
             return storiesJSON ? JSON.parse(storiesJSON) : [];
@@ -312,151 +281,36 @@
         function saveStories(storiesArray) {
             localStorage.setItem(STORIES_KEY, JSON.stringify(storiesArray));
         }
-        function getUsers() {
-            const usersJSON = localStorage.getItem(USERS_KEY);
-            return usersJSON ? JSON.parse(usersJSON) : [];
-        }
-        function saveUsers(usersArray) {
-            localStorage.setItem(USERS_KEY, JSON.stringify(usersArray));
-        }
-        function getLoggedInUser() {
-            return localStorage.getItem(LOGGED_IN_USER_KEY);
-        }
-        function setLoggedInUser(username) {
-            localStorage.setItem(LOGGED_IN_USER_KEY, username);
-            updateHeaderUI();
-        }
         function generateId() {
             return Date.now().toString(36) + Math.random().toString(36).substring(2);
         }
 
-        // --- AUTHENTICATION LOGIC ---
-
-        function updateHeaderUI() {
-            const username = getLoggedInUser();
-            const userInfo = document.getElementById('userInfo');
-            const loginBtn = document.getElementById('loginBtn');
-            const logoutBtn = document.getElementById('logoutBtn');
-            const writeBtn = document.getElementById('writeBtn');
-            const profileBtn = document.getElementById('profileBtn');
-
-            if (username) {
-                userInfo.innerHTML = `Welcome, <strong>${username}</strong>`;
-                loginBtn.style.display = 'none';
-                logoutBtn.style.display = 'inline-block';
-                writeBtn.style.display = 'inline-block';
-                profileBtn.style.display = 'inline-block';
-            } else {
-                userInfo.innerHTML = `Not signed in.`;
-                loginBtn.style.display = 'inline-block';
-                logoutBtn.style.display = 'none';
-                writeBtn.style.display = 'none';
-                profileBtn.style.display = 'none';
-            }
-        }
-        
-        function switchAuthMode(mode) {
-            document.getElementById('signInForm').classList.toggle('hidden', mode === 'signUp');
-            document.getElementById('signUpForm').classList.toggle('hidden', mode === 'signIn');
-        }
-
-        function signUp() {
-            const username = document.getElementById('signupUsername').value.trim();
-            const password = document.getElementById('signupPassword').value.trim(); // Required for creation
-            const bio = document.getElementById('signupBio').value.trim();
-            const pic = document.getElementById('signupPic').value.trim();
-
-            if (!username || !password) {
-                alert('Username and Password are required to create an account.');
-                return;
-            }
-
-            let users = getUsers();
-            
-            if (users.find(u => u.username.toLowerCase() === username.toLowerCase())) {
-                alert('Username already exists! Please go back to the Sign In screen.');
-                return;
-            }
-
-            const newUser = {
-                username: username,
-                password: password, 
-                bio: bio || 'A reader and writer on Neon Ink.',
-                profilePic: pic || 'https://via.placeholder.com/150/ff0077/1a1a1a?text=' + username.charAt(0).toUpperCase()
-            };
-
-            users.push(newUser);
-            saveUsers(users);
-            setLoggedInUser(username);
-            alert(`Welcome, ${username}! Account created.`);
-            
-            // Clear sign up form fields
-            document.getElementById('signupUsername').value = '';
-            document.getElementById('signupPassword').value = '';
-            document.getElementById('signupBio').value = '';
-            document.getElementById('signupPic').value = '';
-            
-            showView('listView');
-        }
-
-        function signIn() {
-            // SIMPLIFIED LOGIN: Only checks for username existence.
-            const usernameInput = document.getElementById('signinUsername');
-            const username = usernameInput.value.trim();
-
-            if (!username) {
-                alert('Please enter your username to find your account.');
-                return;
-            }
-
-            const users = getUsers();
-
-            // Find user (case-insensitively)
-            const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
-
-            if (user) {
-                // Login is successful if the user exists.
-                setLoggedInUser(user.username); 
-                alert(`Signed in instantly as ${user.username}.`);
-                usernameInput.value = ''; // Clear input field
-                showView('listView');
-            } else {
-                alert(`Account not found for "${username}". Please Sign Up.`);
-                // Direct the user to the Sign Up form
-                switchAuthMode('signUp');
-                // Pre-fill the username field to make sign up easier
-                document.getElementById('signupUsername').value = username;
-            }
-        }
-
-        function logout() {
-            localStorage.removeItem(LOGGED_IN_USER_KEY);
-            updateHeaderUI();
-            alert('You have been signed out.');
-            showView('listView');
-        }
-
-
-        // --- NAVIGATION & VIEW MANAGEMENT (Unchanged) ---
+        // --- NAVIGATION & VIEW MANAGEMENT ---
         function showView(viewId) {
+            // Mapping the old 'profileView' to the new 'authorView' for simplicity
+            const viewMapping = {
+                'listView': 'listView',
+                'createView': 'createView',
+                'readView': 'readView',
+                'profileView': 'authorView' 
+            };
+            
+            const targetViewId = viewMapping[viewId] || viewId;
+            
+            // Hide all views
             document.getElementById('listView').classList.add('hidden');
             document.getElementById('createView').classList.add('hidden');
             document.getElementById('readView').classList.add('hidden');
-            document.getElementById('authView').classList.add('hidden');
-            document.getElementById('profileView').classList.add('hidden');
+            document.getElementById('authorView').classList.add('hidden'); 
             document.getElementById('sidebar').classList.remove('hidden');
 
-            document.getElementById(viewId).classList.remove('hidden');
+            // Show the requested view
+            document.getElementById(targetViewId).classList.remove('hidden');
 
-            if (viewId === 'listView') {
+            if (targetViewId === 'listView') {
                 renderStoryList();
-            } else if (viewId === 'profileView') {
-                renderProfileView(getLoggedInUser()); 
-            } else if (viewId === 'readView') {
+            } else if (targetViewId === 'readView') {
                 document.getElementById('sidebar').classList.add('hidden');
-            } else if (viewId === 'authView') {
-                // Ensure auth view defaults to Sign In when opened
-                switchAuthMode('signIn');
             }
         }
 
@@ -474,25 +328,22 @@
             renderStoryList(); 
         }
 
-        function renderStoryList(filterByUsername = null) {
+        function renderStoryList() {
             const allStories = getStories();
             const listContainer = document.getElementById('storyList');
             listContainer.innerHTML = ''; 
 
             let filteredStories = allStories;
 
-            if (currentFilter !== 'All' && !filterByUsername) {
+            if (currentFilter !== 'All') {
                 filteredStories = allStories.filter(s => s.category === currentFilter);
-            }
-            if (filterByUsername) {
-                filteredStories = allStories.filter(s => s.author === filterByUsername);
             }
 
             if (filteredStories.length === 0) {
                 listContainer.innerHTML = `<p style="color: var(--color-accent);">
-                    ${filterByUsername ? 'This user has not published any stories yet.' : `No stories found in the '${currentFilter}' category yet.`}
+                    No stories found in the '${currentFilter}' category yet. Be the first to post!
                 </p>`;
-                return filteredStories;
+                return;
             }
 
             filteredStories.forEach(story => {
@@ -506,29 +357,24 @@
                     <div class="card-details">
                         <h3>${story.title}</h3>
                         <p><strong>Category:</strong> ${story.category}</p>
-                        <p><strong>By:</strong> <a class="read-link" onclick="renderProfileView('${story.author}')">${story.author}</a></p>
+                        <p><strong>By:</strong> <a class="read-link" onclick="renderAuthorView('${story.author}')">${story.author}</a></p>
                         <a class="read-link" onclick="renderStory('${story.id}')">Start Reading &rarr;</a>
                     </div>
                 `;
                 listContainer.appendChild(storyCard);
             });
-            return filteredStories;
         }
 
-        // --- 2. CREATE VIEW LOGIC (Unchanged) ---
+        // --- 2. CREATE VIEW LOGIC (Modified to read Author Name) ---
         document.getElementById('publishButton').addEventListener('click', () => {
-            const loggedInUser = getLoggedInUser();
-            if (!loggedInUser) {
-                alert('You must be signed in to publish a story!');
-                showView('authView');
-                return;
-            }
             
+            const authorInput = document.getElementById('storyAuthor');
             const titleInput = document.getElementById('storyTitle');
             const categorySelect = document.getElementById('storyCategory');
             const thumbnailInput = document.getElementById('storyThumbnailUrl');
             const contentInput = document.getElementById('storyContent');
 
+            const author = authorInput.value.trim() || 'Anonymous Writer';
             const title = titleInput.value.trim();
             const category = categorySelect.value;
             const thumbnailUrl = thumbnailInput.value.trim();
@@ -542,7 +388,7 @@
             const newStory = {
                 id: generateId(),
                 title: title,
-                author: loggedInUser, 
+                author: author, // Use the submitted author name
                 category: category,
                 thumbnailUrl: thumbnailUrl,
                 chapters: [{
@@ -557,6 +403,7 @@
             stories.push(newStory);
             saveStories(stories);
 
+            // Clear form (except author name for repeat posting)
             titleInput.value = '';
             thumbnailInput.value = '';
             contentInput.value = '';
@@ -583,7 +430,7 @@
 
             container.innerHTML = `
                 <h1 class="story-title">${story.title}</h1>
-                <p class="story-author">By: <a class="read-link" onclick="renderProfileView('${story.author}')">${story.author}</a> | Category: ${story.category}</p>
+                <p class="story-author">By: <a class="read-link" onclick="renderAuthorView('${story.author}')">${story.author}</a> | Category: ${story.category}</p>
                 <hr>
                 <div class="chapter-text">${chapter.content.replace(/\n/g, '<br>')}</div>
                 <p class="publish-date" style="color:#777; font-size: 0.9em;">Published on: ${chapter.datePublished}</p>
@@ -592,62 +439,48 @@
             showView('readView');
         }
 
-        // --- 4. PROFILE VIEW LOGIC (Unchanged) ---
-        function renderProfileView(targetUsername) {
-            if (!targetUsername) {
-                alert('You must be signed in to view your profile.');
-                showView('authView');
-                return;
-            }
+        // --- 4. AUTHOR VIEW LOGIC (Replaces Profile View) ---
+        function renderAuthorView(targetAuthorName) {
+            
+            // Set the author name on the view
+            document.getElementById('authorName').textContent = targetAuthorName;
+            document.getElementById('authorPicture').src = `https://via.placeholder.com/150/ff0077/1a1a1a?text=${targetAuthorName.charAt(0).toUpperCase()}`;
 
-            const users = getUsers();
-            const user = users.find(u => u.username === targetUsername);
+            // Display author's stories
+            const authorStoriesContainer = document.getElementById('authorStoriesList');
+            authorStoriesContainer.innerHTML = '<h3>Stories by ' + targetAuthorName + '</h3>';
             
-            // Fallback for user data not found
-            if (!user) {
-                document.getElementById('profileUsername').textContent = targetUsername;
-                document.getElementById('profileBio').textContent = `Profile details for ${targetUsername} are unavailable.`;
-                document.getElementById('profilePicture').src = 'https://via.placeholder.com/150/1a1a1a/00ffcc?text=U';
-            } else {
-                document.getElementById('profileUsername').textContent = user.username;
-                document.getElementById('profileBio').textContent = user.bio;
-                document.getElementById('profilePicture').src = user.profilePic;
-            }
-            
-            const isMyProfile = getLoggedInUser() === targetUsername;
-            
-            const userStoriesContainer = document.getElementById('userStoriesList');
-            userStoriesContainer.innerHTML = '<h3>' + (isMyProfile ? 'My Published Stories' : `${targetUsername}'s Stories`) + '</h3>';
-            
-            const userStories = getStories().filter(s => s.author === targetUsername);
+            const authorStories = getStories().filter(s => s.author === targetAuthorName);
 
-            if (userStories.length === 0) {
-                 userStoriesContainer.innerHTML += `<p style="color: var(--color-accent);">
-                    ${targetUsername} has not published any stories yet.
+            if (authorStories.length === 0) {
+                 authorStoriesContainer.innerHTML += `<p style="color: var(--color-accent);">
+                    ${targetAuthorName} has not published any stories yet.
                 </p>`;
             } else {
-                userStories.forEach(story => {
+                authorStories.forEach(story => {
                     const storyDiv = document.createElement('div');
                     storyDiv.className = 'story-card-profile';
                     storyDiv.innerHTML = `
                         <h4>${story.title}</h4>
                         <a onclick="renderStory('${story.id}')">Read &rarr;</a>
                     `;
-                    userStoriesContainer.appendChild(storyDiv);
+                    authorStoriesContainer.appendChild(storyDiv);
                 });
             }
 
-            showView('profileView');
+            // Use the authorView ID
+            showView('authorView');
         }
 
 
         // --- INITIALIZATION ---
         document.addEventListener('DOMContentLoaded', () => {
-            updateHeaderUI();
             filterStories('All'); 
             showView('listView');
             
-            switchAuthMode('signIn'); 
+            // Optional: You may want to clear old user data if it exists from previous versions
+            localStorage.removeItem('users');
+            localStorage.removeItem('loggedInUser');
         });
     </script>
 </body>
