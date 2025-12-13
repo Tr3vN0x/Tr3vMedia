@@ -47,7 +47,6 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
     <nav>
         <a href="#" onclick="showSection('home')">Duo Search</a>
         <a href="#" onclick="showSection('profile')">Profile</a>
-        <a href="#" onclick="showSection('messages')">Messages</a>
         <button id="logoutBtnHeader"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </nav>
 </header>
@@ -86,11 +85,6 @@ button:not(.google-btn):not(#duoSearchForm button){margin-top:10px;padding:12px;
         </form>
         <div id="profilePreviewContainer"></div>
     </div>
-    <div id="messages-section" class="container" style="display:none;">
-        <h2>Messages & Duo Requests</h2>
-        <div id="requestsGrid" class="results-grid"></div>
-        <div id="duosGrid" class="results-grid"></div>
-    </div>
 </div>
 
 <script type="module">
@@ -113,7 +107,6 @@ const db = getFirestore(app);
 const storage = getStorage(app);
 const provider = new GoogleAuthProvider();
 
-// DOM Elements
 const signinForm = document.getElementById("signin");
 const signupForm = document.getElementById("signup");
 const googleBtn = document.querySelector(".google-btn");
@@ -128,7 +121,7 @@ const profilePhoto = document.getElementById("profile-photo");
 const saveProfileBtn = document.getElementById("saveProfileBtn");
 const profilePreviewContainer = document.getElementById("profilePreviewContainer");
 
-// --- Auth Handlers ---
+// --- Auth ---
 signinForm.addEventListener("submit", async e=>{
     e.preventDefault();
     try{
@@ -174,6 +167,8 @@ function renderProfilePreview(data){
     </div>
     `;
 }
+profileUsername.addEventListener("input", ()=>renderProfilePreview({username:profileUsername.value, bio:profileAbout.value}));
+profileAbout.addEventListener("input", ()=>renderProfilePreview({username:profileUsername.value, bio:profileAbout.value}));
 saveProfileBtn.addEventListener("click", async ()=>{
     const user = auth.currentUser;
     if(!user) return;
@@ -181,7 +176,6 @@ saveProfileBtn.addEventListener("click", async ()=>{
         username: profileUsername.value,
         bio: profileAbout.value
     });
-    renderProfilePreview({username:profileUsername.value, bio:profileAbout.value});
     alert("Profile updated!");
 });
 profilePhoto.addEventListener("change", async e=>{
@@ -195,7 +189,7 @@ profilePhoto.addEventListener("change", async e=>{
     loadProfile();
 });
 
-// --- Load Users ---
+// --- Users ---
 async function loadUsers(){
     const currentUser = auth.currentUser;
     if(!currentUser) return;
@@ -204,7 +198,7 @@ async function loadUsers(){
     let count=0;
     qSnap.forEach(doc=>{
         const data = doc.data();
-        if(!data.uid || data.uid===currentUser.uid) return; // skip current user
+        if(!data.uid || data.uid===currentUser.uid) return;
         count++;
         usersGrid.innerHTML+=`
         <div class="duo-card">
@@ -213,51 +207,38 @@ async function loadUsers(){
                 <strong>${data.username}</strong>
             </div>
             <div class="bio">${data.bio||''}</div>
-            <button class="action-button" onclick="sendFriendRequest('${data.uid}')">Send Duo Request</button>
+            <button class="action-button" onclick="alert('Duo request sent!')">Send Duo Request</button>
         </div>
         `;
     });
     userCountElement.innerText = count+" players online";
 }
 
-// --- Send Friend Request ---
-async function sendFriendRequest(receiverId){
-    const senderId = auth.currentUser.uid;
-    await setDoc(doc(db,"friendRequests",senderId+"_"+receiverId),{
-        senderID: senderId,
-        receiverId,
-        status:"pending"
-    });
-    alert("Duo request sent!");
-}
-
 // --- Sections ---
 function showSection(section){
-    ["home","profile","messages"].forEach(s=>document.getElementById(s+"-section").style.display="none");
+    ["home","profile"].forEach(s=>document.getElementById(s+"-section").style.display="none");
     document.getElementById(section+"-section").style.display="block";
     if(section==="profile") loadProfile();
     if(section==="home") loadUsers();
 }
 
 // --- Auth State ---
-document.addEventListener('DOMContentLoaded', () => {
-    onAuthStateChanged(auth, user=>{
-        if(user){
-            authSection.style.display="none";
-            appSection.style.display="block";
-            mainHeader.style.display="flex";
-            loadUsers();
-        } else {
-            authSection.style.display="flex";
-            appSection.style.display="none";
-            mainHeader.style.display="none";
-        }
-    });
+onAuthStateChanged(auth, user=>{
+    if(user){
+        authSection.style.display="none";
+        appSection.style.display="block";
+        mainHeader.style.display="flex";
+        loadUsers();
+    } else {
+        authSection.style.display="flex";
+        appSection.style.display="none";
+        mainHeader.style.display="none";
+    }
 });
 
-// Expose to window
+// Expose functions
 window.showSection = showSection;
-window.sendFriendRequest = sendFriendRequest;
 </script>
+
 </body>
 </html>
