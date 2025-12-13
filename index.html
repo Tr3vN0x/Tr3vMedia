@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DuoUp - Social Gaming</title>
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
+<title>DuoUp - Social Gaming</title> <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <style>
 /* --- RESTORED ORIGINAL COLORS AND THEME --- */
@@ -34,7 +33,16 @@ input, textarea { margin:8px 0; padding:10px; border-radius:5px; border:none; ba
 textarea.profile-field { resize:none; }
 button { margin-top:10px; padding:10px; font-weight:bold; }
 .google-btn { background:#DB4437; color:white; margin-top:10px; padding:10px; width:300px; }
-#logoutBtnHeader { background:var(--accent-cyan); color:#1A1A2E; padding:10px; margin-bottom:20px; width:150px; }
+#logoutBtnHeader { 
+    background:var(--accent-cyan); 
+    color:#1A1A2E; 
+    padding:10px; 
+    margin-bottom:20px; 
+    width:auto; /* Adjusted width for icon button */
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
 .container { max-width:1200px; margin:30px auto; padding:0 20px; width:100%; }
 .results-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:25px; width:100%; }
 .duo-card { background:var(--card-color); color:#1A1A2E; border-radius:12px; overflow:hidden; border-top:5px solid var(--accent-cyan); transition:.3s; }
@@ -75,7 +83,9 @@ button { margin-top:10px; padding:10px; font-weight:bold; }
     <a href="#" onclick="showHome()">Home</a>
     <a href="#" onclick="showProfile()">Profile</a>
     <a href="#" onclick="showMessages()">Messages</a>
-    <a href="#" id="logoutBtnHeader">Logout</a>
+    <button id="logoutBtnHeader">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </button>
   </nav>
 </header>
 
@@ -147,7 +157,6 @@ import { getFirestore, doc, setDoc, getDoc, collection, getDocs, updateDoc, quer
 import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
 // !!! CRITICAL STEP: PASTE YOUR FIREBASE CONFIGURATION HERE !!!
-// This is the configuration from your Firebase Console needed to connect to your project.
 const firebaseConfig = {
   apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
   authDomain: "duoup-cfae6.firebaseapp.com",
@@ -200,7 +209,10 @@ window.googleLogin = async ()=>{
     const userDoc = await getDoc(doc(db,"users",uid));
     // Create profile only if it doesn't exist
     if(!userDoc.exists()) await setDoc(doc(db,"users",uid),{ username:result.user.displayName, platform:"PC", games:"", playstyle:"Casual", about:"", photoURL:result.user.photoURL || "" });
-  } catch(err){ alert("Google Login Failed: "+err.message); }
+  } catch(err){ 
+    console.error("Google Login Error:", err);
+    alert("Google Login Failed: Check console for error details: " + err.message);
+  }
 };
 
 logoutBtnHeader.addEventListener("click", async ()=>{
