@@ -127,12 +127,13 @@ const profileUsername = document.getElementById("profile-username");
 const profileAbout = document.getElementById("profile-about");
 const profilePhoto = document.getElementById("profile-photo");
 const profilePreviewContainer = document.getElementById("profilePreviewContainer");
-const usernameHelp = document.getElementById("username-help"); // New element for helper text
+const usernameHelp = document.getElementById("username-help"); 
 
-// --- Constants ---
+// --- Constants & Local State ---
 const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
 let activityInterval; 
-let currentUsername = ""; // Store the actual current username
+let currentUsername = ""; // Tracks username fetched from DB/last saved
+let currentBio = "";      // FIX: Tracks bio fetched from DB/last saved
 
 // --- Utility Functions ---
 function getVerifiedBadge(username) {
@@ -213,11 +214,15 @@ async function loadProfile(){
     const docSnap = await getDoc(doc(db,"users",user.uid));
     const data = docSnap.exists()?docSnap.data():{};
     
+    // Set local state variables
     currentUsername = data.username || '';
+    currentBio = data.bio || '';
+
+    // Populate input fields from local state
     profileUsername.value = currentUsername;
-    profileAbout.value = data.bio || '';
+    profileAbout.value = currentBio;
     
-    // Fix: Set the correct disabled state based on authType
+    // Set disabled state
     const isGoogleUser = data.authType === 'google';
     profileUsername.disabled = isGoogleUser;
     profileUsername.readOnly = isGoogleUser;
@@ -251,22 +256,25 @@ const saveProfile = async (updates) => {
     const user = auth.currentUser;
     if(!user) return;
     
-    // We only need to check if the field is disabled to prevent saving a username update.
     if (profileUsername.disabled && updates.username) {
-        return; // Username is locked, do not save.
+        return; 
     }
 
     try{
         await updateDoc(doc(db,"users",user.uid), { ...updates, lastActive: Date.now() });
+        
+        // FIX: Update local state variables on successful save
         if (updates.username) {
-            currentUsername = updates.username; // Update local state on successful save
+            currentUsername = updates.username; 
+        }
+        if (updates.bio !== undefined) { // Check for bio field update
+            currentBio = updates.bio;
         }
     } catch(err){ console.error(err); }
 };
 
 profileUsername.addEventListener("input", ()=>{
     if (profileUsername.disabled) {
-        // Fix: Immediately prevent changes and revert the input field visually
         profileUsername.value = currentUsername; 
         alert("This username is locked and cannot be changed.");
         return;
@@ -278,9 +286,11 @@ profileUsername.addEventListener("input", ()=>{
 });
 
 profileAbout.addEventListener("input", ()=>{
-    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value});
+    // Use the current bio text from the input field for the preview
+    renderProfilePreview({username: profileUsername.value, bio: profileAbout.value}); 
     clearTimeout(saveTimeout);
-    saveTimeout = setTimeout(()=>saveProfile({ bio: profileAbout.value }), 800);
+    // Send the current bio input value for saving
+    saveTimeout = setTimeout(()=>saveProfile({ bio: profileAbout.value }), 800); 
 });
 
 profilePhoto.addEventListener("change", async e=>{
