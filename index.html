@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tr3vMedia Neon Swipe Interface with Auto-Age</title>
+    <title>Tr3vMedia Neon Swipe Interface (User Only)</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        /* --- NEON LED THEME STYLES --- */
+        /* --- NEON LED THEME STYLES (Unchanged) --- */
         :root {
             --bg-dark: #0F1117;
             --neon-green: #00FF66;
@@ -34,7 +34,7 @@
             font-size: 2em;
         }
 
-        /* --- CARD & SWIPE STYLES --- */
+        /* --- CARD & SWIPE STYLES (Unchanged) --- */
         .swipe-container {
             position: relative;
             width: 320px;
@@ -62,7 +62,7 @@
             text-align: center;
         }
         
-        /* --- DIAGONAL HEADER STYLES --- */
+        /* --- DIAGONAL HEADER STYLES (Unchanged) --- */
         .card-header {
             position: absolute;
             top: 20px;
@@ -80,7 +80,14 @@
             z-index: 10;
         }
 
-        /* --- CONTROLS & UI STYLES (Includes form input styling for date) --- */
+        .card-image { width: 100%; height: 70%; object-fit: cover; border-bottom: 1px solid var(--neon-green); }
+        .card-info { padding: 15px; height: 30%; display: flex; flex-direction: column; justify-content: center; }
+        .card-info h3 { margin: 0 0 5px 0; font-size: 1.2em; color: var(--neon-green); text-shadow: 0 0 5px rgba(0, 255, 102, 0.7); }
+        .card-info p { margin: 0; font-size: 0.9em; color: var(--text-light); }
+        .swipe-right { transform: translateX(500px) rotate(20deg) !important; opacity: 0; }
+        .swipe-left { transform: translateX(-500px) rotate(-20deg) !important; opacity: 0; }
+        
+        /* --- CONTROLS & UI STYLES (Unchanged) --- */
         .controls { display: flex; gap: 20px; }
         .controls button, .ui-button {
             padding: 15px 25px; font-size: 1.1em; border: 2px solid var(--neon-green); border-radius: 50px;
@@ -90,33 +97,18 @@
         .controls button:hover, .ui-button:hover {
             background-color: var(--neon-green); color: var(--bg-dark); transform: translateY(-2px); box-shadow: none;
         }
-        
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.85); display: flex; justify-content: center;
-            align-items: center; z-index: 1000; backdrop-filter: blur(5px);
-        }
-        .modal-content {
-            background: var(--card-bg); padding: 30px; border-radius: 12px;
-            border: 2px solid var(--neon-green); box-shadow: var(--neon-glow);
-            width: 90%; max-width: 400px; color: var(--text-light);
-            max-height: 90vh; overflow-y: auto;
+        #noMoreCards {
+            position: absolute; font-size: 1.2em; background: var(--card-bg); padding: 20px;
+            border-radius: 8px; color: var(--neon-green); border: 2px solid var(--neon-green);
+            box-shadow: var(--neon-glow); display: none;
         }
         
         .modal-content input[type="text"], .modal-content textarea, .modal-content input[type="date"] {
             width: calc(100% - 22px);
-            padding: 10px;
-            margin-top: 5px;
-            background: var(--bg-dark);
-            border: 1px solid var(--neon-green);
-            color: var(--neon-green);
-            border-radius: 4px;
-            box-shadow: 0 0 5px rgba(0, 255, 102, 0.3);
-            /* Ensure the date picker calendar icon is styled correctly on dark theme */
+            padding: 10px; margin-top: 5px; background: var(--bg-dark);
+            border: 1px solid var(--neon-green); color: var(--neon-green);
+            border-radius: 4px; box-shadow: 0 0 5px rgba(0, 255, 102, 0.3);
             filter: invert(1) hue-rotate(180deg);
-        }
-        .modal-content input[type="date"]::-webkit-calendar-picker-indicator {
-            cursor: pointer;
         }
     </style>
 </head>
@@ -155,14 +147,11 @@
         <div class="modal-content">
             <h2>Customize Your Card</h2><p style="color: red;">* Requires mock login to save changes.</p>
             <form id="cardCustomizationForm">
-                
                 <label for="cardBirthday">Date of Birth (Sets Age):</label>
                 <input type="date" id="cardBirthday" max="2007-01-01" required>
-
                 <label for="cardTitle">Project Title:</label><input type="text" id="cardTitle" maxlength="30" required>
                 <label for="cardDesc">Description (Max 50 chars):</label><textarea id="cardDesc" maxlength="50" required></textarea>
                 <label for="cardMedia">Media URL (Placeholder):</label><input type="text" id="cardMedia" placeholder="https://picsum.photos/320/280?user=..." required> 
-                
                 <div class="modal-actions"><button type="submit" class="ui-button">💾 SAVE CARD</button><button type="button" class="ui-button" onclick="closeCustomizeModal()">CANCEL</button></div>
             </form>
         </div>
@@ -174,37 +163,19 @@
     <script>
         // --- JAVASCRIPT LOGIC ---
 
-        // Mock Database of Cards (Age is now calculated in a real app, but mocked here)
-        let CARD_DATA = [
-            { id: 1, title: "City Sunset Time-lapse", user: "@trev_photo", age: 28, description: "A beautiful 4K time-lapse project.", imageUrl: "https://picsum.photos/320/280?random=1", mediaType: 'video', fullUrl: 'https://www.youtube.com/embed/s3yYvVw84e4?autoplay=1&mute=1' },
-            { id: 2, title: "Street Interview Series", user: "@urban_media", age: 22, description: "Asking strangers about their biggest dreams.", imageUrl: "https://picsum.photos/320/280?random=2", mediaType: 'image', fullUrl: 'https://picsum.photos/600/400?random=5&grayscale' },
-            { id: 3, title: "Experimental Film Trailer", user: "@arthouse_vid", age: 35, description: "A sneak peek at my new short film.", imageUrl: "https://picsum.photos/320/280?random=3", mediaType: 'video', fullUrl: 'https://www.youtube.com/embed/Q5S-JjG6f3s?autoplay=1&mute=1' },
-            { id: 4, title: "Nature Photography Gallery", user: "@wildlens", age: 19, description: "Capturing the beauty of the PNW forests.", imageUrl: "https://picsum.photos/320/280?random=4", mediaType: 'image', fullUrl: 'https://picsum.photos/600/400?random=6' },
-        ];
+        // NEW: DELETE ALL FAKE CARDS. The array is now empty.
+        let CARD_DATA = []; 
         
-        // --- AGE CALCULATION FUNCTION (NEW) ---
-
-        /**
-         * Calculates the current age based on a birthday string (YYYY-MM-DD).
-         * @param {string} birthday - The birthday date string.
-         * @returns {number|string} The age, or 'N/A' if the date is invalid.
-         */
+        // --- AGE CALCULATION FUNCTION (Unchanged) ---
         function calculateAge(birthday) {
             const birthDate = new Date(birthday);
             const today = new Date();
-
-            if (isNaN(birthDate)) return 'N/A'; // Invalid date check
-
+            if (isNaN(birthDate)) return 'N/A';
             let age = today.getFullYear() - birthDate.getFullYear();
             const monthDifference = today.getMonth() - birthDate.getMonth();
-
-            // If the current month is before the birth month, or if it's the birth month 
-            // but the current day is before the birth day, subtract one year.
             if (monthDifference < 0 || (monthDifference === 0 && today.getDate() < birthDate.getDate())) {
                 age--;
             }
-
-            // Simple validation to ensure the calculated age is reasonable (e.g., prevents future dates)
             return (age >= 0 && age < 120) ? age : 'N/A';
         }
 
@@ -220,23 +191,21 @@
         let currentCardIndex = 0;
         let isUserLoggedIn = false;
         
-        // Custom user card now stores 'birthday' instead of fixed 'age'
+        // Custom user card now stores 'birthday'
         let userCardData = JSON.parse(localStorage.getItem('userCard')) || {
             id: 'user_custom', title: "My Custom Media Card", user: localStorage.getItem('userHandle') || "@Guest", 
-            birthday: '2000-01-01', // Default birthday
+            birthday: '2000-01-01', 
             description: "Customize this description in the modal!", imageUrl: "https://picsum.photos/320/280?user=tr3vmedia",
             mediaType: 'image', fullUrl: 'https://picsum.photos/600/400?user=tr3vmedia'
         };
 
 
-        // --- 1. CARD RENDERING (UPDATED to use calculateAge for userCard) ---
+        // --- 1. CARD RENDERING (Unchanged, relies on existence of data) ---
 
         function getCardAge(data) {
-            // Check if the data has a stored birthday (for custom user card)
             if (data.birthday) {
                 return calculateAge(data.birthday);
             }
-            // Otherwise, use the mocked 'age' field for database cards
             return data.age || 'N/A';
         }
 
@@ -244,7 +213,6 @@
             const card = document.createElement('div');
             card.className = 'card';
             card.dataset.id = data.id;
-            
             const ageDisplay = getCardAge(data);
 
             card.innerHTML = `
@@ -259,33 +227,33 @@
         }
 
         function loadNextCard() {
-            if (currentCardIndex === 0 && isUserLoggedIn) {
+            // ONLY LOAD USER CARD: Checks if the user is logged in
+            if (currentCardIndex === 0) {
                 const userCard = createCard(userCardData);
                 swipeContainer.appendChild(userCard);
                 addSwipeListeners(userCard);
             }
             
-            if (currentCardIndex < CARD_DATA.length) {
-                const cardData = CARD_DATA[currentCardIndex];
-                const newCard = createCard(cardData);
-                swipeContainer.appendChild(newCard);
-                currentCardIndex++;
-                addSwipeListeners(newCard);
+            // PREVIOUSLY: if (currentCardIndex < CARD_DATA.length) {...}
+            // NEW: Since CARD_DATA is empty, this condition is skipped.
+
+            // Display "No More Cards" immediately after the user's card loads.
+            if (swipeContainer.children.length > 0) {
                 noMoreCards.style.display = 'none';
-            } else if (swipeContainer.children.length === 0 || (swipeContainer.children.length === 1 && swipeContainer.children[0].id === 'noMoreCards')) {
-                noMoreCards.style.display = 'block';
-                currentCardIndex = 0; 
+                currentCardIndex = 1; // Increment so we don't reload the user's card
+            } else {
+                 noMoreCards.style.display = 'block';
             }
         }
 
         // --- 2. SWIPE LOGIC (Unchanged) ---
-        function swipeCard(card, direction) { /* ... same logic ... */
+        function swipeCard(card, direction) { 
             card.classList.add(`swipe-${direction}`);
             
             if (direction === 'right') {
                 const cardId = card.dataset.id;
-                // Find data, use the age from calculateAge if it's the user's card
-                const data = CARD_DATA.find(d => d.id == cardId) || (cardId === userCardData.id ? {...userCardData, age: getCardAge(userCardData)} : null);
+                // Since only user card remains, we know the data source
+                const data = (cardId === userCardData.id ? {...userCardData, age: getCardAge(userCardData)} : null);
                 
                 if (data) {
                     viewerHistory.push(data);
@@ -295,19 +263,16 @@
             }
             setTimeout(() => {
                 card.remove();
-                loadNextCard();
+                // When the user card is swiped, the next card is the "No More Cards" message
+                loadNextCard(); 
             }, 300);
         }
         
         function addSwipeListeners(card) { /* ... same drag/touch logic ... */
             let startX, isDragging = false;
             
-            function handleStart(e) {
-                e.preventDefault(); isDragging = true; startX = e.clientX || e.touches[0].clientX; card.style.transition = 'none';
-            }
-            function handleMove(e) {
-                if (!isDragging) return; const currentX = e.clientX || e.touches[0].clientX; const deltaX = currentX - startX; const rotate = deltaX / 20; card.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`;
-            }
+            function handleStart(e) { e.preventDefault(); isDragging = true; startX = e.clientX || e.touches[0].clientX; card.style.transition = 'none'; }
+            function handleMove(e) { if (!isDragging) return; const currentX = e.clientX || e.touches[0].clientX; const deltaX = currentX - startX; const rotate = deltaX / 20; card.style.transform = `translateX(${deltaX}px) rotate(${rotate}deg)`; }
             function handleEnd(e) {
                 if (!isDragging) return; isDragging = false; card.style.transition = 'transform 0.3s ease-out, opacity 0.3s ease-out';
                 const finalX = e.clientX || e.changedTouches[0].clientX; const deltaX = finalX - startX; const threshold = 100;
@@ -375,9 +340,9 @@
             }
         });
         
-        // --- 4. AUTH/CUSTOMIZATION MOCK (UPDATED) ---
+        // --- 4. AUTH/CUSTOMIZATION MOCK (Unchanged) ---
 
-        function updateLoginState(handle, isLoggedIn) { /* ... same logic ... */
+        function updateLoginState(handle, isLoggedIn) {
             isUserLoggedIn = isLoggedIn;
             localStorage.setItem('isLoggedIn', isLoggedIn);
             localStorage.setItem('userHandle', handle);
@@ -393,7 +358,6 @@
                 alert('ACCESS DENIED. Please log in to customize your card.');
                 return;
             }
-            // Populate form fields, including the new birthday field
             document.getElementById('cardBirthday').value = userCardData.birthday || '';
             document.getElementById('cardTitle').value = userCardData.title;
             document.getElementById('cardDesc').value = userCardData.description;
@@ -405,23 +369,18 @@
             e.preventDefault();
 
             const birthdayInput = document.getElementById('cardBirthday').value;
-
-            // 1. Calculate Age and Validate
             const calculatedAge = calculateAge(birthdayInput);
             if (calculatedAge === 'N/A') {
                 alert('ERROR: Invalid or future birth date. Please check your entry.');
                 return;
             }
 
-            // 2. Update the local userCardData object
-            userCardData.birthday = birthdayInput; // Store the source of truth
+            userCardData.birthday = birthdayInput;
             userCardData.title = document.getElementById('cardTitle').value;
             userCardData.description = document.getElementById('cardDesc').value;
             userCardData.imageUrl = document.getElementById('cardMedia').value;
             userCardData.user = localStorage.getItem('userHandle');
-            // userCardData.age is now derived, not stored directly
 
-            // 3. Mock persistence
             localStorage.setItem('userCard', JSON.stringify(userCardData));
             console.log(`[API Mock] User Card Saved to Server (Age: ${calculatedAge}):`, userCardData);
             
@@ -430,7 +389,7 @@
             window.location.reload(); 
         });
 
-        function init() { /* ... same logic ... */
+        function init() {
             const handle = localStorage.getItem('userHandle') || '@Guest';
             const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
             updateLoginState(handle, loggedIn);
