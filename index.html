@@ -21,7 +21,7 @@
 body { 
     margin:0; 
     font-family: var(--font-main); 
-    background: var(--duoup-dark) !important; /* FIX: Added !important to ensure dark background */
+    background: var(--duoup-dark) !important; /* FIX: Aggressive dark background */
     color: var(--duoup-light); 
     min-height:100vh;
 }
@@ -41,8 +41,26 @@ header nav { display:flex; align-items:center; gap:15px; flex-wrap:wrap; }
 #logoutBtnHeader { background: var(--duoup-secondary); color: var(--duoup-dark); padding:6px 12px; font-weight:bold; display:flex; align-items:center; gap:5px; }
 
 /* Auth Forms */
-#auth-section { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:100vh; padding-top:60px; }
-form { display:flex; flex-direction:column; background:#141426; padding:25px; border-radius:12px; margin:10px; width:90%; max-width:360px; box-shadow:0 5px 15px rgba(0,0,0,0.6);}
+#auth-section { 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    justify-content:center; 
+    min-height:100vh; 
+    padding-top:60px;
+    background: var(--duoup-dark) !important; /* FIX: Added aggressive dark background here */
+}
+form { 
+    display:flex; 
+    flex-direction:column; 
+    background:#141426 !important; /* FIX: Aggressive dark background for forms */
+    padding:25px; 
+    border-radius:12px; 
+    margin:10px; 
+    width:90%; 
+    max-width:360px; 
+    box-shadow:0 5px 15px rgba(0,0,0,0.6);
+}
 input, textarea { margin:8px 0; padding:12px; border-radius:6px; border: 1px solid #3A3A52; background:#2D2D44; color:var(--duoup-light); font-family: var(--font-main); }
 textarea { resize:none; min-height:80px; }
 button { margin-top:10px; padding:12px; font-weight:bold; background: var(--duoup-primary); color: var(--duoup-dark); text-transform: uppercase; box-shadow: 0 2px 5px rgba(0,255,255,0.4);}
@@ -52,7 +70,7 @@ button:hover { background: var(--duoup-accent); transform: translateY(-2px); box
 /* App Containers */
 .container { max-width:1200px; margin:20px auto; padding:0 15px; width:100%; }
 .results-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; width:100%; }
-.duo-card { background:#141426; color: var(--duoup-light); border-radius:12px; overflow:hidden; border:1px solid #3A3A52; transition:.3s; box-shadow:0 4px 8px rgba(0,0,0,0.4);}
+.duo-card { background:#141426 !important; /* FIX: Aggressive dark background for cards */ color: var(--duoup-light); border-radius:12px; overflow:hidden; border:1px solid #3A3A52; transition:.3s; box-shadow:0 4px 8px rgba(0,0,0,0.4);}
 .duo-card:hover { transform: translateY(-5px); box-shadow: 0 0 15px var(--duoup-primary), 0 12px 25px rgba(0,255,255,.2); border-color: var(--duoup-primary);}
 .card-header { display:flex; align-items:center; padding:10px 15px; border-bottom:1px solid #3A3A52; }
 .avatar { width:50px;height:50px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; margin-right:15px; background: var(--duoup-secondary); color: var(--duoup-dark); font-family: var(--font-header); font-size:1.5em; border:2px solid var(--duoup-primary); overflow:hidden; }
@@ -143,6 +161,11 @@ button:hover { background: var(--duoup-accent); transform: translateY(-2px); box
   <div class="chat-container">
     <div id="chatHeader" class="chat-header"></div>
     <div id="messageArea" class="message-area"></div>
+    <div class="chat-input-area">
+      <input id="chatInput" class="chat-input" placeholder="Type message">
+      <button class="send-button" onclick="sendMessage()">Send</button>
+      <span onclick="closeChat()" style="cursor:pointer; padding: 10px; color: var(--duoup-light);"><i class="fas fa-times"></i></span>
+    </div>
     <div class="chat-input-area">
       <input id="chatInput" class="chat-input" placeholder="Type message">
       <button class="send-button" onclick="sendMessage()">Send</button>
