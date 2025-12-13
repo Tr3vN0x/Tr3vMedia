@@ -3,19 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duoup - Gaming Community</title>
+    <title>Duoup - Gaming Hub</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <style>
-        /* CSS Variables (from previous code) */
+        /* --- CSS VARIABLES (Neon Gaming Theme) --- */
         :root {
-            --color-dark-bg: #111122; /* Slightly darker base */
-            --color-card-bg: #1A1A2E; /* Card background */
-            --color-primary: #E94560; 
-            --color-text-light: #F5F5F5;
-            --color-text-fade: #A0A0A0;
-            --color-border: #3A3A4A;
+            --color-dark-bg: #0A0A1F; /* Deepest blue/black */
+            --color-card-bg: #151530; 
+            --color-primary: #FF3366; /* Neon Pink */
+            --color-secondary: #00FFFF; /* Neon Cyan/Blue */
+            --color-text-light: #E0E0FF;
+            --color-text-fade: #A0A0FF;
+            --color-border: #3A3A6A;
             --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --neon-shadow-primary: 0 0 5px var(--color-primary), 0 0 10px var(--color-primary);
+            --neon-shadow-secondary: 0 0 5px var(--color-secondary);
         }
 
         /* Global & Reset */
@@ -24,79 +27,74 @@
             font-family: var(--font-main);
             background-color: var(--color-dark-bg);
             color: var(--color-text-light);
-            line-height: 1.6;
             min-height: 100vh;
-            padding: 0;
-            display: flex; /* Ensure main content fills viewport for alignment */
+            display: flex;
             justify-content: center;
-            align-items: center;
+            align-items: flex-start; /* Default alignment for main content */
         }
 
         /* --- View Management --- */
         .app-view {
             width: 100%;
-            display: none; /* Hidden by default, shown by JavaScript */
+            display: none;
             padding: 20px;
         }
-        #signup-view {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-        }
-
-        /* --- Navigation Bar --- */
+        
+        /* --- NAVIGATION BAR --- */
         .navbar {
             background-color: var(--color-card-bg);
             padding: 15px 30px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
             z-index: 1000;
+            border-bottom: 2px solid var(--color-primary);
         }
-        .navbar h1 {
-            color: var(--color-primary);
+        .navbar .logo {
+            color: var(--color-secondary);
             font-size: 1.8rem;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            text-shadow: var(--neon-shadow-secondary);
+        }
+        .navbar .logo i {
+            margin-right: 10px;
+            color: var(--color-primary);
         }
         .nav-link {
             color: var(--color-text-fade);
             text-decoration: none;
             margin-left: 20px;
-            transition: color 0.2s;
+            transition: color 0.2s, text-shadow 0.2s;
+            font-weight: 500;
+        }
+        .nav-link i {
+            margin-right: 5px;
         }
         .nav-link:hover {
             color: var(--color-text-light);
+            text-shadow: var(--neon-shadow-primary);
         }
 
-        /* --- SIGNUP STYLES --- */
-        .signup-card {
-            max-width: 400px;
+        /* --- SIGNUP/PROFILE CARD STYLES --- */
+        .centered-card {
+            max-width: 500px;
             width: 100%;
             background-color: var(--color-card-bg);
             padding: 40px;
             border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 15px rgba(255, 51, 102, 0.3); /* Soft neon shadow */
+            border: 1px solid var(--color-border);
         }
-        .signup-card h2 {
+        .signup-card h2, .profile-edit h2 {
             text-align: center;
             color: var(--color-primary);
             margin-bottom: 25px;
-            font-size: 2rem;
+            text-shadow: var(--neon-shadow-primary);
         }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 0.9rem;
-            color: var(--color-text-fade);
-        }
-        .form-group input {
+        .form-group input, .form-group textarea {
             width: 100%;
             padding: 12px;
             background-color: var(--color-dark-bg);
@@ -104,8 +102,9 @@
             border-radius: 5px;
             color: var(--color-text-light);
             font-size: 1rem;
+            box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
         }
-        .btn-submit {
+        .btn-action {
             width: 100%;
             padding: 12px;
             background-color: var(--color-primary);
@@ -113,104 +112,207 @@
             border: none;
             border-radius: 5px;
             font-weight: bold;
-            font-size: 1.1rem;
             cursor: pointer;
-            transition: background-color 0.2s;
+            transition: background-color 0.2s, box-shadow 0.2s;
             margin-top: 10px;
         }
-        .btn-submit:hover {
-            background-color: #C63D55;
-        }
-        .error-message {
-            color: var(--color-primary);
-            text-align: center;
-            margin-top: 15px;
+        .btn-action:hover {
+            background-color: #CC2B53;
+            box-shadow: var(--neon-shadow-primary);
         }
 
-        /* --- HOME/PLAYER CARD STYLES --- */
-        #home-view {
-            padding-top: 80px; /* Space for sticky navbar */
-        }
+        /* --- HOME GRID / PLAYER CARD STYLES (from previous) --- */
         .player-grid {
             max-width: 1200px;
             margin: 0 auto;
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 25px;
-            padding: 20px 0;
+            padding-top: 20px;
         }
         .player-card {
             background-color: var(--color-card-bg);
             border-radius: 10px;
             padding: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
-            transition: transform 0.2s;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+            border: 1px solid var(--color-border);
         }
         .player-card:hover {
-            transform: translateY(-5px);
-            border: 1px solid var(--color-primary);
-        }
-        .card-header {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .card-header img {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            border: 3px solid var(--color-primary);
-            margin-right: 15px;
-        }
-        .card-info h3 {
-            font-size: 1.4rem;
-            color: var(--color-text-light);
-        }
-        .card-info p {
-            font-size: 0.85rem;
-            color: var(--color-text-fade);
-        }
-        .card-tags {
-            list-style: none;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin: 15px 0;
-        }
-        .card-tags li {
-            background-color: var(--color-dark-bg);
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.8rem;
-            color: var(--color-primary);
-        }
-        .card-objective {
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-            height: 40px; /* Fixed height for consistent look */
-            overflow: hidden;
-            color: var(--color-text-fade);
+            transform: scale(1.03);
+            border-color: var(--color-secondary);
+            box-shadow: 0 0 15px var(--color-secondary);
         }
         .btn-friend {
-            width: 100%;
-            padding: 8px;
             background-color: var(--color-primary);
-            color: var(--color-text-light);
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background-color 0.2s;
-        }
-        .btn-friend:hover {
-            background-color: #C63D55;
+            text-shadow: var(--neon-shadow-primary);
         }
         .btn-friend.sent {
             background-color: var(--color-border);
-            pointer-events: none;
+            text-shadow: none;
         }
-        .btn-friend.sent:hover {
-            background-color: var(--color-border);
+
+        /* --- PROFILE VIEW STYLES (Read-Only Preview) --- */
+        .profile-view-card {
+            max-width: 800px;
+            width: 100%;
+            margin: 0 auto;
+            background-color: var(--color-card-bg);
+            border-radius: 12px;
+            padding: 30px;
+            border: 2px solid var(--color-secondary);
+            box-shadow: 0 0 20px var(--color-secondary);
+        }
+        .profile-header {
+            display: flex;
+            align-items: center;
+            border-bottom: 2px dashed var(--color-border);
+            padding-bottom: 20px;
+            margin-bottom: 20px;
+        }
+        .profile-header img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--color-primary);
+            margin-right: 20px;
+        }
+        .profile-header h1 {
+            font-size: 2.5rem;
+            color: var(--color-primary);
+            text-shadow: var(--neon-shadow-primary);
+        }
+        .profile-header p {
+            color: var(--color-text-fade);
+        }
+        .profile-details h3 {
+            color: var(--color-secondary);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 5px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        .profile-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+        }
+        .profile-stat span:first-child {
+            color: var(--color-text-fade);
+        }
+        .profile-stat span:last-child {
+            color: var(--color-text-light);
+            font-weight: bold;
+        }
+        .btn-edit-profile {
+            float: right;
+            margin-top: -50px;
+            background-color: var(--color-secondary);
+            color: var(--color-dark-bg);
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            box-shadow: var(--neon-shadow-secondary);
+        }
+
+        /* --- MESSAGING VIEW STYLES --- */
+        .messaging-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: flex;
+            height: calc(100vh - 80px); /* Fill remaining viewport height */
+            background-color: var(--color-card-bg);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .chat-list {
+            width: 300px;
+            border-right: 1px solid var(--color-border);
+            overflow-y: auto;
+        }
+        .chat-item {
+            padding: 15px;
+            border-bottom: 1px solid #282848;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .chat-item:hover, .chat-item.active {
+            background-color: #303050;
+            border-left: 4px solid var(--color-primary);
+            padding-left: 11px;
+        }
+        .chat-item h4 {
+            color: var(--color-text-light);
+        }
+        .chat-item p {
+            font-size: 0.8rem;
+            color: var(--color-text-fade);
+        }
+        .chat-window {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .messages {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #0E0E2A;
+        }
+        .message {
+            margin-bottom: 15px;
+            padding: 8px 12px;
+            border-radius: 15px;
+            max-width: 70%;
+            position: relative;
+        }
+        .message.incoming {
+            background-color: var(--color-card-bg);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+        .message.outgoing {
+            background-color: var(--color-primary);
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+            color: var(--color-dark-bg);
+            text-shadow: none;
+        }
+        .message-input {
+            padding: 15px;
+            display: flex;
+            border-top: 1px solid var(--color-border);
+        }
+        .message-input input {
+            flex-grow: 1;
+            margin-right: 10px;
+            background-color: var(--color-dark-bg);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-light);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .message-input button {
+            background-color: var(--color-secondary);
+            color: var(--color-dark-bg);
+            border: none;
+            padding: 0 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: var(--neon-shadow-secondary);
+        }
+
+        /* --- Responsive Adjustments --- */
+        @media (max-width: 768px) {
+            .navbar { padding: 10px 15px; }
+            .navbar .logo { font-size: 1.5rem; }
+            .nav-link { margin-left: 10px; }
+            .player-grid { gap: 15px; }
+            .messaging-container { flex-direction: column; height: auto; }
+            .chat-list { width: 100%; border-right: none; border-bottom: 1px solid var(--color-border); }
         }
     </style>
 </head>
@@ -219,51 +321,108 @@
     <main style="width: 100%;">
 
         <div class="navbar" id="main-nav" style="display: none;">
-            <h1>Duoup</h1>
+            <div class="logo"><i class="fas fa-satellite-dish"></i> Duoup</div>
             <div>
-                <a href="#" class="nav-link"><i class="fas fa-bell"></i> (0)</a>
-                <a href="#" class="nav-link"><i class="fas fa-envelope"></i></a>
-                <a href="#" class="nav-link" onclick="viewProfile()"><i class="fas fa-user-circle"></i> Profile</a>
+                <a href="#" class="nav-link" onclick="showView('home-view')"><i class="fas fa-home"></i> Home</a>
+                <a href="#" class="nav-link" onclick="showView('messaging-view')"><i class="fas fa-envelope"></i> Messages</a>
+                <a href="#" class="nav-link" onclick="showView('profile-preview-view')"><i class="fas fa-user-circle"></i> Profile</a>
             </div>
         </div>
 
-        <div class="app-view" id="signup-view">
-            <div class="signup-card">
-                <h2>Join Duoup</h2>
-                <form id="signup-form">
-                    <div class="form-group">
-                        <label for="username">Gamertag</label>
-                        <input type="text" id="username" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="email">Email</label>
-                        <input type="email" id="email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <input type="password" id="password" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="age">Age</label>
-                        <input type="number" id="age" required min="13">
-                    </div>
-                    <div class="form-group">
-                        <label for="gameCode">Main Game / Platform (e.g., PC-Valorant)</label>
-                        <input type="text" id="gameCode" required>
-                    </div>
-                    <button type="submit" class="btn-submit">Sign Up (Email/Pass)</button>
-                    <p class="error-message" id="signup-error"></p>
-                </form>
-                <button class="btn-submit" style="background-color: #4285F4; margin-top: 10px;" onclick="handleGoogleSignIn()">
-                    <i class="fab fa-google"></i> Sign Up with Google
-                </button>
-            </div>
+        <div class="app-view" id="signup-view" style="display: flex; justify-content: center; align-items: center; min-height: 100vh;">
+            <div class="signup-card centered-card">
+                </div>
         </div>
 
         <div class="app-view" id="home-view">
             <h2 class="section-heading" style="max-width: 1200px; margin: 20px auto; padding-left: 20px;">Find Your Duo</h2>
             <div class="player-grid" id="player-card-grid">
                 </div>
+        </div>
+
+        <div class="app-view" id="profile-preview-view">
+            <div class="profile-view-card">
+                <button class="btn-edit-profile" onclick="showView('profile-edit-view')">
+                    <i class="fas fa-edit"></i> Edit Profile
+                </button>
+                <div class="profile-header">
+                    <img id="profile-img-preview" src="https://via.placeholder.com/100/FF3366/0A0A1F?text=You" alt="Your Profile">
+                    <div>
+                        <h1 id="profile-username">Current Player Name</h1>
+                        <p id="profile-gamecode">Main Game: PC-Valorant</p>
+                    </div>
+                </div>
+                
+                <h3 style="color: var(--color-primary);">About Me</h3>
+                <p id="profile-bio" style="margin-bottom: 15px;">Looking for a reliable support main to push Diamond rank. Must have a mic and be chill.</p>
+                
+                <div class="profile-details">
+                    <h3>Stats & Details</h3>
+                    <div class="profile-stat"><span>Age</span><span id="stat-age">30</span></div>
+                    <div class="profile-stat"><span>Friends</span><span id="stat-friends">142</span></div>
+                    <div class="profile-stat"><span>Joined</span><span id="stat-joined">2024-10-20</span></div>
+                    <h3>Tags</h3>
+                    <div class="tag-list" id="profile-tags-preview">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="app-view" id="profile-edit-view" style="display: flex; justify-content: center;">
+            <div class="profile-edit centered-card">
+                <h2><i class="fas fa-wrench"></i> Edit Your Profile</h2>
+                <form id="profile-edit-form">
+                    <div class="form-group">
+                        <label for="edit-username">Gamertag (Read-Only)</label>
+                        <input type="text" id="edit-username" disabled style="background-color: #2D2D50;">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-bio">Current Objective / Bio</label>
+                        <textarea id="edit-bio" rows="3" placeholder="Tell us what you're looking for..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-age">Age</label>
+                        <input type="number" id="edit-age" min="13">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-gamecode">Main Game / Platform</label>
+                        <input type="text" id="edit-gamecode">
+                    </div>
+                    <p style="color: var(--color-secondary); margin-top: 15px;">Cool Feature: Tags (separate by comma)</p>
+                    <div class="form-group">
+                        <input type="text" id="edit-tags" placeholder="e.g., Competitive, Voice Chat, DPS">
+                    </div>
+                    <button type="submit" class="btn-action"><i class="fas fa-save"></i> Save Changes</button>
+                    <button type="button" class="btn-action" style="background-color: var(--color-border);" onclick="showView('profile-preview-view')">Cancel</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="app-view" id="messaging-view" style="padding: 0;">
+            <div class="messaging-container">
+                <div class="chat-list">
+                    <h3 style="padding: 15px; color: var(--color-primary);">Duoup Chats</h3>
+                    <div class="chat-item active" onclick="loadChat(1)">
+                        <h4>Rogue_Agent</h4>
+                        <p>Hey, ready for ranked?</p>
+                    </div>
+                    <div class="chat-item" onclick="loadChat(2)">
+                        <h4>Silent_Sniper</h4>
+                        <p>You: Yeah, be right there.</p>
+                    </div>
+                </div>
+                <div class="chat-window">
+                    <div class="messages" id="chat-messages">
+                        <div class="message incoming">Hey, ready for ranked?</div>
+                        <div class="message outgoing">Yeah, be right there.</div>
+                        <div class="message incoming">Cool, queue up!</div>
+                    </div>
+                    <div class="message-input">
+                        <input type="text" id="message-text" placeholder="Send a message...">
+                        <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </main>
@@ -273,135 +432,184 @@
         // JAVASCRIPT LOGIC (SIMULATED FIREBASE/RN CODE)
         // ====================================================================
         
+        // --- Current User Data (Simulated data structure from Firebase 'users' collection) ---
+        let currentUser = {
+            uid: 'user_123',
+            username: 'Duoup_King_47',
+            age: 27,
+            gameCode: 'PC-Apex Legends',
+            bio: "Looking for a reliable support main to push Diamond rank. Must have a mic and be chill.",
+            friends: ['user_456', 'user_789'],
+            joinedDate: '2024-10-20',
+            tags: ['Competitive', 'Voice Chat', 'DPS', 'Evenings'],
+            fcmToken: '...'
+        };
+
         // --- View Management ---
         const views = {
             'signup-view': document.getElementById('signup-view'),
             'home-view': document.getElementById('home-view'),
+            'profile-preview-view': document.getElementById('profile-preview-view'),
+            'profile-edit-view': document.getElementById('profile-edit-view'),
+            'messaging-view': document.getElementById('messaging-view'),
         };
         const nav = document.getElementById('main-nav');
 
         function showView(viewId) {
-            // Hide all views
             Object.values(views).forEach(v => v.style.display = 'none');
-            // Show the requested view
             const targetView = views[viewId];
             if (targetView) {
                 targetView.style.display = 'block';
             }
-            // Toggle navbar visibility
-            nav.style.display = (viewId === 'home-view') ? 'flex' : 'none';
+            nav.style.display = (viewId !== 'signup-view') ? 'flex' : 'none';
             
-            // Adjust body alignment for the specific view
+            // Special handling for content loading
+            if (viewId === 'home-view') renderPlayerCards();
+            if (viewId.startsWith('profile')) loadProfileData(viewId);
+            if (viewId === 'messaging-view') loadChat(1); // Load default chat
+            
             document.body.style.alignItems = (viewId === 'signup-view') ? 'center' : 'flex-start';
         }
+        
+        // --- Profile Data Loading and Editing ---
 
-        // --- Simulated User Data (Would come from Firebase Firestore) ---
-        const userPool = [
-            { id: 1, username: 'Silent_Sniper', age: 24, mainGame: 'Call of Duty: Warzone', platform: 'PS5', style: ['Casual', 'Voice Chat', 'LFG'], objective: 'Looking for smart teammates for high kill games. No rage quitters!', img: 'Player1' },
-            { id: 2, username: 'Tank_Main_77', age: 32, mainGame: 'Overwatch 2', platform: 'PC', style: ['Competitive', 'Tank', 'Evenings'], objective: 'Climbing to Grandmaster. Need a consistent support line.', img: 'Player2' },
-            { id: 3, username: 'Magic_Mage_X', age: 19, mainGame: 'League of Legends', platform: 'PC', style: ['Competitive', 'Mid-Lane', 'Chill'], objective: 'Always down for customs or grinding solo/duo queue. Add me!', img: 'Player3' },
-            { id: 4, username: 'Aussie_Gamer', age: 27, mainGame: 'Valheim', platform: 'PC', style: ['Co-op', 'PVE', 'Relaxed'], objective: 'Building a massive settlement. Need builders and explorers!', img: 'Player4' },
-            { id: 5, username: 'Rogue_Agent', age: 29, mainGame: 'Apex Legends', platform: 'PC', style: ['Competitive', 'IGL', 'Ranked'], objective: 'Pushing Masters. Requires high comms and rotations knowledge.', img: 'Player5' },
-        ];
+        function loadProfileData(viewId) {
+            const date = new Date(currentUser.joinedDate);
 
-        // --- Firebase Simulation ---
-        const errorDisplay = document.getElementById('signup-error');
+            // Populate Preview View
+            document.getElementById('profile-username').textContent = currentUser.username;
+            document.getElementById('profile-gamecode').textContent = `Main Game: ${currentUser.gameCode}`;
+            document.getElementById('profile-bio').textContent = currentUser.bio;
+            document.getElementById('stat-age').textContent = currentUser.age;
+            document.getElementById('stat-friends').textContent = currentUser.friends.length;
+            document.getElementById('stat-joined').textContent = date.toLocaleDateString();
+            document.getElementById('profile-tags-preview').innerHTML = currentUser.tags.map(tag => `<li class="tag">${tag}</li>`).join('');
 
-        // Function simulates the core Firebase sign-up logic (from our previous code)
-        async function handleSignupSubmit(event) {
-            event.preventDefault();
-            errorDisplay.textContent = ''; // Clear previous errors
-
-            const username = document.getElementById('username').value;
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const age = document.getElementById('age').value;
-            const gameCode = document.getElementById('gameCode').value;
-
-            // Basic client-side validation
-            if (password.length < 6) {
-                errorDisplay.textContent = 'Password must be at least 6 characters.';
-                return;
+            // Populate Edit View
+            if (viewId === 'profile-edit-view') {
+                document.getElementById('edit-username').value = currentUser.username; // Read-Only
+                document.getElementById('edit-bio').value = currentUser.bio;
+                document.getElementById('edit-age').value = currentUser.age;
+                document.getElementById('edit-gamecode').value = currentUser.gameCode;
+                document.getElementById('edit-tags').value = currentUser.tags.join(', ');
             }
-            if (parseInt(age) < 13) {
-                 errorDisplay.textContent = 'You must be at least 13 to join Duoup.';
-                 return;
-            }
-
-            console.log(`Simulating Firebase Auth and Profile Creation for: ${username}`);
-            // --- ACTUAL FIREBASE CALL WOULD GO HERE ---
-            // await handleEmailSignUp(email, password, username, age, gameCode);
-            // -------------------------------------------
-            
-            errorDisplay.textContent = 'Account created! Redirecting...';
-            setTimeout(() => {
-                showView('home-view');
-                renderPlayerCards();
-            }, 1500);
         }
 
-        // --- Google Sign-In Simulation ---
-        function handleGoogleSignIn() {
-            console.log('Simulating Google Sign-In...');
-            // --- ACTUAL FIREBASE GOOGLE SIGN-IN CALL WOULD GO HERE ---
-            // await handleGoogleSignIn(); 
+        document.getElementById('profile-edit-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newBio = document.getElementById('edit-bio').value;
+            const newAge = parseInt(document.getElementById('edit-age').value);
+            const newGameCode = document.getElementById('edit-gamecode').value;
+            const newTags = document.getElementById('edit-tags').value.split(',').map(tag => tag.trim()).filter(tag => tag.length > 0);
+
+            // --- ACTUAL FIREBASE UPDATE CALL WOULD GO HERE ---
+            // const userRef = doc(db, 'users', currentUser.uid);
+            // await updateDoc(userRef, { bio: newBio, age: newAge, gameCode: newGameCode, tags: newTags });
+            // ---------------------------------------------------
+            
+            // SIMULATION: Update local data model
+            currentUser.bio = newBio;
+            currentUser.age = newAge;
+            currentUser.gameCode = newGameCode;
+            currentUser.tags = newTags;
+
+            console.log("Profile saved! Simulating database write.");
+            showView('profile-preview-view'); // Redirect back to preview
+        });
+
+        // --- Messaging Logic (Simulated Firebase Listener) ---
+        function loadChat(chatId) {
+            // This function would normally set up a real-time Firestore listener:
+            // onSnapshot(doc(db, 'chats', chatId, 'messages'), (snapshot) => { ... })
+            
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML = '';
+            
+            const messages = [
+                { id: 1, sender: 'other', content: 'Hey, ready for ranked?' },
+                { id: 2, sender: 'me', content: 'Yeah, be right there. Just need to confirm my settings.' },
+                { id: 3, sender: 'other', content: 'Cool, queue up!' },
+                { id: 4, sender: 'me', content: 'On my way!' },
+            ];
+
+            messages.forEach(msg => {
+                const type = msg.sender === 'me' ? 'outgoing' : 'incoming';
+                chatBox.innerHTML += `<div class="message ${type}">${msg.content}</div>`;
+            });
+            
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+            console.log(`Simulating loading messages for chat ${chatId}.`);
+        }
+        
+        function sendMessage() {
+            const input = document.getElementById('message-text');
+            const content = input.value.trim();
+            if (!content) return;
+
+            // --- ACTUAL FIREBASE WRITE CALL WOULD GO HERE (2 STEPS) ---
+            // 1. Add document to /chats/{chatId}/messages
+            // 2. Update parent /chats/{chatId} with lastMessage
             // -----------------------------------------------------------
-            errorDisplay.textContent = 'Google sign-in successful! Redirecting...';
-            setTimeout(() => {
-                showView('home-view');
-                renderPlayerCards();
-            }, 1500);
-        }
 
-        // --- Friend Request Simulation ---
-        function sendFriendRequest(userId, buttonElement) {
-            console.log(`Simulating sending friend request to User ID: ${userId}`);
-            // --- ACTUAL FIREBASE friendRequest Write Would Go Here ---
-            // -----------------------------------------------------------
+            // SIMULATION: Append message locally
+            const chatBox = document.getElementById('chat-messages');
+            chatBox.innerHTML += `<div class="message outgoing">${content}</div>`;
             
-            buttonElement.textContent = 'Request Sent';
-            buttonElement.classList.add('sent');
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+            console.log(`Message sent: "${content}"`);
         }
 
-        // --- Home View Rendering ---
-        function createCardHTML(user) {
-            const tags = user.style.map(tag => `<li>${tag}</li>`).join('');
-            
-            return `
-                <div class="player-card">
-                    <div class="card-header">
-                        <img src="https://via.placeholder.com/60/${user.id % 2 === 0 ? '4A4E69' : 'E94560'}/FFFFFF?text=D" alt="Profile" />
-                        <div class="card-info">
-                            <h3>${user.username}</h3>
-                            <p>${user.mainGame} | ${user.platform}</p>
-                        </div>
-                    </div>
-                    <p class="card-objective">${user.objective}</p>
-                    <ul class="card-tags">
-                        <li style="background-color: var(--color-primary);">${user.mainGame}</li>
-                        ${tags}
-                    </ul>
-                    <button class="btn-friend" onclick="sendFriendRequest(${user.id}, this)">
-                        <i class="fas fa-user-plus"></i> Duo Up
-                    </button>
-                </div>
-            `;
-        }
 
-        function renderPlayerCards() {
-            const grid = document.getElementById('player-card-grid');
-            grid.innerHTML = userPool.map(createCardHTML).join('');
-        }
-
-        // --- Initial Load ---
+        // --- Initial Load and Authentication Check ---
         document.addEventListener('DOMContentLoaded', () => {
             // Attach signup form listener
-            document.getElementById('signup-form').addEventListener('submit', handleSignupSubmit);
+            document.getElementById('signup-form').addEventListener('submit', (e) => {
+                e.preventDefault();
+                // Simulating successful sign-up redirect
+                setTimeout(() => showView('home-view'), 1000);
+            });
             
-            // Start on the signup view
+            // Load dummy cards for home view
+            const userPool = [
+                { id: 1, username: 'Silent_Sniper', age: 24, mainGame: 'Call of Duty', platform: 'PS5', style: ['Casual', 'Voice Chat', 'LFG'], objective: 'Looking for smart teammates for high kill games.', img: 'Player1' },
+                { id: 2, username: 'Tank_Main_77', age: 32, mainGame: 'Overwatch 2', platform: 'PC', style: ['Competitive', 'Tank', 'Evenings'], objective: 'Climbing to Grandmaster. Need a consistent support line.', img: 'Player2' },
+                { id: 3, username: 'Magic_Mage_X', age: 19, mainGame: 'League of Legends', platform: 'PC', style: ['Competitive', 'Mid-Lane', 'Chill'], objective: 'Always down for customs or grinding solo/duo queue. Add me!', img: 'Player3' },
+                { id: 4, username: 'Aussie_Gamer', age: 27, mainGame: 'Valheim', platform: 'PC', style: ['Co-op', 'PVE', 'Relaxed'], objective: 'Building a massive settlement. Need builders and explorers!', img: 'Player4' },
+                { id: 5, username: 'Rogue_Agent', age: 29, mainGame: 'Apex Legends', platform: 'PC', style: ['Competitive', 'IGL', 'Ranked'], objective: 'Pushing Masters. Requires high comms and rotations knowledge.', img: 'Player5' },
+            ];
+            
+            const grid = document.getElementById('player-card-grid');
+            grid.innerHTML = userPool.map(user => {
+                const tags = user.style.map(tag => `<li>${tag}</li>`).join('');
+                return `
+                    <div class="player-card">
+                        <div class="card-header" style="display:flex;align-items:center;">
+                            <img src="https://via.placeholder.com/60/FF3366/0A0A1F?text=D" alt="Profile" style="width:60px;height:60px;border-radius:50%;margin-right:15px;"/>
+                            <div class="card-info">
+                                <h3 style="color:var(--color-primary);">${user.username}</h3>
+                                <p style="color:var(--color-text-fade);">${user.mainGame} | ${user.platform}</p>
+                            </div>
+                        </div>
+                        <p class="card-objective">${user.objective}</p>
+                        <ul class="card-tags">${tags}</ul>
+                        <button class="btn-friend btn-action" onclick="console.log('Duoup Request Sent to ${user.username}')">
+                            <i class="fas fa-user-plus"></i> Duo Up
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            
+            // Assume user is logged out on first load
             showView('signup-view');
         });
 
+        // Add stubs for previous functions if they were defined globally
+        function handleGoogleSignIn() {
+             console.log('Simulating Google Sign-in Success...');
+             setTimeout(() => showView('home-view'), 1000);
+        }
     </script>
 </body>
 </html>
