@@ -3,73 +3,65 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StoryVerse - Neon Edition</title>
-    <link href="https://fonts.googleapis.com/css2?family=Monoton&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <title>StoryVerse Cafe - Cozy Reading</title>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Lora:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
-        /* CSS Variables for easy color adjustments */
+        /* CSS Variables for Cafe Colors */
         :root {
-            --neon-blue: #00ffff; /* Electric Blue for logo/CTA */
-            --neon-pink: #ff00ff; /* Hot Pink for card titles/buttons */
-            --background-dark: #000000;
-            --text-light: #cccccc; /* Off-white for general text */
-            --font-heading: 'Monoton', cursive;
-            --font-body: 'Orbitron', sans-serif;
+            --cafe-cream: #f9f4f1;        /* Light background */
+            --cafe-brown: #5d4037;        /* Deep coffee brown (Text/Accents) */
+            --cafe-latte: #c5a484;        /* Muted accent color */
+            --cafe-red: #7c2d12;          /* Deep red/maroon for highlights */
+            --font-logo: 'Pacifico', cursive;
+            --font-body: 'Lora', serif;
         }
 
         /* --- BASE STYLES --- */
 
         body {
-            background-color: var(--background-dark);
-            color: var(--text-light); 
+            background-color: var(--cafe-cream);
+            color: var(--cafe-brown); 
             font-family: var(--font-body);
             margin: 0;
             padding: 0;
             min-height: 100vh;
+            line-height: 1.6;
         }
 
-        /* --- NEON TEXT EFFECT: LOGO --- */
+        /* --- LOGO AND HEADERS --- */
 
         .logo {
-            font-family: var(--font-heading);
-            font-size: 3.5em;
-            color: var(--neon-blue);
-            /* Multi-layered text shadow for the deep glow */
-            text-shadow:
-                0 0 7px var(--neon-blue),
-                0 0 10px var(--neon-blue),
-                0 0 21px var(--neon-blue),
-                0 0 42px rgba(0, 170, 255, 0.7), /* Wider, softer blue glow */
-                0 0 82px rgba(0, 170, 255, 0.5);
+            font-family: var(--font-logo);
+            font-size: 3em;
+            color: var(--cafe-red); /* Highlight color */
+            margin: 0;
+            /* Remove harsh shadow, use a subtle drop shadow for depth */
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1); 
         }
 
-        /* --- NEON TEXT EFFECT: CARD TITLES --- */
-
-        .neon-text {
+        .cafe-text {
             font-family: var(--font-body);
+            font-weight: 700;
             font-size: 1.5em;
-            color: var(--neon-pink);
-            text-shadow: 
-                0 0 5px var(--neon-pink),
-                0 0 10px var(--neon-pink),
-                0 0 20px rgba(255, 0, 119, 0.6); /* Softer, slightly redder glow */
+            color: var(--cafe-brown);
             margin-bottom: 10px;
         }
 
         .author-name {
-            color: var(--neon-pink);
+            color: var(--cafe-latte); /* Muted accent for author name */
+            font-weight: 700;
         }
 
         /* --- HEADER AND NAVIGATION --- */
 
-        .neon-header {
+        .cafe-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 20px 50px;
-            /* Subtle glowing border bottom */
-            border-bottom: 1px solid rgba(0, 255, 255, 0.2); 
-            box-shadow: 0 1px 10px rgba(0, 255, 255, 0.1);
+            background-color: #ffffff; /* White header background for cleanliness */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); /* Soft, subtle bottom shadow */
         }
 
         nav ul {
@@ -80,117 +72,99 @@
             padding: 0;
         }
 
-        .neon-link {
+        .cafe-link {
             text-decoration: none;
-            color: var(--text-light);
-            transition: color 0.3s, text-shadow 0.3s;
+            color: var(--cafe-brown);
+            transition: color 0.3s;
             font-weight: 400;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
         }
 
-        .neon-link:hover {
-            color: var(--neon-blue);
-            text-shadow: 0 0 5px var(--neon-blue), 0 0 10px rgba(0, 255, 255, 0.5); /* Link glow on hover */
+        .cafe-link:hover {
+            color: var(--cafe-red); /* Soft accent on hover */
         }
 
-        /* --- NEON BUTTON EFFECT (General and CTA) --- */
+        /* --- BUTTONS --- */
 
-        .neon-button, .neon-cta-button {
-            background: transparent;
-            border: 2px solid;
+        .cafe-button, .cafe-cta-button {
+            background: var(--cafe-latte);
+            border: none;
+            color: white;
             padding: 10px 20px;
             font-family: var(--font-body);
             text-transform: uppercase;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: 700;
+            border-radius: 4px; /* Rounded corners for a softer look */
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.2); /* Lifted appearance */
         }
 
-        /* Pink Button Style */
-        .neon-button {
-            border-color: var(--neon-pink);
-            color: var(--neon-pink);
-            /* Initial button glow (inset for a recessed look) */
-            box-shadow: 
-                0 0 5px var(--neon-pink),
-                0 0 15px var(--neon-pink) inset;
-            margin-top: 15px;
+        .cafe-cta-button {
+            background: var(--cafe-red); /* Stronger accent for the CTA */
         }
 
-        /* Blue CTA Button Style */
-        .neon-cta-button {
-            border-color: var(--neon-blue);
-            color: var(--neon-blue);
-            box-shadow: 
-                0 0 5px var(--neon-blue), 
-                0 0 15px var(--neon-blue) inset;
+        /* Hover Effect: Darken slightly and lift */
+        .cafe-button:hover {
+            background: #b5987a; 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3);
+        }
+        .cafe-cta-button:hover {
+            background: #9d381c; 
+            transform: translateY(-2px);
+            box-shadow: 0 5px 8px rgba(0, 0, 0, 0.3);
         }
 
-        /* Button Hover Effect: Fill the button and intensify the glow */
-        .neon-button:hover {
-            color: var(--background-dark);
-            background: var(--neon-pink);
-            box-shadow: 
-                0 0 20px var(--neon-pink),
-                0 0 40px var(--neon-pink),
-                0 0 80px rgba(255, 0, 255, 0.8);
-        }
-        .neon-cta-button:hover {
-            color: var(--background-dark);
-            background: var(--neon-blue);
-            box-shadow: 
-                0 0 20px var(--neon-blue),
-                0 0 40px var(--neon-blue),
-                0 0 80px rgba(0, 255, 255, 0.8);
-        }
 
-        /* --- MAIN CONTENT: STORY GRID --- */
+        /* --- MAIN CONTENT: STORY GRID (The Reading Nooks) --- */
 
         .story-grid {
             display: grid;
-            /* Responsive grid: minimum card width of 280px */
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
             gap: 40px;
             padding: 50px;
         }
 
         .story-card {
-            background-color: #0c0c0c; /* Slightly less dark background for contrast */
+            background-color: #ffffff; 
             padding: 25px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 0, 255, 0.1);
+            border-radius: 8px; /* Soft, inviting corners */
+            border-left: 5px solid var(--cafe-latte); /* Accent border */
             text-align: center;
             transition: transform 0.4s ease-out, box-shadow 0.4s ease-out;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); /* Standard card shadow */
         }
 
         .description {
-            color: #999;
+            color: #777;
             font-size: 0.9em;
             margin: 10px 0;
-            line-height: 1.4;
+            line-height: 1.5;
         }
 
         .story-card:hover {
-            /* Lift and give a gentle pink glow on hover */
-            transform: translateY(-8px);
-            box-shadow: 0 5px 30px rgba(255, 0, 255, 0.4); 
+            /* Subtle lift and shadow change on hover */
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); 
         }
 
-        /* --- FOOTER --- */
-        .neon-footer {
+        /* --- FOOTER (The Closing Time) --- */
+        .cafe-footer {
             text-align: center;
             padding: 20px;
-            border-top: 1px solid rgba(0, 255, 255, 0.1);
-            color: #444; /* Darker, subtle text */
+            border-top: 1px solid #e0e0e0;
+            color: #888; 
             font-size: 0.8em;
             text-transform: uppercase;
-            letter-spacing: 2px;
+            letter-spacing: 1px;
+            background-color: #f0f0f0;
         }
 
-        /* --- RESPONSIVENESS (Optional but Recommended) --- */
+        /* --- RESPONSIVENESS --- */
         @media (max-width: 768px) {
-            .neon-header {
+            .cafe-header {
                 flex-direction: column;
                 text-align: center;
                 padding: 20px;
@@ -214,13 +188,13 @@
 </head>
 <body>
 
-    <header class="neon-header">
-        <h1 class="logo">StoryVerse</h1>
+    <header class="cafe-header">
+        <h1 class="logo">StoryVerse Cafe</h1>
         <nav>
             <ul>
-                <li><a href="#" class="neon-link">Discover</a></li>
-                <li><a href="#" class="neon-link">My Library</a></li>
-                <li><a href="#" class="neon-link neon-cta-button">Write a Story</a></li>
+                <li><a href="#" class="cafe-link">☕ Menu (Discover)</a></li>
+                <li><a href="#" class="cafe-link">📚 My Table (Library)</a></li>
+                <li><a href="#" class="cafe-link cafe-cta-button">🖋️ Order a Story</a></li>
             </ul>
         </nav>
     </header>
@@ -228,30 +202,30 @@
     <main class="story-grid">
 
         <div class="story-card">
-            <h2 class="neon-text">The Electric Dream</h2>
-            <p>By <span class="author-name">Cypher_Nerd</span></p>
-            <p class="description">A thrilling romance set in Neo-Tokyo's underbelly, where data streams are currency and love is a dangerous glitch.</p>
-            <button class="neon-button">Read Now</button>
+            <h2 class="cafe-text">The Scent of Old Pages</h2>
+            <p>By <span class="author-name">A_Quiet_Corner</span></p>
+            <p class="description">A heartwarming tale of a bookstore owner and a forgotten diary found hidden beneath a table in the cafe.</p>
+            <button class="cafe-button">Enjoy Chapter 1</button>
         </div>
 
         <div class="story-card">
-            <h2 class="neon-text">Protocol Omega</h2>
-            <p>By <span class="author-name">Data_Ghost</span></p>
-            <p class="description">A hacker fights a tyrannical AI in a quest for a forgotten human past. Sci-fi action that never slows down.</p>
-            <button class="neon-button">Read Now</button>
+            <h2 class="cafe-text">Rainy Day Notebook</h2>
+            <p>By <span class="author-name">The_Barista</span></p>
+            <p class="description">Short, contemplative pieces written on napkins and steam-filled windows. Perfect reading for a cloudy afternoon.</p>
+            <button class="cafe-button">Enjoy Chapter 1</button>
         </div>
         
         <div class="story-card">
-            <h2 class="neon-text">Midnight Circuits</h2>
-            <p>By <span class="author-name">Synth_Bard</span></p>
-            <p class="description">Poetry and prose exploring themes of solitude, glowing rain, and analog memories in a digital world.</p>
-            <button class="neon-button">Read Now</button>
+            <h2 class="cafe-text">Late Night Brew</h2>
+            <p>By <span class="author-name">Hidden_Mug</span></p>
+            <p class="description">A fantasy adventure that begins when the protagonist drinks a mysterious, shimmering coffee and steps through a portal.</p>
+            <button class="cafe-button">Enjoy Chapter 1</button>
         </div>
         
     </main>
 
-    <footer class="neon-footer">
-        <p>&copy; 2025 StoryVerse. All Rights Reserved. // Glow Responsibly // </p>
+    <footer class="cafe-footer">
+        <p>&copy; 2025 StoryVerse Cafe. Find your perfect reading spot. // Served with Warmth // </p>
     </footer>
 
 </body>
