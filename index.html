@@ -12,62 +12,62 @@
 <style>
 /* --- 1. CORE VARIABLES --- */
 :root {
-    /* Core Neon Colors */
-    --duoup-primary: #00FFFF; /* Neon Blue (Cyan) */
-    --duoup-secondary: #FF5733; /* Neon Red/Orange */
-    --duoup-accent: #8A2BE2; /* Purple Glow */
-    --duoup-dark: #050510; /* Near Black Background */
-    --duoup-light: #F0F8FF;
-    --duoup-muted: #80809C;
-    --font-main: 'Rajdhani', sans-serif;
-    --font-header: 'Orbitron', sans-serif;
-    --status-online: #38A169;
-    --status-offline: #E53E3E;
+    /* Core Neon Colors */
+    --duoup-primary: #00FFFF; /* Neon Blue (Cyan) */
+    --duoup-secondary: #FF5733; /* Neon Red/Orange */
+    --duoup-accent: #8A2BE2; /* Purple Glow */
+    --duoup-dark: #050510; /* Near Black Background */
+    --duoup-light: #F0F8FF;
+    --duoup-muted: #80809C;
+    --font-main: 'Rajdhani', sans-serif;
+    --font-header: 'Orbitron', sans-serif;
+    --status-online: #38A169;
+    --status-offline: #E53E3E;
 }
 
 /* --- 2. GLOBAL RESET & BACKGROUND --- */
 html, body {
-    margin: 0;
-    height: 100%;
-    /* Subtle radial glow from center dark to deep black */
-    background-color: var(--duoup-dark);
-    /* Neon Red/Black Background Effect */
-    background-image: radial-gradient(circle at top center, rgba(255, 87, 51, 0.08) 0%, rgba(5, 5, 16, 0.8) 40%, var(--duoup-dark) 100%);
+    margin: 0;
+    height: 100%;
+    /* Subtle radial glow from center dark to deep black */
+    background-color: var(--duoup-dark);
+    /* Neon Red/Black Background Effect */
+    background-image: radial-gradient(circle at top center, rgba(255, 87, 51, 0.08) 0%, rgba(5, 5, 16, 0.8) 40%, var(--duoup-dark) 100%);
 }
 
 body {
-    font-family: var(--font-main);
-    color: var(--duoup-light);
-    min-height: 100vh;
+    font-family: var(--font-main);
+    color: var(--duoup-light);
+    min-height: 100vh;
 }
 
 /* --- 3. TYPOGRAPHY --- */
 h1,h2,h3 { font-family: var(--font-header); margin:0; color: var(--duoup-light); }
 
 h2 {
-    display: flex; /* Allows the counter to be inline */
-    align-items: baseline;
-    border-bottom: 2px solid var(--duoup-secondary);
-    padding-bottom: 5px;
-    margin-bottom: 20px;
-    font-size: 1.8em;
-    /* Neon Blue/Purple Gradient for section headers */
-    background: linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    display: flex; /* Allows the counter to be inline */
+    align-items: baseline;
+    border-bottom: 2px solid var(--duoup-secondary);
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+    font-size: 1.8em;
+    /* Neon Blue/Purple Gradient for section headers */
+    background: linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
 }
 
 /* Style for the dynamic player count */
 #userCount {
-    color: var(--duoup-secondary);
-    font-size: 0.55em; 
-    font-weight: 600;
-    text-shadow: 0 0 5px var(--duoup-secondary);
-    margin-left: 10px;
-    letter-spacing: 1px;
-    /* Reset clip/fill color inheritance */
-    -webkit-background-clip: unset; 
-    -webkit-text-fill-color: unset;
+    color: var(--duoup-secondary);
+    font-size: 0.55em; 
+    font-weight: 600;
+    text-shadow: 0 0 5px var(--duoup-secondary);
+    margin-left: 10px;
+    letter-spacing: 1px;
+    /* Reset clip/fill color inheritance */
+    -webkit-background-clip: unset; 
+    -webkit-text-fill-color: unset;
 }
 
 a { color: var(--duoup-primary); text-decoration: none; transition: 0.2s; }
@@ -77,101 +77,101 @@ button { cursor: pointer; border: none; border-radius: 5px; transition: backgrou
 
 /* --- 4. HEADER --- */
 header {
-    position: fixed; top: 0; width: 100%; height: 60px;
-    background: rgba(20, 20, 38, 0.98); /* Semi-transparent Dark */
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 0 15px; z-index: 1000;
-    border-bottom: 3px solid var(--duoup-secondary); /* Neon Red bottom border */
+    position: fixed; top: 0; width: 100%; height: 60px;
+    background: rgba(20, 20, 38, 0.98); /* Semi-transparent Dark */
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 15px; z-index: 1000;
+    border-bottom: 3px solid var(--duoup-secondary); /* Neon Red bottom border */
 }
 header .logo { display: flex; align-items: center; gap: 10px; }
 
 /* DUOUP Logo Text - Enforcing Neon Colors */
 header h1 {
-    font-size: 2em; font-weight: 700;
-    color: var(--duoup-primary); /* DUO is Neon Blue */
-    text-shadow: 0 0 10px var(--duoup-primary);
+    font-size: 2em; font-weight: 700;
+    color: var(--duoup-primary); /* DUO is Neon Blue */
+    text-shadow: 0 0 10px var(--duoup-primary);
 }
 header h1 span {
-    color: var(--duoup-secondary); /* UP is Neon Red */
-    text-shadow: 0 0 5px var(--duoup-secondary), 0 0 15px rgba(255, 87, 51, 0.8);
+    color: var(--duoup-secondary); /* UP is Neon Red */
+    text-shadow: 0 0 5px var(--duoup-secondary), 0 0 15px rgba(255, 87, 51, 0.8);
 }
 header nav { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
 #logoutBtnHeader {
-    background: var(--duoup-secondary);
-    color: var(--duoup-dark);
-    padding: 6px 12px;
-    font-weight: bold;
-    display: flex; align-items: center; gap: 5px;
-    box-shadow: 0 0 10px rgba(255,87,51,0.5);
+    background: var(--duoup-secondary);
+    color: var(--duoup-dark);
+    padding: 6px 12px;
+    font-weight: bold;
+    display: flex; align-items: center; gap: 5px;
+    box-shadow: 0 0 10px rgba(255,87,51,0.5);
 }
 
 /* --- 5. AUTH FORMS & APP SECTIONS --- */
 #auth-section {
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    min-height: 100vh;
-    padding-top: 60px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    min-height: 100vh;
+    padding-top: 60px;
 }
 
 form:not(#duoSearchForm) {
-    display: flex; flex-direction: column;
-    background: #141426; padding: 25px; border-radius: 12px;
-    margin: 10px; width: 90%; max-width: 360px;
-    box-shadow: 0 0 20px rgba(0, 255, 255, 0.15); 
+    display: flex; flex-direction: column;
+    background: #141426; padding: 25px; border-radius: 12px;
+    margin: 10px; width: 90%; max-width: 360px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.15); 
 }
 #profileEditForm {
-    /* Profile edit form container - no background/shadow */
-    background: none;
-    box-shadow: none;
-    padding: 0;
-    max-width: 500px; 
-    width: 100%;
-    margin: 0;
+    /* Profile edit form container - no background/shadow */
+    background: none;
+    box-shadow: none;
+    padding: 0;
+    max-width: 500px; 
+    width: 100%;
+    margin: 0;
 }
 input:not(#searchQuery), textarea {
-    margin: 8px 0; padding: 12px; border-radius: 6px;
-    border: 1px solid var(--duoup-primary);
-    background: #2D2D44;
-    color: var(--duoup-light); font-family: var(--font-main);
+    margin: 8px 0; padding: 12px; border-radius: 6px;
+    border: 1px solid var(--duoup-primary);
+    background: #2D2D44;
+    color: var(--duoup-light); font-family: var(--font-main);
 }
 textarea { resize: none; min-height: 80px; }
 
 button:not(.google-btn):not(#duoSearchForm button) {
-    margin-top: 10px; padding: 12px; font-weight: bold;
-    /* Aggressive gradient for main buttons (Blue to Purple) */
-    background: linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent));
-    color: var(--duoup-dark); text-transform: uppercase;
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); 
+    margin-top: 10px; padding: 12px; font-weight: bold;
+    /* Aggressive gradient for main buttons (Blue to Purple) */
+    background: linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent));
+    color: var(--duoup-dark); text-transform: uppercase;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.5); 
 }
 button:not(.google-btn):not(#duoSearchForm button):hover {
-    /* Secondary button gradient on hover (Red/Purple) */
-    background: linear-gradient(90deg, var(--duoup-accent), var(--duoup-secondary));
-    transform: translateY(-2px);
-    box-shadow: 0 0 20px rgba(255, 87, 51, 0.8); 
+    /* Secondary button gradient on hover (Red/Purple) */
+    background: linear-gradient(90deg, var(--duoup-accent), var(--duoup-secondary));
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(255, 87, 51, 0.8); 
 }
 
 /* Search Button Specific Style */
 #duoSearchForm button {
-    background: linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent));
-    color: var(--duoup-dark);
-    font-weight: bold;
-    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+    background: linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent));
+    color: var(--duoup-dark);
+    font-weight: bold;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
 }
 
 .google-btn {
-    background: linear-gradient(90deg, #DB4437, #EA4335);
-    color: white; width: 90%; max-width: 360px;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    margin-top: 15px;
+    background: linear-gradient(90deg, #DB4437, #EA4335);
+    color: white; width: 90%; max-width: 360px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-top: 15px;
 }
 .google-btn:hover {
-    background: linear-gradient(90deg, #EA4335, #DB4437);
-    transform: translateY(-2px);
+    background: linear-gradient(90deg, #EA4335, #DB4437);
+    transform: translateY(-2px);
 }
 
 #app-section {
-    width: 100%;
-    padding-top: 60px; /* Space for the fixed header */
+    width: 100%;
+    padding-top: 60px; /* Space for the fixed header */
 }
 
 .container { max-width: 1200px; margin: 20px auto; padding: 0 15px; width: 100%; }
@@ -179,31 +179,43 @@ button:not(.google-btn):not(#duoSearchForm button):hover {
 
 /* --- 6. DUO CARDS --- */
 .duo-card {
-    background: linear-gradient(145deg, #1A1A2E, #2D2D44);
-    color: var(--duoup-light); border-radius: 12px;
-    overflow: hidden; border: 1px solid #3A3A52;
-    transition: .3s; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+    background: linear-gradient(145deg, #1A1A2E, #2D2D44);
+    color: var(--duoup-light); border-radius: 12px;
+    overflow: hidden; border: 1px solid #3A3A52;
+    transition: .3s; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+}
+.duo-card[data-request-sent="true"] {
+    /* Slightly faded appearance for sent requests */
+    opacity: 0.7; 
 }
 .duo-card:hover {
-    transform: translateY(-5px);
-    /* Combined Blue/Red/Purple Glow on hover */
-    box-shadow: 0 0 10px var(--duoup-primary), 0 0 20px var(--duoup-secondary), 0 0 30px var(--duoup-accent);
-    border-color: var(--duoup-accent);
+    transform: translateY(-5px);
+    /* Combined Blue/Red/Purple Glow on hover */
+    box-shadow: 0 0 10px var(--duoup-primary), 0 0 20px var(--duoup-secondary), 0 0 30px var(--duoup-accent);
+    border-color: var(--duoup-accent);
 }
 .card-header { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid #3A3A52; }
 .avatar {
-    width: 50px; height: 50px; border-radius: 50%; display: flex;
-    align-items: center; justify-content: center; font-weight: bold; margin-right: 15px;
-    background: var(--duoup-secondary); color: var(--duoup-dark);
-    font-family: var(--font-header); font-size: 1.5em; border: 2px solid var(--duoup-primary); overflow: hidden;
-    box-shadow: 0 0 10px var(--duoup-primary);
+    width: 50px; height: 50px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-weight: bold; margin-right: 15px;
+    background: var(--duoup-secondary); color: var(--duoup-dark);
+    font-family: var(--font-header); font-size: 1.5em; border: 2px solid var(--duoup-primary); overflow: hidden;
+    box-shadow: 0 0 10px var(--duoup-primary);
 }
 .avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
 .bio { padding: 10px 15px; font-size: 0.9em; color: var(--duoup-muted); }
 .action-button {
-    width: 100%; padding: 12px;
-    background: linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent));
-    color: var(--duoup-dark); font-weight: bold; border-radius: 0 0 12px 12px; text-transform: uppercase;
+    width: 100%; padding: 12px;
+    background: linear-gradient(90deg, var(--duoup-primary), var(--duoup-accent));
+    color: var(--duoup-dark); font-weight: bold; border-radius: 0 0 12px 12px; text-transform: uppercase;
+}
+/* Style for disabled/sent button */
+.action-button:disabled {
+    background: #555 !important;
+    color: #BBB !important;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
 }
 .duo-request-card { border-top: 5px solid var(--duoup-secondary); }
 
@@ -231,105 +243,105 @@ button:not(.google-btn):not(#duoSearchForm button):hover {
 <body>
 
 <header style="display:none;" id="mainHeader">
-    <div class="logo">
-        <img src="https://i.imgur.com/3UQx9gR.png" alt="DuoUp" width="40" style="border-radius:8px;"/>
-        <h1>DUO<span>UP</span></h1>
-    </div>
-    <nav>
-        <a href="#" onclick="showSection('home')">Duo Search</a>
-        <a href="#" onclick="showSection('profile')">Profile</a>
-        <a href="#" onclick="showSection('messages')">Messages</a>
-        <button id="logoutBtnHeader"><i class="fas fa-sign-out-alt"></i> Logout</button>
-    </nav>
+    <div class="logo">
+        <img src="https://i.imgur.com/3UQx9gR.png" alt="DuoUp" width="40" style="border-radius:8px;"/>
+        <h1>DUO<span>UP</span></h1>
+    </div>
+    <nav>
+        <a href="#" onclick="showSection('home')">Duo Search</a>
+        <a href="#" onclick="showSection('profile')">Profile</a>
+        <a href="#" onclick="showSection('messages')">Messages</a>
+        <button id="logoutBtnHeader"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </nav>
 </header>
 
 <div id="auth-section">
-    <h2>Welcome to DuoUp</h2>
-    <form id="signin">
-        <h3>Sign In</h3>
-        <input id="signin-email" type="email" placeholder="Email" required>
-        <input id="signin-password" type="password" placeholder="Password" required>
-        <button type="submit">Sign In</button>
-    </form>
+    <h2>Welcome to DuoUp</h2>
+    <form id="signin">
+        <h3>Sign In</h3>
+        <input id="signin-email" type="email" placeholder="Email" required>
+        <input id="signin-password" type="password" placeholder="Password" required>
+        <button type="submit">Sign In</button>
+    </form>
 
-    <form id="signup">
-        <h3>New Player? Sign Up</h3>
-        <input id="signup-email" type="email" placeholder="Email" required>
-        <input id="signup-password" type="password" placeholder="Password" required>
-        <button type="submit">Create Account</button>
-    </form>
+    <form id="signup">
+        <h3>New Player? Sign Up</h3>
+        <input id="signup-email" type="email" placeholder="Email" required>
+        <input id="signup-password" type="password" placeholder="Password" required>
+        <button type="submit">Create Account</button>
+    </form>
 
-    <button class="google-btn">
-        <i class="fab fa-google"></i> Continue with Google
-    </button>
+    <button class="google-btn">
+        <i class="fab fa-google"></i> Continue with Google
+    </button>
 </div>
 
 <div id="app-section" style="display:none; width:100%; padding-top:60px;">
-    
-    <div id="home-section" class="container">
-        <h2 id="homeSectionHeader">Duo Search <span id="userCount"></span></h2> 
-        
-        <form id="duoSearchForm" style="display:flex; gap:10px; margin-bottom:20px;">
-            <input 
-                type="text" 
-                id="searchQuery" 
-                placeholder="Search by Username, Game, or Platform"
-                style="flex-grow:1; padding:12px; border:1px solid var(--duoup-primary); border-radius:6px; background:#2D2D44; color:var(--duoup-light); font-family: var(--font-main);"
-            >
-            <button type="submit" style="padding:12px 20px;">
-                <i class="fas fa-search"></i> Find Duo
-            </button>
-        </form>
-        <div class="results-grid" id="usersGrid"></div>
-    </div>
-    
-    <div id="profile-section" class="container" style="display:none;">
-        <h2 style="margin-bottom: 25px;">Profile Management</h2>
-        
-        <div style="display: flex; gap: 30px; flex-wrap: wrap;">
-            
-            <form id="profileEditForm">
-                <h3>Edit Details</h3>
-                <input class="profile-field" id="profile-username" placeholder="Username">
-                <input class="profile-field" id="profile-platform" placeholder="Platform">
-                <input class="profile-field" id="profile-games" placeholder="Games">
-                <input class="profile-field" id="profile-playstyle" placeholder="Playstyle">
-                <textarea class="profile-field" id="profile-about" placeholder="About Me"></textarea>
-                <label style="margin-top: 10px; color: var(--duoup-muted);">Upload/Update Profile Photo:</label>
-                <input type="file" id="profile-photo" style="margin-top: 5px;">
-                <button type="button" onclick="updateProfile()">Save Profile</button>
-            </form>
-            
-            <div style="flex-grow: 1; min-width: 300px; max-width: 320px;">
-                <h3>Your Current Duo Card Preview</h3>
-                <div id="profilePreviewContainer">
-                    </div>
-            </div>
-            
-        </div>
-    </div>
-    
-    <div id="messages-section" class="container" style="display:none;">
-        <h2>Messages & Duo Requests</h2>
-        <div id="messages-container" class="messages-container">
-            <h3>Pending Requests</h3>
-            <div class="results-grid" id="requestsGrid"></div>
-            <h3>Your Accepted Duos (Click to Chat)</h3>
-            <div class="results-grid" id="duosGrid"></div>
-        </div>
-    </div>
+    
+    <div id="home-section" class="container">
+        <h2 id="homeSectionHeader">Duo Search <span id="userCount"></span></h2> 
+        
+        <form id="duoSearchForm" style="display:flex; gap:10px; margin-bottom:20px;">
+            <input 
+                type="text" 
+                id="searchQuery" 
+                placeholder="Search by Username, Game, or Platform"
+                style="flex-grow:1; padding:12px; border:1px solid var(--duoup-primary); border-radius:6px; background:#2D2D44; color:var(--duoup-light); font-family: var(--font-main);"
+            >
+            <button type="submit" style="padding:12px 20px;">
+                <i class="fas fa-search"></i> Find Duo
+            </button>
+        </form>
+        <div class="results-grid" id="usersGrid"></div>
+    </div>
+    
+    <div id="profile-section" class="container" style="display:none;">
+        <h2 style="margin-bottom: 25px;">Profile Management</h2>
+        
+        <div style="display: flex; gap: 30px; flex-wrap: wrap;">
+            
+            <form id="profileEditForm">
+                <h3>Edit Details</h3>
+                <input class="profile-field" id="profile-username" placeholder="Username">
+                <input class="profile-field" id="profile-platform" placeholder="Platform">
+                <input class="profile-field" id="profile-games" placeholder="Games">
+                <input class="profile-field" id="profile-playstyle" placeholder="Playstyle">
+                <textarea class="profile-field" id="profile-about" placeholder="About Me"></textarea>
+                <label style="margin-top: 10px; color: var(--duoup-muted);">Upload/Update Profile Photo:</label>
+                <input type="file" id="profile-photo" style="margin-top: 5px;">
+                <button type="button" onclick="updateProfile()">Save Profile</button>
+            </form>
+            
+            <div style="flex-grow: 1; min-width: 300px; max-width: 320px;">
+                <h3>Your Current Duo Card Preview</h3>
+                <div id="profilePreviewContainer">
+                    </div>
+            </div>
+            
+        </div>
+    </div>
+    
+    <div id="messages-section" class="container" style="display:none;">
+        <h2>Messages & Duo Requests</h2>
+        <div id="messages-container" class="messages-container">
+            <h3>Pending Requests</h3>
+            <div class="results-grid" id="requestsGrid"></div>
+            <h3>Your Accepted Duos (Click to Chat)</h3>
+            <div class="results-grid" id="duosGrid"></div>
+        </div>
+    </div>
 </div>
 
 <div id="chatModal" class="modal">
-    <div class="chat-container">
-        <div id="chatHeader" class="chat-header"></div>
-        <div id="messageArea" class="message-area"></div>
-        <div class="chat-input-area">
-            <input id="chatInput" class="chat-input" placeholder="Type message">
-            <button class="send-button" onclick="sendMessage()">Send</button>
-            <span onclick="closeChat()" style="cursor:pointer; padding: 10px; color: var(--duoup-light);"><i class="fas fa-times"></i></span>
-        </div>
-    </div>
+    <div class="chat-container">
+        <div id="chatHeader" class="chat-header"></div>
+        <div id="messageArea" class="message-area"></div>
+        <div class="chat-input-area">
+            <input id="chatInput" class="chat-input" placeholder="Type message">
+            <button class="send-button" onclick="sendMessage()">Send</button>
+            <span onclick="closeChat()" style="cursor:pointer; padding: 10px; color: var(--duoup-light);"><i class="fas fa-times"></i></span>
+        </div>
+    </div>
 </div>
 
 <script type="module">
@@ -341,13 +353,13 @@ import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstati
 
 // !!! REPLACE WITH YOUR ACTUAL FIREBASE CONFIG !!!
 const firebaseConfig = {
-    apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
-    authDomain: "duoup-cfae6.firebaseapp.com",
-    projectId: "duoup-cfae6",
-    storageBucket: "duoup-cfae6.appspot.com",
-    messagingSenderId: "812263060524",
-    appId: "1:812263060524:web:ac09c3ae610db1cd110d89",
-    measurementId: "G-46B67F90FK"
+    apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
+    authDomain: "duoup-cfae6.firebaseapp.com",
+    projectId: "duoup-cfae6",
+    storageBucket: "duoup-cfae6.appspot.com",
+    messagingSenderId: "812263060524",
+    appId: "1:812263060524:web:ac09c3ae610db1cd110d89",
+    measurementId: "G-46B67F90FK"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -360,6 +372,8 @@ const provider = new GoogleAuthProvider();
 let activeChatId = "";
 let activeFriendUid = "";
 let allUsersData = []; // Global array to store all user data for client-side filtering
+// NEW: Global map to track sent requests in the current session
+let sentRequestsMap = new Map(); 
 
 // --- DOM ELEMENTS ---
 const signinForm = document.getElementById("signin");
@@ -381,335 +395,401 @@ const chatInput = document.getElementById("chatInput");
 // NEW ELEMENTS
 const duoSearchForm = document.getElementById("duoSearchForm");
 const searchQueryInput = document.getElementById("searchQuery");
-const profilePreviewContainer = document.getElementById("profilePreviewContainer"); // NEW: Preview Container
-
+const profilePreviewContainer = document.getElementById("profilePreviewContainer"); 
 
 // --- AUTH LISTENERS ---
 signinForm.addEventListener("submit", async e=>{
-    e.preventDefault();
-    try { await signInWithEmailAndPassword(auth,
-        document.getElementById("signin-email").value,
-        document.getElementById("signin-password").value
-    ); } catch(err){ alert(err.message); }
+    e.preventDefault();
+    try { await signInWithEmailAndPassword(auth,
+        document.getElementById("signin-email").value,
+        document.getElementById("signin-password").value
+    ); } catch(err){ alert(err.message); }
 });
 
 signupForm.addEventListener("submit", async e=>{
-    e.preventDefault();
-    const email = document.getElementById("signup-email").value;
-    const password = document.getElementById("signup-password").value;
-    try{
-        const userCredential = await createUserWithEmailAndPassword(auth,email,password);
-        await setDoc(doc(db,"users",userCredential.user.uid),{
-            uid:userCredential.user.uid,
-            username:"New Player",
-            email,
-            platform:"",
-            games:"",
-            playstyle:"",
-            about:"",
-            photoURL:"",
-            mic:"",
-            timestamp:serverTimestamp()
-        });
-    } catch(err){ alert(err.message); }
+    e.preventDefault();
+    const email = document.getElementById("signup-email").value;
+    const password = document.getElementById("signup-password").value;
+    try{
+        const userCredential = await createUserWithEmailAndPassword(auth,email,password);
+        await setDoc(doc(db,"users",userCredential.user.uid),{
+            uid:userCredential.user.uid,
+            username:"New Player",
+            email,
+            platform:"",
+            games:"",
+            playstyle:"",
+            about:"",
+            photoURL:"",
+            mic:"",
+            timestamp:serverTimestamp()
+        });
+    } catch(err){ alert(err.message); }
 });
 
 googleBtn.addEventListener("click", async ()=>{ try{await signInWithPopup(auth,provider);} catch(err){alert(err.message);} });
 logoutBtn.addEventListener("click", async ()=>{ await signOut(auth); });
 
-// --- PROFILE PREVIEW LOGIC ---
+// --- PROFILE PREVIEW LOGIC (Unchanged) ---
 function renderProfilePreview(data) {
-    // Read current values from the form inputs, falling back to data loaded from Firestore
-    const username = document.getElementById("profile-username").value || data.username || 'New Player';
-    const platform = document.getElementById("profile-platform").value || data.platform || 'N/A';
-    const games = document.getElementById("profile-games").value || data.games || 'N/A';
-    const playstyle = document.getElementById("profile-playstyle").value || data.playstyle || 'N/A';
-    const photoURL = data.photoURL || '';
+    const username = document.getElementById("profile-username").value || data.username || 'New Player';
+    const platform = document.getElementById("profile-platform").value || data.platform || 'N/A';
+    const games = document.getElementById("profile-games").value || data.games || 'N/A';
+    const playstyle = document.getElementById("profile-playstyle").value || data.playstyle || 'N/A';
+    const photoURL = data.photoURL || '';
 
-    // Check if a file is currently selected for preview (overrides the Firestore URL)
-    const fileInput = document.getElementById("profile-photo");
-    let avatarSrc = photoURL;
-    if (fileInput.files.length > 0) {
-        // We cannot use file reader here, we rely on the caller (setupProfilePreviewListeners) to pass a temp URL
-        // If photoURL is a DataURL, it means it's a temp preview.
-    }
-
-    // Generate the HTML for the preview card, mirroring the duo-card style
-    profilePreviewContainer.innerHTML = `
-        <div class="duo-card">
-            <div class="card-header">
-                <div class="avatar">${avatarSrc ? `<img src="${avatarSrc}">` : username[0]}</div>
-                <strong>${username}</strong>
-            </div>
-            <div class="bio">
-                Platform: ${platform}<br>
-                Games: ${games}<br>
-                Playstyle: ${playstyle}
-            </div>
-            <button class="action-button" disabled style="opacity: 0.7; cursor: default;">Profile Preview</button>
-        </div>
-    `;
+    let avatarSrc = photoURL;
+    
+    profilePreviewContainer.innerHTML = `
+        <div class="duo-card">
+            <div class="card-header">
+                <div class="avatar">${avatarSrc ? `<img src="${avatarSrc}">` : username[0]}</div>
+                <strong>${username}</strong>
+            </div>
+            <div class="bio">
+                Platform: ${platform}<br>
+                Games: ${games}<br>
+                Playstyle: ${playstyle}
+            </div>
+            <button class="action-button" disabled style="opacity: 0.7; cursor: default;">Profile Preview</button>
+        </div>
+    `;
 }
 
-// Helper function to attach change listeners to all fields
 function setupProfilePreviewListeners(initialData) {
-    const fields = document.querySelectorAll(".profile-field");
-    fields.forEach(field => {
-        // When the user types or changes a field, re-render the preview
-        field.addEventListener('input', () => renderProfilePreview(initialData));
-    });
-    
-    // Listen to photo file change (need to update the avatar)
-    document.getElementById("profile-photo").addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                // Pass the temporary local URL to the renderer, merging with existing data
-                renderProfilePreview({...initialData, photoURL: event.target.result});
-            };
-            reader.readAsDataURL(file);
-        } else {
-            // If the user clears the file input, revert to the stored photoURL
-            renderProfilePreview(initialData);
-        }
-    });
+    const fields = document.querySelectorAll(".profile-field");
+    fields.forEach(field => {
+        field.addEventListener('input', () => renderProfilePreview(initialData));
+    });
+    
+    document.getElementById("profile-photo").addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                renderProfilePreview({...initialData, photoURL: event.target.result});
+            };
+            reader.readAsDataURL(file);
+        } else {
+            renderProfilePreview(initialData);
+        }
+    });
 }
 
 
-// --- PROFILE UPDATE/LOAD ---
+// --- PROFILE UPDATE/LOAD (Unchanged) ---
 async function updateProfile(){
-    const user = auth.currentUser; if(!user) return;
-    const username = document.getElementById("profile-username").value;
-    const platform = document.getElementById("profile-platform").value;
-    const games = document.getElementById("profile-games").value;
-    const playstyle = document.getElementById("profile-playstyle").value;
-    const about = document.getElementById("profile-about").value;
-    const file = document.getElementById("profile-photo").files[0];
-    let photoURL="";
-    if(file){
-        const storageRef = ref(storage,`profiles/${user.uid}`);
-        await uploadBytes(storageRef,file);
-        photoURL = await getDownloadURL(storageRef);
-    }
-    await updateDoc(doc(db,"users",user.uid),{username,platform,games,playstyle,about,photoURL});
-    alert("Profile updated!");
-    loadProfile(); // Re-load to update saved data and preview
+    const user = auth.currentUser; if(!user) return;
+    const username = document.getElementById("profile-username").value;
+    const platform = document.getElementById("profile-platform").value;
+    const games = document.getElementById("profile-games").value;
+    const playstyle = document.getElementById("profile-playstyle").value;
+    const about = document.getElementById("profile-about").value;
+    const file = document.getElementById("profile-photo").files[0];
+    let photoURL="";
+    if(file){
+        const storageRef = ref(storage,`profiles/${user.uid}`);
+        await uploadBytes(storageRef,file);
+        photoURL = await getDownloadURL(storageRef);
+    }
+    await updateDoc(doc(db,"users",user.uid),{username,platform,games,playstyle,about,photoURL});
+    alert("Profile updated!");
+    loadProfile(); 
 }
 
 async function loadProfile(){
-    const user = auth.currentUser; if(!user) return;
-    const docSnap = await getDoc(doc(db,"users",user.uid));
-    
-    const data = docSnap.exists() ? docSnap.data() : {};
+    const user = auth.currentUser; if(!user) return;
+    const docSnap = await getDoc(doc(db,"users",user.uid));
+    
+    const data = docSnap.exists() ? docSnap.data() : {};
 
-    // 1. Populate the form fields
-    document.getElementById("profile-username").value = data.username || "";
-    document.getElementById("profile-platform").value = data.platform || "";
-    document.getElementById("profile-games").value = data.games || "";
-    document.getElementById("profile-playstyle").value = data.playstyle || "";
-    document.getElementById("profile-about").value = data.about || "";
-    
-    // 2. Initial render and setup listeners
-    // Use the fetched data for the initial state of the preview
-    renderProfilePreview(data);
-    setupProfilePreviewListeners(data); 
+    // 1. Populate the form fields
+    document.getElementById("profile-username").value = data.username || "";
+    document.getElementById("profile-platform").value = data.platform || "";
+    document.getElementById("profile-games").value = data.games || "";
+    document.getElementById("profile-playstyle").value = data.playstyle || "";
+    document.getElementById("profile-about").value = data.about || "";
+    
+    // 2. Initial render and setup listeners
+    renderProfilePreview(data);
+    setupProfilePreviewListeners(data); 
 }
 
-// --- SECTIONS ---
+// --- SECTIONS (Unchanged) ---
 function showSection(section){
-    ["home","profile","messages"].forEach(s=>{
-        document.getElementById(s+"-section").style.display="none";
-    });
-    document.getElementById(section+"-section").style.display="block";
-    if(section==="profile") loadProfile();
+    ["home","profile","messages"].forEach(s=>{
+        document.getElementById(s+"-section").style.display="none";
+    });
+    document.getElementById(section+"-section").style.display="block";
+    if(section==="profile") loadProfile();
 }
 
-// --- USERS / DUO SEARCH (Core Filtering Logic) ---
+// --- USERS / DUO SEARCH (Core Filtering Logic with Fix) ---
 async function loadUsers(){
-    const q = query(collection(db,"users"));
-    onSnapshot(q,snapshot=>{
-        allUsersData = snapshot.docs
-            .filter(doc => doc.id !== auth.currentUser.uid)
-            .map(doc => ({ id: doc.id, data: doc.data() }));
-        
-        renderUsersGrid(); // Initial render
-    });
+    const q = query(collection(db,"users"));
+    onSnapshot(q,snapshot=>{
+        allUsersData = snapshot.docs
+            .filter(doc => doc.id !== auth.currentUser.uid)
+            .map(doc => ({ id: doc.id, data: doc.data() }));
+        
+        renderUsersGrid(); // Initial render
+    });
 }
 
 function renderUsersGrid(queryText = ''){
-    const queryLower = queryText.toLowerCase();
-    usersGrid.innerHTML="";
-    
-    const filteredUsers = allUsersData.filter(userDoc => {
-        if (!queryLower) return true;
-        const data = userDoc.data;
-        
-        return (
-            (data.username || '').toLowerCase().includes(queryLower) ||
-            (data.platform || '').toLowerCase().includes(queryLower) ||
-            (data.games || '').toLowerCase().includes(queryLower)
-        );
-    });
+    const queryLower = queryText.toLowerCase();
+    usersGrid.innerHTML="";
+    
+    const filteredUsers = allUsersData.filter(userDoc => {
+        if (!queryLower) return true;
+        const data = userDoc.data;
+        
+        return (
+            (data.username || '').toLowerCase().includes(queryLower) ||
+            (data.platform || '').toLowerCase().includes(queryLower) ||
+            (data.games || '').toLowerCase().includes(queryLower)
+        );
+    });
 
-    if (userCountElement) {
-         userCountElement.textContent = `(${filteredUsers.length} Players Matched)`;
-    }
+    if (userCountElement) {
+         userCountElement.textContent = `(${filteredUsers.length} Players Matched)`;
+    }
 
-    filteredUsers.forEach(userDoc => {
-        const u = userDoc.data;
-        const docId = userDoc.id;
+    filteredUsers.forEach(userDoc => {
+        const u = userDoc.data;
+        const docId = userDoc.id; // Target user's UID
+
+        // Check if a request was sent to this user in the current session
+        const requestStatus = sentRequestsMap.get(docId);
+        const isRequestSent = requestStatus === 'sent';
+
         const div = document.createElement("div");
         div.className="duo-card";
+        // CRITICAL FIX 1: Add data-uid for targeting later
+        div.setAttribute('data-uid', docId); 
+        
+        // Apply visual state if request was sent
+        if(isRequestSent) {
+            div.setAttribute('data-request-sent', 'true');
+        }
+
+        // 1. Create the card structure (without the button)
         div.innerHTML=`<div class="card-header">
             <div class="avatar">${u.photoURL?`<img src="${u.photoURL}">`:u.username[0]}</div>
             <strong>${u.username}</strong>
         </div>
-        <div class="bio">Platform: ${u.platform||'N/A'}<br>Games: ${u.games||'N/A'}<br>Playstyle: ${u.playstyle||'N/A'}</div>
-        <button class="action-button" onclick="sendDuoRequest('${docId}','${u.username}')">Send Duo Request</button>`;
+        <div class="bio">Platform: ${u.platform||'N/A'}<br>Games: ${u.games||'N/A'}<br>Playstyle: ${u.playstyle||'N/A'}</div>`;
+        
+        // 2. Create the button element
+        const button = document.createElement("button");
+        button.className = "action-button";
+        
+        // Set state based on Map
+        if (isRequestSent) {
+            button.textContent = "Request Sent";
+            button.disabled = true;
+        } else {
+            button.textContent = "Send Duo Request";
+            button.disabled = false;
+        }
+        
+        // 3. Attach the event listener programmatically (robust fix)
+        // Note: The programmatic listener should call the exposed window function
+        button.addEventListener('click', () => {
+            if(!button.disabled) {
+                window.sendDuoRequest(docId, u.username); 
+            }
+        });
+        
+        // 4. Append the button and the card
+        div.appendChild(button);
         usersGrid.appendChild(div);
-    });
+    });
 }
 
-// Attach search listeners
+// Attach search listeners (Unchanged)
 duoSearchForm.addEventListener("submit", e => {
-    e.preventDefault();
-    renderUsersGrid(searchQueryInput.value.trim());
+    e.preventDefault();
+    renderUsersGrid(searchQueryInput.value.trim());
 });
 
 searchQueryInput.addEventListener("input", () => {
-    renderUsersGrid(searchQueryInput.value.trim());
+    renderUsersGrid(searchQueryInput.value.trim());
 });
 
-
+// CRITICAL FIX 2: Update the DOM and Map after sending the request
 async function sendDuoRequest(toUid,toUsername){
-    const fromUid = auth.currentUser.uid;
-    const fromDoc = await getDoc(doc(db,"users",fromUid));
-    const fromUsername = fromDoc.data().username;
-    await addDoc(collection(db,"duoRequests"),{
-        fromUserId:fromUid,
-        fromUsername,
-        toUserId:toUid,
-        toUsername,
-        status:"pending",
-        timestamp:serverTimestamp()
-    });
-    alert("Duo request sent!");
+    const fromUid = auth.currentUser.uid;
+    // Optimistic UI Update: Mark the card as sent
+    sentRequestsMap.set(toUid, 'sent'); 
+
+    // Update the specific DOM element immediately
+    const card = document.querySelector(`.duo-card[data-uid="${toUid}"]`);
+    if(card) {
+        const button = card.querySelector('.action-button');
+        if(button) {
+            button.textContent = "Request Sent";
+            button.disabled = true;
+        }
+        card.setAttribute('data-request-sent', 'true');
+    }
+    
+    try {
+        const fromDoc = await getDoc(doc(db,"users",fromUid));
+        const fromUsername = fromDoc.data().username;
+        await addDoc(collection(db,"duoRequests"),{
+            fromUserId:fromUid,
+            fromUsername,
+            toUserId:toUid,
+            toUsername,
+            status:"pending",
+            timestamp:serverTimestamp()
+        });
+        // Success alert (optional)
+        alert(`Duo request sent to ${toUsername}!`);
+    } catch (error) {
+        alert("Error sending request: " + error.message);
+        // Revert UI changes if Firestore call fails
+        sentRequestsMap.delete(toUid);
+        if(card) {
+            card.removeAttribute('data-request-sent');
+            const button = card.querySelector('.action-button');
+            if(button) {
+                button.textContent = "Send Duo Request";
+                button.disabled = false;
+            }
+        }
+    }
 }
 
-// --- DUO REQUESTS / MESSAGES ---
+// --- DUO REQUESTS / MESSAGES (Unchanged) ---
 function loadDuoRequests(){
-    const user = auth.currentUser;
-    const duosMap = new Map();
+    const user = auth.currentUser;
+    const duosMap = new Map();
+    // NEW: Clear the sentRequestsMap on refresh, then repopulate it with existing pending requests *I* sent.
+    sentRequestsMap.clear();
 
-    // 1. Pending Requests (where I am the recipient)
-    const q1 = query(collection(db,"duoRequests"),where("toUserId","==",user.uid),where("status","==","pending"));
-    onSnapshot(q1,snap=>{
-        requestsGrid.innerHTML="";
-        snap.forEach(docSnap=>{
+    // 1. Pending Requests (where I am the recipient)
+    const q1 = query(collection(db,"duoRequests"),where("toUserId","==",user.uid),where("status","==","pending"));
+    onSnapshot(q1,snap=>{
+        requestsGrid.innerHTML="";
+        snap.forEach(docSnap=>{
+            const r = docSnap.data();
+            const div = document.createElement("div");
+            div.className="duo-card duo-request-card";
+            div.innerHTML=`<div class="card-header"><strong>${r.fromUsername}</strong></div>
+                <button class="action-button" onclick="acceptDuo('${docSnap.id}')">Accept</button>`;
+            requestsGrid.appendChild(div);
+        });
+    });
+    
+    // 1.5 Get my outgoing pending requests to save their state
+    const qOutgoing = query(collection(db,"duoRequests"),where("fromUserId","==",user.uid),where("status","==","pending"));
+    onSnapshot(qOutgoing, snap => {
+        // Rebuild the map of requests I have sent that are still pending
+        snap.forEach(docSnap => {
             const r = docSnap.data();
-            const div = document.createElement("div");
-            div.className="duo-card duo-request-card";
-            div.innerHTML=`<div class="card-header"><strong>${r.fromUsername}</strong></div>
-                <button class="action-button" onclick="acceptDuo('${docSnap.id}')">Accept</button>`;
-            requestsGrid.appendChild(div);
+            sentRequestsMap.set(r.toUserId, 'sent');
         });
+        // Rerender users grid to reflect initial saved state after page load/refresh
+        renderUsersGrid(searchQueryInput.value.trim()); 
     });
 
-    // Function to handle accepted duos snapshot
-    function renderAcceptedDuos(snap){
-        snap.forEach(docSnap=>{
-            const r = docSnap.data();
-            const friendUid = r.fromUserId === user.uid ? r.toUserId : r.fromUserId;
-            const friendUsername = r.fromUserId === user.uid ? r.toUsername : r.fromUsername;
-            if(!duosMap.has(friendUid)) {
-                duosMap.set(friendUid, { id: docSnap.id, username: friendUsername });
-            }
-        });
 
-        // Re-render the whole accepted grid from the map
-        duosGrid.innerHTML = "";
-        duosMap.forEach((duo, friendUid) => {
-            const div = document.createElement("div");
-            div.className="duo-card";
-            div.innerHTML=`<div class="card-header"><strong>${duo.username}</strong></div>
-                <button class="action-button" onclick="openChat('${friendUid}','${duo.username}')">Chat</button>`;
-            duosGrid.appendChild(div);
-        });
-    }
+    // Function to handle accepted duos snapshot
+    function renderAcceptedDuos(snap){
+        snap.forEach(docSnap=>{
+            const r = docSnap.data();
+            const friendUid = r.fromUserId === user.uid ? r.toUserId : r.fromUserId;
+            const friendUsername = r.fromUserId === user.uid ? r.toUsername : r.fromUsername;
+            if(!duosMap.has(friendUid)) {
+                duosMap.set(friendUid, { id: docSnap.id, username: friendUsername });
+            }
+        });
 
-    // 2. Accepted duos (I am the sender)
-    const qSent = query(collection(db,"duoRequests"),where("fromUserId","==",user.uid),where("status","==","accepted"));
-    onSnapshot(qSent, renderAcceptedDuos);
+        // Re-render the whole accepted grid from the map
+        duosGrid.innerHTML = "";
+        duosMap.forEach((duo, friendUid) => {
+            const div = document.createElement("div");
+            div.className="duo-card";
+            div.innerHTML=`<div class="card-header"><strong>${duo.username}</strong></div>
+                <button class="action-button" onclick="openChat('${friendUid}','${duo.username}')">Chat</button>`;
+            duosGrid.appendChild(div);
+        });
+    }
 
-    // 3. Accepted duos (I am the recipient)
-    const qReceived = query(collection(db,"duoRequests"),where("toUserId","==",user.uid),where("status","==","accepted"));
-    onSnapshot(qReceived, renderAcceptedDuos);
+    // 2. Accepted duos (I am the sender)
+    const qSent = query(collection(db,"duoRequests"),where("fromUserId","==",user.uid),where("status","==","accepted"));
+    onSnapshot(qSent, renderAcceptedDuos);
+
+    // 3. Accepted duos (I am the recipient)
+    const qReceived = query(collection(db,"duoRequests"),where("toUserId","==",user.uid),where("status","==","accepted"));
+    onSnapshot(qReceived, renderAcceptedDuos);
 }
 
 async function acceptDuo(requestId){
-    await updateDoc(doc(db,"duoRequests",requestId),{status:"accepted"});
+    await updateDoc(doc(db,"duoRequests",requestId),{status:"accepted"});
 }
 
-// --- CHAT ---
+// --- CHAT (Unchanged) ---
 function openChat(friendUid,friendUsername){
-    activeChatId = [auth.currentUser.uid,friendUid].sort().join("_");
-    activeFriendUid = friendUid;
-    chatModal.style.display="flex";
-    chatHeader.innerHTML = `<span class="status-dot online"></span> Chatting with ${friendUsername}`;
-    loadChat(activeChatId);
+    activeChatId = [auth.currentUser.uid,friendUid].sort().join("_");
+    activeFriendUid = friendUid;
+    chatModal.style.display="flex";
+    chatHeader.innerHTML = `<span class="status-dot online"></span> Chatting with ${friendUsername}`;
+    loadChat(activeChatId);
 }
 
 function closeChat(){ chatModal.style.display="none"; messageArea.innerHTML=""; }
 
 function sendMessage(){
-    const content = chatInput.value.trim();
-    if(!content) return;
-    addDoc(collection(db,"messages"),{
-        content,
-        fromUid:auth.currentUser.uid,
-        toUid: activeFriendUid,
-        duoId:activeChatId,
-        timestamp:serverTimestamp()
-    });
-    chatInput.value="";
+    const content = chatInput.value.trim();
+    if(!content) return;
+    addDoc(collection(db,"messages"),{
+        content,
+        fromUid:auth.currentUser.uid,
+        toUid: activeFriendUid,
+        duoId:activeChatId,
+        timestamp:serverTimestamp()
+    });
+    chatInput.value="";
 }
 
 function loadChat(duoId){
-    const q = query(collection(db,"messages"),where("duoId","==",duoId),orderBy("timestamp"));
-    onSnapshot(q,snap=>{
-        messageArea.innerHTML="";
-        snap.forEach(docSnap=>{
-            const m=docSnap.data();
-            const div=document.createElement("div");
-            div.className="message "+(m.fromUid===auth.currentUser.uid?"self":"other");
-            div.innerHTML=`<div class="message-content">${m.content}</div>`;
-            messageArea.appendChild(div);
-        });
-        messageArea.scrollTop = messageArea.scrollHeight;
-    });
+    const q = query(collection(db,"messages"),where("duoId","==",duoId),orderBy("timestamp"));
+    onSnapshot(q,snap=>{
+        messageArea.innerHTML="";
+        snap.forEach(docSnap=>{
+            const m=docSnap.data();
+            const div=document.createElement("div");
+            div.className="message "+(m.fromUid===auth.currentUser.uid?"self":"other");
+            div.innerHTML=`<div class="message-content">${m.content}</div>`;
+            messageArea.appendChild(div);
+        });
+        messageArea.scrollTop = messageArea.scrollHeight;
+    });
 }
 
 // --- AUTH STATE (Main Application Switcher) ---
 onAuthStateChanged(auth,user=>{
-    if(user){
-        authSection.style.display="none";
-        appSection.style.display="block";
-        mainHeader.style.display="flex";
-        loadUsers();
-        loadDuoRequests();
-        showSection('home');
-    } else {
-        authSection.style.display="flex";
-        appSection.style.display="none";
-        mainHeader.style.display="none";
-    }
+    if(user){
+        authSection.style.display="none";
+        appSection.style.display="block";
+        mainHeader.style.display="flex";
+        loadUsers();
+        loadDuoRequests();
+        showSection('home');
+    } else {
+        authSection.style.display="flex";
+        appSection.style.display="none";
+        mainHeader.style.display="none";
+    }
 });
 
-// CRITICAL FIX: Expose functions to the global window object for HTML onclick to work
+// CRITICAL FIX: Expose functions to the global window object for HTML to work
 window.updateProfile = updateProfile;
 window.showSection = showSection;
-window.sendDuoRequest = sendDuoRequest;
+window.sendDuoRequest = sendDuoRequest; // Updated logic in here
 window.acceptDuo = acceptDuo;
 window.openChat = openChat;
 window.closeChat = closeChat;
