@@ -148,8 +148,8 @@ const profileAbout = document.getElementById("profile-about");
 const profilePhoto = document.getElementById("profile-photo");
 const profilePreviewContainer = document.getElementById("profilePreviewContainer");
 const usernameHelp = document.getElementById("username-help"); 
-const postForm = document.getElementById("postForm"); // New Post Form
-const postsList = document.getElementById("postsList"); // New Posts List Container
+const postForm = document.getElementById("postForm"); 
+const postsList = document.getElementById("postsList"); 
 
 // --- Constants & Local State ---
 const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
@@ -191,7 +191,6 @@ async function updateLastActiveStatus(uid) {
 
 /**
  * Ensures a user's profile document exists in Firestore and returns its data.
- * Used on every login to initialize the application state.
  */
 async function ensureUserProfileLoaded(user) {
     const userDocRef = doc(db, "users", user.uid);
@@ -398,8 +397,10 @@ postForm.addEventListener("submit", async e => {
     if (!user) return;
     
     try {
+        // FIX: Include currentUsername and currentBio in the post data
         await addDoc(collection(db, "posts"), {
             authorUid: user.uid,
+            authorUsername: currentUsername, // Save the username directly
             content: content,
             timestamp: Date.now(),
         });
@@ -414,16 +415,17 @@ postForm.addEventListener("submit", async e => {
 async function loadPosts() {
     postsList.innerHTML = '';
     
-    // 1. Fetch all posts ordered by newest first
     const postsQuery = query(collection(db, "posts"), orderBy("timestamp", "desc"));
     const postSnap = await getDocs(postsQuery);
 
-    // 2. Render the posts
     postSnap.forEach(doc => {
         const post = doc.data();
-        const userData = allUsersData[post.authorUid] || {}; // Get user data from cache
-        const username = userData.username || 'Unknown User';
+        
+        // Use the saved username from the post document itself
+        const username = post.authorUsername || 'Unknown User';
         const avatarChar = username ? username[0] : 'U';
+        
+        // Check for verified badge using the username
         const verifiedBadgeHtml = getVerifiedBadge(username);
         
         postsList.innerHTML += `
@@ -471,12 +473,8 @@ onAuthStateChanged(auth,async user=>{
         currentUsername = userData.username || '';
         currentBio = userData.bio || '';
         
-        // Cache all user data for use in the feed (joining posts with usernames)
-        const allUsersSnap = await getDocs(collection(db, "users"));
-        allUsersSnap.forEach(doc => {
-            const data = doc.data();
-            allUsersData[data.uid] = data;
-        });
+        // NOTE: We no longer need to cache all user data here, as the username is saved directly in the post.
+        // allUsersData will now only be used for the User Search (loadUsers) if needed in the future.
         
         await updateLastActiveStatus(user.uid); 
         
