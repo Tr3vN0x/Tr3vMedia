@@ -20,21 +20,22 @@
   --text: #C0C0D8;
   --radius: 10px;
 }
-* { box-sizing: border-box; margin:0; padding:0; }
+
+* { box-sizing:border-box;margin:0;padding:0; }
 
 body {
   font-family: Inter, Segoe UI, sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  min-height:100vh;
 }
 
 nav {
   display:none;
-  justify-content: space-between;
-  padding: 15px 30px;
+  justify-content:space-between;
+  padding:15px 30px;
   background: var(--panel);
-  border-bottom: 2px solid var(--cyan);
+  border-bottom:2px solid var(--cyan);
 }
 nav span { cursor:pointer; margin-left:20px; }
 
@@ -42,32 +43,32 @@ section { display:none; padding:30px; }
 
 .card {
   background: var(--panel);
-  padding: 25px;
+  padding:25px;
   border-radius: var(--radius);
-  max-width: 400px;
-  margin: auto;
+  max-width:400px;
+  margin:auto;
 }
 
 input, select {
-  width: 100%;
-  margin-bottom: 15px;
-  padding: 12px;
-  background: #0F0F1A;
-  border: 1px solid #333;
-  color: #fff;
+  width:100%;
+  margin-bottom:15px;
+  padding:12px;
+  background:#0F0F1A;
+  border:1px solid #333;
+  color:#fff;
   border-radius: var(--radius);
 }
 
 button {
   width:100%;
-  padding: 12px;
+  padding:12px;
   border:none;
   border-radius: var(--radius);
   font-weight:bold;
   cursor:pointer;
 }
 
-.btn-primary { background: var(--pink); }
+.btn-primary { background: var(--pink); color:#000; }
 .btn-secondary { background: var(--cyan); color:#000; }
 
 .player-grid {
@@ -82,7 +83,6 @@ button {
 }
 </style>
 </head>
-
 <body>
 
 <nav id="nav">
@@ -125,6 +125,9 @@ button {
 
 <!-- HOME -->
 <section id="home">
+  <div style="max-width:400px;margin-bottom:20px;">
+    <button id="toggle-lfd" class="btn-secondary">Looking for Duo: ON</button>
+  </div>
   <h2 style="color:var(--cyan);margin-bottom:20px;">Live Duoup Feed</h2>
   <div class="player-grid" id="feed"></div>
 </section>
@@ -146,95 +149,117 @@ const views = {
   home: document.getElementById('home')
 };
 
+const toggleBtn = document.getElementById('toggle-lfd');
+const feed = document.getElementById('feed');
+
 function showView(id) {
   Object.values(views).forEach(v => v.style.display = 'none');
   views[id].style.display = 'block';
-  document.getElementById('nav').style.display = id === 'auth' ? 'none' : 'flex';
+  document.getElementById('nav').style.display = id==='auth' ? 'none':'flex';
 }
 
 /* 🔐 AUTH STATE */
 auth.onAuthStateChanged(async user => {
-  if (!user) {
-    showView('auth');
-    return;
-  }
+  if(!user){ showView('auth'); return; }
 
   const ref = db.collection('users').doc(user.uid);
   const doc = await ref.get();
 
-  if (!doc.exists) {
+  if(!doc.exists){
     await ref.set({
       uid: user.uid,
-      username: user.displayName || '',
-      game: '',
-      availability: '',
-      onboarded: false,
-      created: firebase.firestore.FieldValue.serverTimestamp()
+      username: user.displayName||'',
+      game:'',
+      availability:'',
+      onboarded:false,
+      lookingForDuo:true,
+      created:firebase.firestore.FieldValue.serverTimestamp()
     });
     showView('onboarding');
     return;
   }
 
-  if (!doc.data().onboarded) {
+  const data = doc.data();
+
+  if(!data.onboarded){
     showView('onboarding');
     return;
   }
 
+  updateToggleUI(data.lookingForDuo);
   showView('home');
   loadFeed();
 });
 
 /* ✉️ EMAIL SIGNUP */
-async function emailSignup() {
-  await auth.createUserWithEmailAndPassword(
-    email.value,
-    password.value
-  );
+async function emailSignup(){
+  const e = document.getElementById('email').value;
+  const p = document.getElementById('password').value;
+  await auth.createUserWithEmailAndPassword(e,p);
 }
 
 /* 🔑 GOOGLE SIGN IN */
-async function googleSignIn() {
+async function googleSignIn(){
   const provider = new firebase.auth.GoogleAuthProvider();
   await auth.signInWithPopup(provider);
 }
 
 /* 🧭 COMPLETE ONBOARDING */
-async function completeOnboarding() {
+async function completeOnboarding(){
   const user = auth.currentUser;
   await db.collection('users').doc(user.uid).update({
-    username: username.value,
-    game: game.value,
-    availability: availability.value,
-    onboarded: true
+    username: document.getElementById('username').value,
+    game: document.getElementById('game').value,
+    availability: document.getElementById('availability').value,
+    onboarded:true,
+    lookingForDuo:true
   });
+  updateToggleUI(true);
   showView('home');
   loadFeed();
 }
 
+/* 🔄 LOOKING FOR DUO TOGGLE */
+async function updateToggleUI(state){
+  toggleBtn.textContent = `Looking for Duo: ${state?'ON':'OFF'}`;
+  toggleBtn.style.backgroundColor = state ? 'var(--cyan)':'var(--panel)';
+}
+
+async function toggleLFD(){
+  const ref = db.collection('users').doc(auth.currentUser.uid);
+  const doc = await ref.get();
+  const current = doc.data().lookingForDuo;
+  await ref.update({ lookingForDuo: !current });
+  updateToggleUI(!current);
+}
+
+toggleBtn.onclick = toggleLFD;
+
 /* 📡 FEED */
-async function loadFeed() {
+async function loadFeed(){
   const snap = await db.collection('users')
     .where('uid','!=',auth.currentUser.uid)
+    .where('lookingForDuo','==',true)
     .limit(12)
     .get();
 
-  feed.innerHTML = '';
-  snap.forEach(doc => {
+  feed.innerHTML='';
+  snap.forEach(doc=>{
     const u = doc.data();
     feed.innerHTML += `
       <div class="player">
         <strong>${u.username}</strong>
         <p>${u.game}</p>
         <small>${u.availability}</small>
-      </div>`;
+      </div>
+    `;
   });
 }
 
 /* 🚪 LOGOUT */
-function logout() {
+function logout(){
   auth.signOut();
 }
 </script>
-
 </body>
 </html>
