@@ -19,19 +19,18 @@
 }
 
 *{box-sizing:border-box}
-
 body{
     margin:0;
     font-family:'Rajdhani',sans-serif;
-    background:radial-gradient(circle at top,#0b1030,#050510 65%);
+    background:radial-gradient(circle at top,#0b1030,#050510 60%);
     color:var(--text);
 }
 
 button{
     cursor:pointer;
     border:none;
-    border-radius:6px;
     font-weight:600;
+    border-radius:6px;
 }
 
 .hidden{display:none}
@@ -42,19 +41,26 @@ header{
     top:0;
     width:100%;
     height:60px;
-    background:rgba(15,18,36,.96);
+    background:rgba(15,18,36,.95);
     display:flex;
     justify-content:space-between;
     align-items:center;
-    padding:0 18px;
+    padding:0 16px;
     border-bottom:1px solid #1c2148;
     z-index:10;
 }
 
 header h1{
     margin:0;
+    font-size:1.6em;
     color:var(--primary);
     letter-spacing:1px;
+}
+
+header button{
+    background:var(--cta);
+    color:#050510;
+    padding:8px 14px;
 }
 
 /* AUTH */
@@ -67,7 +73,7 @@ header h1{
 
 .auth-card{
     background:var(--panel);
-    padding:30px;
+    padding:28px;
     width:100%;
     max-width:380px;
     border-radius:14px;
@@ -75,6 +81,7 @@ header h1{
 }
 
 .auth-card h2{
+    margin-top:0;
     text-align:center;
     color:var(--primary);
 }
@@ -97,30 +104,24 @@ input{
     color:#050510;
 }
 
-#error{
-    margin-top:10px;
-    color:var(--cta);
-    font-size:.9em;
-    text-align:center;
-}
-
 /* APP */
 #app{
-    padding-top:80px;
+    padding-top:70px;
     max-width:1200px;
     margin:auto;
 }
 
 h2{
-    margin:20px;
+    margin:20px 16px;
     color:var(--primary);
 }
 
+/* DUO CARDS */
 .grid{
     display:grid;
     grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
     gap:18px;
-    padding:0 20px 40px;
+    padding:0 16px 30px;
 }
 
 .card{
@@ -128,6 +129,12 @@ h2{
     border-radius:14px;
     padding:16px;
     border:1px solid #1c2148;
+    transition:.2s;
+}
+
+.card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 0 20px rgba(138,92,255,.15);
 }
 
 .card-header{
@@ -155,6 +162,7 @@ h2{
 
 .bio{
     margin:12px 0;
+    font-size:.95em;
     color:var(--muted);
 }
 
@@ -177,15 +185,13 @@ h2{
 <!-- AUTH -->
 <div id="auth">
     <div class="auth-card">
-        <h2>DuoUp</h2>
+        <h2>Welcome to DuoUp</h2>
 
         <input id="email" placeholder="Email">
-        <input id="password" type="password" placeholder="Password (min 6 chars)">
+        <input id="password" type="password" placeholder="Password">
 
         <button id="signin">Sign In</button>
-        <button id="signup" style="margin-top:6px;background:var(--accent)">Sign Up</button>
-
-        <div id="error"></div>
+        <button id="signup" style="background:var(--accent);margin-top:6px">Sign Up</button>
     </div>
 </div>
 
@@ -227,38 +233,24 @@ const authUI = document.getElementById("auth");
 const appUI = document.getElementById("app");
 const header = document.getElementById("header");
 const grid = document.getElementById("grid");
-const errorBox = document.getElementById("error");
 
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
+const email = document.getElementById("email");
+const password = document.getElementById("password");
 
-/* AUTH ACTIONS */
-document.getElementById("signin").onclick = async () => {
-    errorBox.textContent = "";
-    try{
-        await signInWithEmailAndPassword(auth,emailInput.value,passwordInput.value);
-    }catch(e){
-        errorBox.textContent = e.message;
-    }
-};
+document.getElementById("signin").onclick = () =>
+    signInWithEmailAndPassword(auth,email.value,password.value);
 
 document.getElementById("signup").onclick = async () => {
-    errorBox.textContent = "";
-    try{
-        const cred = await createUserWithEmailAndPassword(auth,emailInput.value,passwordInput.value);
-        await setDoc(doc(db,"users",cred.user.uid),{
-            uid:cred.user.uid,
-            nickname:emailInput.value.split("@")[0],
-            bio:"Looking for a duo 👀"
-        });
-    }catch(e){
-        errorBox.textContent = e.message;
-    }
+    const cred = await createUserWithEmailAndPassword(auth,email.value,password.value);
+    await setDoc(doc(db,"users",cred.user.uid),{
+        uid:cred.user.uid,
+        nickname:email.value.split("@")[0],
+        bio:"Looking for a duo 👀"
+    });
 };
 
 document.getElementById("logout").onclick = () => signOut(auth);
 
-/* AUTH STATE */
 onAuthStateChanged(auth, async user=>{
     if(user){
         authUI.classList.add("hidden");
@@ -272,7 +264,6 @@ onAuthStateChanged(auth, async user=>{
     }
 });
 
-/* LOAD USERS */
 async function loadUsers(){
     grid.innerHTML="";
     const snap = await getDocs(collection(db,"users"));
