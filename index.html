@@ -13,7 +13,12 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 
 <style>
-body{margin:0;font-family:Orbitron;background:#0b0b0b;color:white}
+body{
+  margin:0;
+  font-family:'Orbitron',sans-serif;
+  background:#0b0b0b;
+  color:white;
+}
 .hidden{display:none}
 .container{width:90%;margin:auto;padding:20px}
 .neon-btn{
@@ -26,7 +31,11 @@ body{margin:0;font-family:Orbitron;background:#0b0b0b;color:white}
   cursor:pointer;
   box-shadow:0 0 10px cyan;
 }
-.neon-btn:hover{border-color:magenta;box-shadow:0 0 15px magenta}
+.neon-btn:hover{
+  border-color:magenta;
+  box-shadow:0 0 15px magenta;
+}
+.flex{display:flex;gap:15px;flex-wrap:wrap}
 .card{
   width:260px;
   padding:15px;
@@ -35,29 +44,42 @@ body{margin:0;font-family:Orbitron;background:#0b0b0b;color:white}
   background:#111;
   box-shadow:0 0 10px cyan;
 }
-.flex{display:flex;gap:15px;flex-wrap:wrap}
 .avatar{
-  width:48px;height:48px;border-radius:50%;
-  border:2px solid cyan;object-fit:cover
+  width:48px;
+  height:48px;
+  border-radius:50%;
+  border:2px solid cyan;
+  object-fit:cover;
 }
 .user{display:flex;gap:10px;align-items:center}
-input{width:100%;padding:8px;margin:5px 0;background:#000;border:2px solid cyan;color:white;border-radius:6px}
+input{
+  width:100%;
+  padding:8px;
+  margin:5px 0;
+  background:#000;
+  border:2px solid cyan;
+  color:white;
+  border-radius:6px;
+}
 </style>
 </head>
 
 <body>
 
-<div id="login" class="container">
+<!-- LOGIN -->
+<div id="loginPage" class="container">
   <h1>DUO UP</h1>
-  <button class="neon-btn" onclick="login()">Login with Google</button>
+  <button class="neon-btn" onclick="loginWithGoogle()">Login with Google</button>
 </div>
 
+<!-- USERNAME -->
 <div id="usernamePage" class="container hidden">
-  <h2>Choose Username</h2>
-  <input id="usernameInput">
+  <h2>Choose a Username</h2>
+  <input id="usernameInput" placeholder="Username">
   <button class="neon-btn" onclick="saveUsername()">Continue</button>
 </div>
 
+<!-- DASHBOARD -->
 <div id="dashboard" class="container hidden">
   <h2 id="welcome"></h2>
 
@@ -72,16 +94,18 @@ input{width:100%;padding:8px;margin:5px 0;background:#000;border:2px solid cyan;
   <div id="friendsTab" class="flex hidden"></div>
 </div>
 
-<div id="profile" class="container hidden">
+<!-- PROFILE -->
+<div id="profilePage" class="container hidden">
   <h2>Edit Profile</h2>
-  <img id="preview" class="avatar"><br>
-  <input type="file" id="image">
+  <img id="profilePreview" class="avatar"><br><br>
+  <input type="file" id="profileImage">
   <input id="statusInput" placeholder="Status">
   <button class="neon-btn" onclick="saveProfile()">Save</button>
   <button class="neon-btn" onclick="closeProfile()">Back</button>
 </div>
 
 <script>
+// ---------------- FIREBASE ----------------
 const firebaseConfig={
   apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
   authDomain:"duoup-cfae6.firebaseapp.com",
@@ -92,52 +116,91 @@ const firebaseConfig={
 };
 firebase.initializeApp(firebaseConfig);
 
-const auth=firebase.auth();
-const db=firebase.firestore();
-const storage=firebase.storage();
+const auth = firebase.auth();
+const db = firebase.firestore();
+const storage = firebase.storage();
 
-const DEFAULT_AVATAR="https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg";
+const DEFAULT_AVATAR =
+"https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg";
 
-auth.onAuthStateChanged(user=>{
-  if(!user) return;
-  db.collection("users").doc(user.uid).get().then(d=>{
-    if(d.exists) loadDashboard(d.data());
-    else usernamePage.classList.remove("hidden");
-  });
+// ---------------- LOGIN ----------------
+function loginWithGoogle(){
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .catch(err=>alert(err.message));
+}
+
+// ---------------- AUTH STATE ----------------
+auth.onAuthStateChanged(async user=>{
+  if(!user){
+    loginPage.classList.remove("hidden");
+    usernamePage.classList.add("hidden");
+    dashboard.classList.add("hidden");
+    profilePage.classList.add("hidden");
+    return;
+  }
+
+  loginPage.classList.add("hidden");
+
+  const ref = db.collection("users").doc(user.uid);
+  const snap = await ref.get();
+
+  if(!snap.exists){
+    usernamePage.classList.remove("hidden");
+  }else{
+    usernamePage.classList.add("hidden");
+    loadDashboard(snap.data());
+  }
 });
 
-function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-function logout(){ auth.signOut(); location.reload(); }
-
+// ---------------- SAVE USERNAME ----------------
 function saveUsername(){
-  const u=auth.currentUser;
-  db.collection("users").doc(u.uid).set({
-    nickname:usernameInput.value,
-    profileImageUrl:u.photoURL||DEFAULT_AVATAR,
-    status:"Online",
-    friends:[]
-  }).then(()=>location.reload());
+  const name = usernameInput.value.trim();
+  if(!name) return alert("Username required");
+
+  const user = auth.currentUser;
+
+  db.collection("users").doc(user.uid).set({
+    uid: user.uid,
+    nickname: name,
+    email: user.email,
+    profileImageUrl: user.photoURL || DEFAULT_AVATAR,
+    status: "Online",
+    friends: [],
+    isPremium: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  }).then(()=>{
+    usernamePage.classList.add("hidden");
+    loadDashboard({nickname:name});
+  });
 }
 
+// ---------------- DASHBOARD ----------------
 function loadDashboard(data){
-  login.classList.add("hidden");
-  usernamePage.classList.add("hidden");
   dashboard.classList.remove("hidden");
-  welcome.innerText="Welcome, "+data.nickname;
-  loadSuggested(); loadRequests(); loadFriends();
+  welcome.innerText = "Welcome, " + data.nickname;
+  loadSuggested();
+  loadRequests();
+  loadFriends();
+  showTab("suggested");
 }
 
-function showTab(t){
+function logout(){
+  auth.signOut();
+}
+
+// ---------------- TABS ----------------
+function showTab(tab){
   suggestedTab.classList.add("hidden");
   requestsTab.classList.add("hidden");
   friendsTab.classList.add("hidden");
-  document.getElementById(t+"Tab").classList.remove("hidden");
+  document.getElementById(tab+"Tab").classList.remove("hidden");
 }
 
+// ---------------- SUGGESTED ----------------
 function loadSuggested(){
   suggestedTab.innerHTML="";
-  db.collection("users").get().then(s=>{
-    s.forEach(u=>{
+  db.collection("users").get().then(snap=>{
+    snap.forEach(u=>{
       if(u.id===auth.currentUser.uid) return;
       const d=u.data();
       suggestedTab.innerHTML+=`
@@ -145,7 +208,7 @@ function loadSuggested(){
         <div class="user">
           <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
           <strong>${d.nickname}</strong>
-        </div>
+        </div><br>
         <button class="neon-btn" onclick="sendRequest('${u.id}')">DUO UP</button>
       </div>`;
     });
@@ -154,81 +217,104 @@ function loadSuggested(){
 
 function sendRequest(id){
   db.collection("friendRequests").add({
-    senderId:auth.currentUser.uid,
-    receiverId:id,
-    status:"pending",
-    timestamp:firebase.firestore.FieldValue.serverTimestamp()
+    senderId: auth.currentUser.uid,
+    receiverId: id,
+    status: "pending",
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
   });
 }
 
+// ---------------- REQUESTS ----------------
 function loadRequests(){
   db.collection("friendRequests")
     .where("receiverId","==",auth.currentUser.uid)
     .where("status","==","pending")
-    .onSnapshot(s=>{
+    .onSnapshot(snap=>{
       requestsTab.innerHTML="";
-      s.forEach(r=>{
+      snap.forEach(r=>{
         db.collection("users").doc(r.data().senderId).get().then(u=>{
           requestsTab.innerHTML+=`
           <div class="card">
-            ${u.data().nickname}
-            <button class="neon-btn" onclick="accept('${r.id}','${u.id}')">Accept</button>
+            <strong>${u.data().nickname}</strong><br><br>
+            <button class="neon-btn" onclick="acceptRequest('${r.id}','${u.id}')">Accept</button>
+            <button class="neon-btn" onclick="rejectRequest('${r.id}')">Reject</button>
           </div>`;
         });
       });
     });
 }
 
-function accept(id,sender){
-  db.collection("friendRequests").doc(id).update({status:"accepted"});
+function acceptRequest(rid,sender){
+  db.collection("friendRequests").doc(rid).update({status:"accepted"});
   db.collection("users").doc(auth.currentUser.uid)
     .update({friends:firebase.firestore.FieldValue.arrayUnion(sender)});
   db.collection("users").doc(sender)
     .update({friends:firebase.firestore.FieldValue.arrayUnion(auth.currentUser.uid)});
 }
 
+function rejectRequest(id){
+  db.collection("friendRequests").doc(id).update({status:"rejected"});
+}
+
+// ---------------- FRIENDS ----------------
 function loadFriends(){
   db.collection("users").doc(auth.currentUser.uid)
-    .onSnapshot(d=>{
+    .onSnapshot(doc=>{
       friendsTab.innerHTML="";
-      d.data().friends.forEach(f=>{
-        db.collection("users").doc(f).get().then(u=>{
+      (doc.data().friends||[]).forEach(fid=>{
+        db.collection("users").doc(fid).get().then(u=>{
           friendsTab.innerHTML+=`
-          <div class="card">${u.data().nickname}</div>`;
+          <div class="card">
+            <div class="user">
+              <img class="avatar" src="${u.data().profileImageUrl||DEFAULT_AVATAR}">
+              <strong>${u.data().nickname}</strong>
+            </div>
+          </div>`;
         });
       });
     });
 }
 
+// ---------------- PROFILE ----------------
 function openProfile(){
   dashboard.classList.add("hidden");
-  profile.classList.remove("hidden");
+  profilePage.classList.remove("hidden");
+
   db.collection("users").doc(auth.currentUser.uid).get().then(d=>{
-    preview.src=d.data().profileImageUrl||DEFAULT_AVATAR;
-    statusInput.value=d.data().status||"";
+    profilePreview.src = d.data().profileImageUrl || DEFAULT_AVATAR;
+    statusInput.value = d.data().status || "";
   });
 }
 
 function closeProfile(){
-  profile.classList.add("hidden");
+  profilePage.classList.add("hidden");
   dashboard.classList.remove("hidden");
 }
 
 function saveProfile(){
-  const file=image.files[0];
+  const file = profileImage.files[0];
+
   if(file){
-    const ref=storage.ref("avatars/"+auth.currentUser.uid);
-    ref.put(file).then(()=>ref.getDownloadURL().then(url=>{
-      updateProfile(url);
-    }));
-  }else updateProfile(null);
+    const ref = storage.ref("avatars/"+auth.currentUser.uid);
+    ref.put(file).then(()=>{
+      ref.getDownloadURL().then(url=>{
+        updateProfile(url);
+      });
+    });
+  }else{
+    updateProfile(null);
+  }
 }
 
 function updateProfile(url){
-  const data={status:statusInput.value};
-  if(url) data.profileImageUrl=url;
-  db.collection("users").doc(auth.currentUser.uid).update(data).then(closeProfile);
+  const data={ status: statusInput.value };
+  if(url) data.profileImageUrl = url;
+
+  db.collection("users").doc(auth.currentUser.uid)
+    .update(data)
+    .then(closeProfile);
 }
 </script>
+
 </body>
 </html>
