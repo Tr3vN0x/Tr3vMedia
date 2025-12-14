@@ -41,7 +41,7 @@ input,textarea,button{padding:10px;margin:5px;border-radius:5px;border:none;}
 <div id="app" class="hidden">
 
     <section id="home">
-        <h2>All Users</h2>
+        <h2>All Users (Active)</h2>
         <div class="grid" id="grid"></div>
     </section>
 
@@ -80,28 +80,31 @@ const profileMsg = document.getElementById("profileMsg");
 const email = document.getElementById("email");
 const password = document.getElementById("password");
 
+const SEVEN_DAYS_MS = 7*24*60*60*1000;
+
 document.getElementById("signin").onclick = async () => {
   try {
-    await signInWithEmailAndPassword(auth, email.value, password.value);
-    msg.textContent = "";
-  } catch(e) { msg.textContent = e.message; }
+    await signInWithEmailAndPassword(auth,email.value,password.value);
+    msg.textContent="";
+  } catch(e){ msg.textContent=e.message; }
 };
 
 document.getElementById("signup").onclick = async () => {
   try {
-    const cred = await createUserWithEmailAndPassword(auth, email.value, password.value);
-    const userDocRef = doc(db, "users", cred.user.uid);
-    await setDoc(userDocRef, {
+    const cred = await createUserWithEmailAndPassword(auth,email.value,password.value);
+    const userDocRef = doc(db,"users",cred.user.uid);
+    await setDoc(userDocRef,{
       uid: cred.user.uid,
-      username: email.value.split("@")[0],
+      nickname: email.value.split("@")[0],
+      email: email.value,
+      authType: "email",
+      lastActive: Date.now(),
       bio: "",
-      profileImageUrl: "",
-      friends: "",
-      fcmToken: "",
-      createdAt: serverTimestamp()
+      friends: [],
+      profileImageUrl: ""
     });
-    msg.textContent = "User created!";
-  } catch(e) { msg.textContent = e.message; }
+    msg.textContent="User created!";
+  } catch(e){ msg.textContent=e.message; }
 };
 
 window.logout = () => signOut(auth);
@@ -109,64 +112,78 @@ window.logout = () => signOut(auth);
 window.showTab = (tab) => {
   ["home","profile"].forEach(t=>document.getElementById(t).classList.add("hidden"));
   document.getElementById(tab).classList.remove("hidden");
-  if(tab === "home") loadUsers();
+  if(tab==="home") loadUsers();
 };
 
-onAuthStateChanged(auth, async user => {
+onAuthStateChanged(auth, async user=>{
   if(user){
     currentUser = user;
     authUI.classList.add("hidden");
     appUI.classList.remove("hidden");
     header.classList.remove("hidden");
     showTab("home");
-    await loadProfile();  // load bio and profileImageUrl safely
-  } else {
+    await loadProfile();
+    updateLastActive();
+    setInterval(updateLastActive, 60000); // update online status every 1 min
+  }else{
     authUI.classList.remove("hidden");
     appUI.classList.add("hidden");
     header.classList.add("hidden");
   }
 });
 
-async function loadProfile() {
-  try {
-    const docSnap = await getDoc(doc(db, "users", currentUser.uid));
-    if(docSnap.exists()){
-      document.getElementById("bio").value = docSnap.data().bio || "";
-      document.getElementById("profileImageUrl").value = docSnap.data().profileImageUrl || "";
+async function updateLastActive(){
+  if(currentUser){
+    await updateDoc(doc(db,"users",currentUser.uid), { lastActive: Date.now() });
+  }
+}
+
+async function loadProfile(){
+  try{
+    const snap = await getDoc(doc(db,"users",currentUser.uid));
+    if(snap.exists()){
+      const data = snap.data();
+      document.getElementById("bio").value = data.bio || "";
+      document.getElementById("profileImageUrl").value = data.profileImageUrl || "";
     }
-  } catch(e){ console.error("Failed to load profile:", e); }
+  }catch(e){ console.error(e); }
 }
 
-async function loadUsers(){
-  const grid = document.getElementById("grid");
-  grid.innerHTML = "";
-  try {
-    const snap = await getDocs(collection(db, "users"));
-    snap.forEach(d=>{
-      const u = d.data();
-      if(u.uid === currentUser.uid) return;
-      const avatar = u.username ? u.username[0].toUpperCase() : "?";
-      grid.innerHTML += `
-      <div class="card">
-        <div class="card-header">
-          <div class="avatar">${avatar}</div>
-          <strong>${u.username}</strong>
-        </div>
-        <div class="bio">${u.bio || "No bio set"}</div>
-      </div>`;
-    });
-  } catch(e){ console.error("Failed to load users:", e); }
-}
-
-document.getElementById("saveProfileBtn").onclick = async () => {
-  try {
-    await updateDoc(doc(db, "users", currentUser.uid), {
+document.getElementById("saveProfileBtn").onclick = async ()=>{
+  try{
+    await updateDoc(doc(db,"users",currentUser.uid),{
       bio: document.getElementById("bio").value,
       profileImageUrl: document.getElementById("profileImageUrl").value
     });
-    profileMsg.textContent = "Profile saved!";
-  } catch(e) { profileMsg.textContent = "Error saving profile"; console.error(e); }
+    profileMsg.textContent="Profile saved!";
+    setTimeout(()=>profileMsg.textContent="",2000);
+  }catch(e){ profileMsg.textContent="Error saving profile"; console.error(e); }
 };
+
+async function loadUsers(){
+  const grid = document.getElementById("grid");
+  grid.innerHTML="";
+  try{
+    const snap = await getDocs(collection(db,"users"));
+    const now = Date.now();
+    snap.forEach(d=>{
+      const u = d.data();
+      if(u.uid===currentUser.uid) return;
+      // Only show users active in last 7 days
+      if(!u.lastActive || (now - u.lastActive)>SEVEN_DAYS_MS) return;
+      const avatar = u.nickname? u.nickname[0].toUpperCase() : "?";
+      grid.innerHTML+=`
+        <div class="card">
+          <div class="card-header">
+            <div class="avatar">${avatar}</div>
+            <strong>${u.nickname}</strong>
+          </div>
+          <div class="bio">${u.bio || "No bio set"}</div>
+          <button onclick="alert('Duo request sent to ${u.nickname}!')">Send Duo Request</button>
+        </div>`;
+    });
+  }catch(e){ console.error(e); }
+}
 </script>
 
 </body>
