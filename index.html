@@ -10,12 +10,37 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
 body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:white; }
-.container { width:90%; margin:auto; padding:20px; }
+.container { width:90%; max-width: 1000px; margin:auto; padding:20px; }
 .hidden { display:none; }
-.neon-btn { border:2px solid cyan; background:transparent; color:white; padding:8px 14px; margin:5px; border-radius:6px; cursor:pointer; box-shadow:0 0 10px cyan; }
+.neon-btn { 
+    border:2px solid cyan; 
+    background:transparent; 
+    color:white; 
+    padding:8px 14px; 
+    margin:5px; 
+    border-radius:6px; 
+    cursor:pointer; 
+    box-shadow:0 0 10px cyan; 
+    transition: all 0.2s ease-in-out;
+}
 .neon-btn:hover { border-color:magenta; box-shadow:0 0 15px magenta; }
+/* Added a specific style for removal to make it distinct */
+.neon-btn.remove { border-color: red; box-shadow: 0 0 10px red; }
+.neon-btn.remove:hover { border-color: orange; box-shadow: 0 0 15px orange; }
+
 .flex { display:flex; gap:15px; flex-wrap:wrap; }
-.card { width:250px; padding:15px; border:2px solid cyan; border-radius:12px; background:#111; box-shadow:0 0 10px cyan; display:flex; flex-direction:column; align-items:center; }
+.card { 
+    width:250px; 
+    padding:15px; 
+    border:2px solid cyan; 
+    border-radius:12px; 
+    background:#111; 
+    box-shadow:0 0 10px cyan; 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    margin-bottom: 15px;
+}
 .avatar { width:50px; height:50px; border-radius:50%; border:2px solid cyan; object-fit:cover; margin-bottom:10px; }
 </style>
 </head>
@@ -28,10 +53,12 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 
 <div id="dashboard" class="container hidden">
   <h2 id="welcome"></h2>
-  <button class="neon-btn" onclick="showTab('suggested')">Suggested</button>
-  <button class="neon-btn" onclick="showTab('requests')">Requests</button>
-  <button class="neon-btn" onclick="showTab('friends')">Friends</button>
-  <button class="neon-btn" onclick="logout()">Logout</button>
+  <div style="margin-bottom: 20px;">
+    <button class="neon-btn" onclick="showTab('suggested')">Suggested</button>
+    <button class="neon-btn" onclick="showTab('requests')">Requests</button>
+    <button class="neon-btn" onclick="showTab('friends')">Friends</button>
+    <button class="neon-btn" onclick="logout()">Logout</button>
+  </div>
 
   <div id="suggestedTab" class="flex"></div>
   <div id="requestsTab" class="flex hidden"></div>
@@ -88,6 +115,7 @@ auth.onAuthStateChanged(async user=>{
   const data = (await db.collection("users").doc(user.uid).get()).data();
   document.getElementById("welcome").innerText = "Welcome, "+data.nickname;
 
+  // Initial loads
   loadSuggested();
   loadRequests();
   loadFriends();
@@ -98,6 +126,11 @@ function logout(){ auth.signOut(); }
 
 // ---------------- TABS ----------------
 function showTab(tab){
+  // Reload data every time a tab is shown to keep it fresh
+  if (tab === 'suggested') loadSuggested();
+  if (tab === 'requests') loadRequests();
+  if (tab === 'friends') loadFriends();
+
   suggestedTab.classList.add("hidden");
   requestsTab.classList.add("hidden");
   friendsTab.classList.add("hidden");
@@ -106,12 +139,28 @@ function showTab(tab){
 
 // ---------------- LOAD SUGGESTED USERS ----------------
 async function loadSuggested(){
-  suggestedTab.innerHTML="";
+  suggestedTab.innerHTML="<p>Loading suggested users...</p>";
   const usersSnap = await db.collection("users").get();
   const me = (await db.collection("users").doc(currentUser.uid).get()).data();
+  suggestedTab.innerHTML = ""; // Clear the loading message
+
+  const myFriends = me.friends || [];
+  
+  // Get pending requests (sent by me OR sent to me) to prevent suggesting them
+  const mySentRequestsSnap = await db.collection("friendRequests").where("senderId", "==", currentUser.uid).get();
+  const myReceivedRequestsSnap = await db.collection("friendRequests").where("receiverId", "==", currentUser.uid).get();
+
+  const pendingUsers = new Set();
+  mySentRequestsSnap.forEach(doc => pendingUsers.add(doc.data().receiverId));
+  myReceivedRequestsSnap.forEach(doc => pendingUsers.add(doc.data().senderId));
+
+
+  let suggestedCount = 0;
   usersSnap.forEach(doc=>{
-    if(doc.id === currentUser.uid) return;
-    if(me.friends.includes(doc.id)) return; // skip friends
+    if(doc.id === currentUser.uid) return; // skip self
+    if(myFriends.includes(doc.id)) return; // skip friends
+    if(pendingUsers.has(doc.id)) return; // skip users with pending requests
+    
     const u = doc.data();
     const card = document.createElement("div");
     card.className = "card";
@@ -119,65 +168,149 @@ async function loadSuggested(){
       <strong>${u.nickname}</strong>
       <button class="neon-btn" onclick="sendRequest('${doc.id}')">Send Request</button>`;
     suggestedTab.appendChild(card);
+    suggestedCount++;
   });
+
+  if (suggestedCount === 0) {
+      suggestedTab.innerHTML="<p>No suggested players available right now.</p>";
+  }
 }
 
 // ---------------- LOAD REQUESTS ----------------
 async function loadRequests(){
-  requestsTab.innerHTML="";
+  requestsTab.innerHTML="<p>Loading requests...</p>";
   const snap = await db.collection("friendRequests").where("receiverId","==",currentUser.uid).get();
-  if(snap.empty){ requestsTab.innerHTML="<p>No requests</p>"; return; }
-  snap.forEach(async doc=>{
+  requestsTab.innerHTML = ""; // Clear the loading message
+  if(snap.empty){ 
+    requestsTab.innerHTML="<p>No friend requests</p>"; 
+    return; 
+  }
+
+  // Use Promise.all to fetch all sender data concurrently
+  const requestPromises = snap.docs.map(async doc => {
     const r = doc.data();
-    const u = (await db.collection("users").doc(r.senderId).get()).data();
+    const senderDoc = await db.collection("users").doc(r.senderId).get();
+    if (!senderDoc.exists) return null; // Skip if sender profile is missing
+    return { 
+      requestId: doc.id,
+      senderId: r.senderId,
+      user: senderDoc.data()
+    };
+  });
+  
+  const requestsData = (await Promise.all(requestPromises)).filter(item => item !== null);
+
+  requestsData.forEach(data => {
+    const u = data.user;
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
       <strong>${u.nickname}</strong>
-      <button class="neon-btn" onclick="acceptRequest('${doc.id}','${r.senderId}')">Accept</button>
-      <button class="neon-btn" onclick="rejectRequest('${doc.id}')">Reject</button>`;
+      <button class="neon-btn" onclick="acceptRequest('${data.requestId}','${data.senderId}')">Accept</button>
+      <button class="neon-btn" onclick="rejectRequest('${data.requestId}')">Reject</button>`;
     requestsTab.appendChild(card);
   });
 }
 
 // ---------------- LOAD FRIENDS ----------------
 async function loadFriends(){
-  friendsTab.innerHTML="";
+  friendsTab.innerHTML="<p>Loading friends...</p>";
   const me = (await db.collection("users").doc(currentUser.uid).get()).data();
-  if(me.friends.length===0){ friendsTab.innerHTML="<p>No friends yet</p>"; return; }
-  me.friends.forEach(async fid=>{
-    const u = (await db.collection("users").doc(fid).get()).data();
+  friendsTab.innerHTML = ""; // Clear the loading message
+  
+  const myFriends = me.friends || [];
+
+  if(myFriends.length===0){ 
+    friendsTab.innerHTML="<p>No friends yet. Time to find a duo!</p>"; 
+    return; 
+  }
+  
+  // Use Promise.all to fetch all friend data concurrently
+  const friendPromises = myFriends.map(fid => db.collection("users").doc(fid).get());
+  const friendDocs = await Promise.all(friendPromises);
+
+  friendDocs.forEach(doc => {
+    if (!doc.exists) return; // Skip if friend profile is somehow missing
+    const u = doc.data();
     const card = document.createElement("div");
     card.className = "card";
     card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
-      <strong>${u.nickname}</strong>`;
+      <strong>${u.nickname}</strong>
+      <button class="neon-btn remove" onclick="removeFriend('${doc.id}')">Remove</button>`;
     friendsTab.appendChild(card);
   });
 }
 
 // ---------------- REQUEST ACTIONS ----------------
-function sendRequest(receiverId){
+async function sendRequest(receiverId){
+  // Check if request already exists (sender->receiver OR receiver->sender)
+  const existingRequestSnap = await db.collection("friendRequests")
+    .where("senderId", "==", currentUser.uid)
+    .where("receiverId", "==", receiverId)
+    .get();
+
+  const reverseRequestSnap = await db.collection("friendRequests")
+    .where("senderId", "==", receiverId)
+    .where("receiverId", "==", currentUser.uid)
+    .get();
+
+  if (!existingRequestSnap.empty || !reverseRequestSnap.empty) {
+    alert("A friend request is already pending with this user!");
+    return; 
+  }
+
+  // Create new request
   db.collection("friendRequests").add({
     senderId: currentUser.uid,
     receiverId: receiverId
-  }).then(()=>{ alert("Request sent!"); loadSuggested(); });
+  }).then(()=>{ 
+    alert("Request sent!"); 
+    loadSuggested(); // Refresh suggested list to remove the requested user
+  }).catch(err => alert("Error sending request: " + err.message));
 }
 
 function acceptRequest(requestId,senderId){
-  // Add to friends array
   const meRef = db.collection("users").doc(currentUser.uid);
   const senderRef = db.collection("users").doc(senderId);
-  meRef.update({friends: firebase.firestore.FieldValue.arrayUnion(senderId)});
-  senderRef.update({friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
-  // Delete request
-  db.collection("friendRequests").doc(requestId).delete();
-  loadRequests();
-  loadFriends();
+  
+  // Use a Firestore Transaction for atomic updates
+  db.runTransaction(async (transaction) => {
+    transaction.update(meRef, {friends: firebase.firestore.FieldValue.arrayUnion(senderId)});
+    transaction.update(senderRef, {friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
+    transaction.delete(db.collection("friendRequests").doc(requestId));
+  }).then(() => {
+    alert("Request accepted! You are now friends.");
+    loadRequests();
+    loadFriends();
+    loadSuggested(); 
+  }).catch(err => alert("Transaction failed: " + err.message));
 }
 
 function rejectRequest(requestId){
-  db.collection("friendRequests").doc(requestId).delete();
-  loadRequests();
+  db.collection("friendRequests").doc(requestId).delete().then(() => {
+    alert("Request rejected.");
+    loadRequests();
+  }).catch(err => alert("Error rejecting request: " + err.message));
+}
+
+// ---------------- FRIEND REMOVAL ACTION (NEW) ----------------
+function removeFriend(friendId){
+  if(!confirm("Are you sure you want to remove this friend?")) return;
+
+  const meRef = db.collection("users").doc(currentUser.uid);
+  const friendRef = db.collection("users").doc(friendId);
+  
+  // Use a Firestore Transaction for atomic removal
+  db.runTransaction(async (transaction) => {
+    // Remove friendId from my friends list
+    transaction.update(meRef, {friends: firebase.firestore.FieldValue.arrayRemove(friendId)});
+    // Remove my UID from the friend's friends list
+    transaction.update(friendRef, {friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)});
+  }).then(() => {
+    alert("Friend removed successfully.");
+    loadFriends(); // Refresh the friends list
+    loadSuggested(); // Refresh suggested list in case they reappear
+  }).catch(err => alert("Removal transaction failed: " + err.message));
 }
 </script>
 </body>
