@@ -9,7 +9,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
-
 <style>
 body{margin:0;font-family:'Orbitron',sans-serif;background:#0b0b0b;color:white;}
 .hidden{display:none;}
@@ -21,6 +20,7 @@ body{margin:0;font-family:'Orbitron',sans-serif;background:#0b0b0b;color:white;}
 .avatar{width:48px;height:48px;border-radius:50%;border:2px solid cyan;object-fit:cover;}
 .user{display:flex;gap:10px;align-items:center;}
 input{width:100%;padding:8px;margin:5px 0;background:#000;border:2px solid cyan;color:white;border-radius:6px;}
+.status-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:5px;}
 </style>
 </head>
 <body>
@@ -76,6 +76,10 @@ const auth=firebase.auth();
 const db=firebase.firestore();
 const storage=firebase.storage();
 const DEFAULT_AVATAR="https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+const suggestedTab=document.getElementById("suggestedTab");
+const requestsTab=document.getElementById("requestsTab");
+const friendsTab=document.getElementById("friendsTab");
 
 // ---------------- LOGIN ----------------
 function loginWithGoogle(){
@@ -148,28 +152,34 @@ function showTab(tab){
 // ---------------- SUGGESTED ----------------
 function loadSuggested(){
   suggestedTab.innerHTML="";
+  const currentUserId=auth.currentUser.uid;
   db.collection("users").get().then(snap=>{
     snap.forEach(u=>{
-      if(u.id===auth.currentUser.uid) return;
-      const d=u.data();
-      const card=document.createElement("div");
-      card.className="card";
-      card.innerHTML=`<div class="user">
-        <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
-        <strong>${d.nickname}</strong></div><br>
-        <button class="neon-btn" onclick="sendRequest('${u.id}')">DUO UP</button>`;
-      suggestedTab.appendChild(card);
+      if(u.id===currentUserId) return;
+      db.collection("users").doc(currentUserId).get().then(me=>{
+        const friends=me.data().friends||[];
+        if(friends.includes(u.id)) return; // Skip existing friends
+        const d=u.data();
+        const card=document.createElement("div");
+        card.className="card";
+        card.innerHTML=`<div class="user">
+          <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
+          <strong>${d.nickname}</strong></div><br>
+          <button class="neon-btn" onclick="sendRequest('${u.id}')">DUO UP</button>`;
+        suggestedTab.appendChild(card);
+      });
     });
   });
 }
 
+// ---------------- SEND REQUEST ----------------
 function sendRequest(id){
   db.collection("friendRequests").add({
     senderId:auth.currentUser.uid,
     receiverId:id,
     status:"pending",
     timestamp:firebase.firestore.FieldValue.serverTimestamp()
-  });
+  }).then(()=>alert("Request sent!"));
 }
 
 // ---------------- REQUESTS ----------------
@@ -210,23 +220,27 @@ function rejectRequest(id){
 
 // ---------------- FRIENDS ----------------
 function loadFriends(){
-  db.collection("users").doc(auth.currentUser.uid)
-    .onSnapshot(doc=>{
-      friendsTab.innerHTML="";
-      const friends=doc.data().friends||[];
-      if(friends.length===0){ friendsTab.innerHTML="<p>No friends yet</p>"; }
-      friends.forEach(fid=>{
-        db.collection("users").doc(fid).get().then(u=>{
-          const d=u.data();
-          const card=document.createElement("div");
-          card.className="card";
-          card.innerHTML=`<div class="user">
-            <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
-            <strong>${d.nickname}</strong></div>`;
-          friendsTab.appendChild(card);
-        });
+  const userRef = db.collection("users").doc(auth.currentUser.uid);
+  userRef.onSnapshot(doc => {
+    friendsTab.innerHTML = "";
+    const friends = doc.data().friends || [];
+    if(friends.length === 0){ friendsTab.innerHTML="<p>No friends yet</p>"; return; }
+    friends.forEach(fid=>{
+      db.collection("users").doc(fid).get().then(u=>{
+        const d=u.data();
+        const avatar=d.profileImageUrl||DEFAULT_AVATAR;
+        const statusColor=d.status==="online"?"green":"gray";
+        const card=document.createElement("div");
+        card.className="card";
+        card.innerHTML=`<div class="user">
+          <img class="avatar" src="${avatar}">
+          <strong>${d.nickname}</strong>
+          <span class="status-dot" style="background:${statusColor}"></span>
+        </div>`;
+        friendsTab.appendChild(card);
       });
     });
+  });
 }
 
 // ---------------- PROFILE ----------------
