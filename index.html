@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>DUO Up - Cyberpunk Neon Theme</title>
+  <title>DUO Up - Login</title>
   <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <style>
     /* --- Body & Background --- */
     body {
@@ -15,6 +17,8 @@
       animation: gradientAnimation 15s ease infinite;
       color: white;
       display: flex;
+      justify-content: center;
+      align-items: center;
       height: 100vh;
     }
 
@@ -24,82 +28,52 @@
       100% { background-position: 0% 50%; }
     }
 
-    /* --- Sidebar --- */
-    .sidebar {
-      width: 80px;
-      background-color: #0D0D0D;
-      border-right: 2px solid #00FFFF;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px 0;
-    }
-    .sidebar h1 {
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      font-family: 'Orbitron', sans-serif;
-      color: #00FFFF;
-      text-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF;
-      margin-bottom: 40px;
-    }
-    .sidebar .icon {
-      font-size: 24px;
-      color: #00FFFF;
-      margin: 20px 0;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    .sidebar .icon:hover {
-      color: #FF00FF;
-      text-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF, 0 0 30px #FF00FF;
-    }
-
-    /* --- Main Content --- */
-    .main {
-      flex: 1;
-      padding: 40px;
-      overflow-y: auto;
-    }
-    .main h1 {
-      font-size: 3em;
-      margin-bottom: 40px;
-      color: #00FFFF;
-      text-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF, 0 0 40px #00FFFF;
-    }
-
-    /* --- Neon Cards --- */
-    .card-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-    }
-    .card {
+    /* --- Login Container --- */
+    .login-container {
       background-color: #1A1A1A;
       border: 2px solid #00FFFF;
       border-radius: 16px;
-      padding: 20px;
-      width: 300px;
-      box-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF;
+      padding: 40px;
+      width: 350px;
+      text-align: center;
+      box-shadow: 0 0 10px #00FFFF, 0 0 20px #00FFFF, 0 0 30px #00FFFF;
       transition: all 0.3s;
     }
-    .card:hover {
+    .login-container:hover {
       border-color: #FF00FF;
-      box-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF, 0 0 30px #FF00FF;
-    }
-    .card h3 {
-      font-family: 'Audiowide', sans-serif;
-      font-size: 1.5em;
-      margin-bottom: 10px;
-      color: #00FFFF;
-    }
-    .card p {
-      font-size: 1em;
-      margin-bottom: 15px;
+      box-shadow: 0 0 15px #FF00FF, 0 0 30px #FF00FF, 0 0 45px #FF00FF;
     }
 
-    /* --- Neon Buttons --- */
+    .login-container h1 {
+      font-family: 'Audiowide', sans-serif;
+      color: #00FFFF;
+      text-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF, 0 0 40px #00FFFF;
+      margin-bottom: 30px;
+    }
+
+    /* --- Input Fields --- */
+    input {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      background: transparent;
+      border: 2px solid #00FFFF;
+      border-radius: 8px;
+      color: white;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1em;
+      transition: all 0.3s;
+    }
+    input:focus {
+      border-color: #FF00FF;
+      box-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF;
+      outline: none;
+    }
+
+    /* --- Buttons --- */
     .neon-btn {
-      padding: 10px 20px;
+      width: 100%;
+      padding: 12px;
       font-family: 'Orbitron', sans-serif;
       font-weight: bold;
       font-size: 1em;
@@ -110,52 +84,80 @@
       cursor: pointer;
       box-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF;
       transition: all 0.3s;
-      margin-right: 10px;
+      margin-top: 10px;
     }
     .neon-btn:hover {
       border-color: #FF00FF;
       box-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF, 0 0 30px #FF00FF;
     }
+
+    .google-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #FF0000;
+      border: none;
+      margin-top: 15px;
+    }
   </style>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <h1>DUO UP</h1>
-    <i class="fas fa-home icon"></i>
-    <i class="fas fa-users icon"></i>
-    <i class="fas fa-comments icon"></i>
-    <i class="fas fa-user icon"></i>
+
+  <div class="login-container">
+    <h1>DUO Up</h1>
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="password" placeholder="Password">
+    <button class="neon-btn" onclick="loginEmail()">Login</button>
+    <button class="neon-btn" onclick="signupEmail()">Sign Up</button>
+    <button class="neon-btn google-btn" onclick="loginGoogle()">Login with Google</button>
   </div>
 
-  <!-- Main Content -->
-  <div class="main">
-    <h1>Welcome to DUO Up</h1>
+  <script>
+    // --- Firebase Initialization ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
+      authDomain: "duoup-cfae6.firebaseapp.com",
+      projectId: "duoup-cfae6",
+      storageBucket: "duoup-cfae6.firebasestorage.app",
+      messagingSenderId: "812263060524",
+      appId: "1:812263060524:web:ac09c3ae610db1cd110d89",
+      measurementId: "G-46B67F90FK"
+    };
 
-    <div class="card-container">
-      <!-- Friend Request Card -->
-      <div class="card">
-        <h3>Friend Request</h3>
-        <p>PlayerX wants to duo with you in Overwatch.</p>
-        <button class="neon-btn" onclick="alert('Accepted!')">Accept</button>
-        <button class="neon-btn" onclick="alert('Rejected!')">Reject</button>
-      </div>
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
 
-      <!-- Suggested Duo Card -->
-      <div class="card">
-        <h3>Suggested Duo</h3>
-        <p>PlayerY also plays Valorant. Send a friend request?</p>
-        <button class="neon-btn" onclick="alert('Request sent!')">Send Request</button>
-      </div>
+    // --- Email/Password Login ---
+    function loginEmail() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.signInWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          alert("Logged in as: " + userCredential.user.email);
+        })
+        .catch(error => alert(error.message));
+    }
 
-      <!-- Active Duo Card -->
-      <div class="card">
-        <h3>Active Duo</h3>
-        <p>PlayerZ is online in Fortnite. Start chat?</p>
-        <button class="neon-btn" onclick="alert('Chat opened!')">Chat Now</button>
-      </div>
-    </div>
-  </div>
+    // --- Email/Password Signup ---
+    function signupEmail() {
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(userCredential => {
+          alert("Account created: " + userCredential.user.email);
+        })
+        .catch(error => alert(error.message));
+    }
+
+    // --- Google Login ---
+    function loginGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then(result => {
+          alert("Logged in as: " + result.user.displayName);
+        })
+        .catch(error => alert(error.message));
+    }
+  </script>
 </body>
 </html>
