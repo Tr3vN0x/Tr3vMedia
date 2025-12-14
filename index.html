@@ -1,409 +1,346 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>DuoUp - Enhanced</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-/* --- Global & Typography --- */
-body{
-    font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background:#050510;
-    color:white;
-    margin:0;
-    line-height:1.6;
-}
-.hidden{display:none;}
-/* --- Header --- */
-header{
-    position:fixed;
-    top:0;
-    width:100%;
-    height:60px;
-    background:#0f1224;
-    display:flex;
-    justify-content:space-between;
-    align-items:center;
-    padding:0 16px;
-    border-bottom:1px solid #1c2148;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.4);
-    z-index: 1000;
-}
-header h2 { margin: 0; color: #00f6ff; }
-header nav button{
-    margin-left:8px;
-    padding:8px 16px;
-    border:none;
-    border-radius:20px;
-    background:#00f6ff;
-    color:#050510;
-    font-weight:700;
-    cursor:pointer;
-    transition: background 0.3s;
-}
-header nav button:hover {
-    background: #00e0e8;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Duoup - Find Your Duo</title>
+    
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: #15171e; /* Deep dark background */
+            color: #f0f0f0;
+        }
 
-/* --- Layouts & Forms --- */
-#auth, #app {
-    min-height:100vh;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    width: 100%;
-}
-#auth { 
-    justify-content:center; 
-    padding-top:0;
-}
-#auth > * { margin: 10px 0; max-width: 300px; width: 90%; }
+        #matching-container {
+            width: 90%;
+            max-width: 420px;
+            position: relative;
+            padding: 20px 0 100px; /* Space for header and buttons */
+        }
+        
+        #header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #ffaa00;
+        }
+        
+        #card-stack {
+            position: relative;
+            height: 550px; /* Fixed height for the card area */
+        }
 
-/* --- App Pages/Sections --- */
-#home, #profile {
-    padding-top: 70px; /* Space for fixed header */
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+        /* 🃏 The Card Itself */
+        .gamer-card {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #2a2a44;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            cursor: grab;
+            transition: transform 0.5s ease-out, opacity 0.5s ease-out; /* For swipe animation */
+        }
+        
+        /* Card Header */
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #3c3c5c;
+            padding-bottom: 15px;
+        }
 
-input, textarea, button{
-    padding:12px;
-    border-radius:8px;
-    border:1px solid #1c2148;
-    background:#141426;
-    color:white;
-    font-size:16px;
-    width: 90%;
-    max-width: 300px;
-}
-textarea { min-height: 100px; }
+        .profile-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 15px;
+            border: 3px solid #ff4560; /* Highlight color */
+        }
 
-button{
-    background:#5c5cff;
-    color:white;
-    font-weight:700;
-    cursor:pointer;
-    transition: background 0.3s;
-}
-button:hover{
-    background:#4a4ac9;
-}
-button#saveProfileBtn { margin-top: 20px; }
+        .username {
+            margin: 0;
+            font-size: 1.8em;
+            flex-grow: 1;
+        }
 
-/* --- Grid & Cards --- */
-.grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:20px;
-    width:95%;
-    max-width:1200px;
-    margin:20px auto;
-}
-.card{
-    background:#141426;
-    padding:20px;
-    border-radius:12px;
-    border:1px solid #28284f;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    display:flex;
-    flex-direction:column;
-    transition: transform 0.2s;
-}
-.card:hover {
-    transform: translateY(-3px);
-    border-color: #5c5cff;
-}
-.card-header{
-    display:flex;
-    align-items:center;
-    gap:12px;
-    margin-bottom: 10px;
-}
-.avatar{
-    width:50px;
-    height:50px;
-    border-radius:50%;
-    background:#8a5cff;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-weight:700;
-    color:#050510;
-    font-size: 20px;
-    overflow: hidden;
-    flex-shrink: 0;
-}
-.avatar img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-.card-header strong {
-    font-size: 1.2em;
-}
-.bio{
-    margin-top:8px;
-    color:#b0b7d4;
-    flex-grow:1;
-    min-height: 40px; 
-}
-.card button {
-    margin-top: 15px;
-    border-radius: 20px;
-    max-width: none;
-    width: 100%;
-}
+        /* Tags and Details */
+        .game-details {
+            background: #1e1e2f;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
 
-/* --- Loading State (Spinner) --- */
-#loading-spinner {
-    border: 4px solid #f3f3f3;
-    border-top: 4px solid #5c5cff;
-    border-radius: 50%;
-    width: 40px;
-    height: 40px;
-    animation: spin 1s linear infinite;
-    margin: 30px auto;
-}
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-</style>
+        .tag {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-right: 8px;
+            margin-top: 8px;
+            color: #fff;
+        }
+        .role { background: #ff4560; } /* Red/Pink */
+        .rank { background: #5c6fff; } /* Blue */
+        .platform { background: #ffaa00; } /* Orange */
+        .vibe { background: #7c7c7c; } /* Gray */
+
+        .card-bio p {
+            font-size: 1.1em;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        /* Action Buttons */
+        #action-buttons {
+            display: flex;
+            justify-content: space-around;
+            position: absolute;
+            bottom: 20px; /* Adjusted to be near the bottom */
+            width: 100%;
+        }
+
+        .action-btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .action-btn:active {
+            transform: scale(0.98);
+        }
+
+        .skip {
+            background: #5c6fff; /* Blue */
+            color: white;
+            box-shadow: 0 4px 10px rgba(92, 111, 255, 0.4);
+        }
+        .request {
+            background: #3dd022; /* Green */
+            color: white;
+            box-shadow: 0 4px 10px rgba(61, 208, 34, 0.4);
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 50px;
+        }
+    </style>
 </head>
 <body>
+    <div id="matching-container">
+        <h1 id="header">Find Your Duo</h1>
+        
+        <div id="card-stack">
+            <div class="loading">Loading Gamer Cards...</div>
+        </div>
 
-<header id="header" class="hidden">
-    <h2>DuoUp</h2>
-    <nav>
-        <button onclick="renderAppPage('home')">Home</button>
-        <button onclick="renderAppPage('profile')">Profile</button>
-        <button onclick="logout()">Logout</button>
-    </nav>
-</header>
+        <div id="action-buttons">
+            <button id="skip-btn" class="action-btn skip" disabled>SKIP</button>
+            <button id="request-btn" class="action-btn request" disabled>DUO REQUEST</button>
+        </div>
+    </div>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
-<div id="auth">
-    <h2>Welcome to DuoUp</h2>
-    <input id="email" placeholder="Email">
-    <input id="password" type="password" placeholder="Password">
-    <button id="signin">Sign In</button>
-    <button id="signup">Sign Up</button>
-    <p id="msg" style="color:#00f6ff;"></p>
-</div>
+    <script>
+        // --- 1. FIREBASE CONFIGURATION (Replace with your actual keys) ---
+        const firebaseConfig = {
+            // WARNING: NEVER expose actual production secrets in client-side code!
+            apiKey: "YOUR_API_KEY",
+            authDomain: "your-project-id.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project-id.appspot.com",
+            messagingSenderId: "SENDER_ID",
+            appId: "APP_ID"
+        };
 
-<div id="app" class="hidden">
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = app.firestore();
+        const auth = app.auth();
 
-    <section id="home">
-        <h2>Active Duos</h2>
-        <div id="loading-spinner" class="hidden"></div>
-        <div class="grid" id="grid"></div>
-    </section>
+        // --- 2. CORE DOM ELEMENTS ---
+        const cardStackEl = document.getElementById('card-stack');
+        const skipBtn = document.getElementById('skip-btn');
+        const requestBtn = document.getElementById('request-btn');
 
-    <section id="profile" class="hidden">
-        <h2>Your Profile Settings</h2>
-        <input id="profileImageUrl" placeholder="Profile Image URL">
-        <textarea id="bio" placeholder="Tell other users about yourself (e.g., favorite games, availability)"></textarea>
-        <button id="saveProfileBtn">Save Profile</button>
-        <p id="profileMsg" style="color:#00f6ff;"></p>
-    </section>
+        // --- 3. STATE ---
+        let currentUserId = 'PLACEHOLDER_UID'; // Placeholder - Must be replaced by auth.currentUser.uid
+        let cards = [];
+        let currentIndex = 0;
+        
+        // --- 4. AUTH & INITIALIZATION ---
 
-</div>
+        // Check auth state and initialize the app
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserId = user.uid;
+                console.log("User authenticated:", currentUserId);
+                fetchGamerCards();
+            } else {
+                console.log("User not logged in. Using placeholder UID for demo.");
+                // For a real app, you'd redirect to the login page here.
+                fetchGamerCards(); // For demo purposes, fetch anyway
+            }
+        });
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
-import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        // --- 5. DATA FETCHING AND RENDERING ---
 
-const firebaseConfig = {
-  apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
-  authDomain:"duoup-cfae6.firebaseapp.com",
-  projectId:"duoup-cfae6"
-};
+        async function fetchGamerCards() {
+            // Enable buttons while there might be cards
+            skipBtn.disabled = false;
+            requestBtn.disabled = false;
+            
+            // --- QUERY: Example Query on gamerCards Collection ---
+            // NOTE: This query needs a composite index in Firestore!
+            const cardsRef = db.collection('gamerCards');
+            const q = cardsRef
+                .where('gameSlug', '==', 'valorant') 
+                .where('isActive', '==', true)     
+                .limit(10); // Load a batch of 10 cards
 
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
+            try {
+                const querySnapshot = await q.get();
+                cards = querySnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+                
+                // *** In a real app, you must filter out cards where the owner is already matched/requested! ***
+                
+                renderCurrentCard();
 
-let currentUser;
+            } catch (error) {
+                console.error("Error fetching documents:", error);
+                cardStackEl.innerHTML = '<p>Error loading cards. Check console and Firebase Rules.</p>';
+            }
+        }
 
-const authUI = document.getElementById("auth");
-const appUI = document.getElementById("app");
-const header = document.getElementById("header");
-const msg = document.getElementById("msg");
-const profileMsg = document.getElementById("profileMsg");
-const email = document.getElementById("email");
-const password = document.getElementById("password");
-const loadingSpinner = document.getElementById("loading-spinner");
+        function renderCurrentCard() {
+            if (cards.length === 0 || currentIndex >= cards.length) {
+                cardStackEl.innerHTML = '<h2>No more Duos found!</h2><p>Try adjusting your filters or check back later.</p>';
+                skipBtn.disabled = true;
+                requestBtn.disabled = true;
+                return;
+            }
+            
+            const cardData = cards[currentIndex];
 
-const SEVEN_DAYS_MS = 7*24*60*60*1000;
-const appPages = ["home", "profile"]; // List of valid pages/sections
+            const newCardEl = document.createElement('div');
+            newCardEl.className = 'gamer-card';
+            newCardEl.dataset.targetUserId = cardData.userId;
 
-/* --- Core Routing Function --- */
-window.renderAppPage = (pageId) => {
-  if (!appPages.includes(pageId)) return; // Safety check
+            // Fallback for missing data is essential
+            const username = cardData.username || 'Anonymous Gamer';
+            const profileImg = cardData.profileImageUrl || 'https://via.placeholder.com/150';
+            const description = cardData.description || 'No specific goals written yet.';
+            
+            newCardEl.innerHTML = `
+                <div class="card-header">
+                    <img src="${profileImg}" alt="Profile" class="profile-img">
+                    <h2 class="username">${username}</h2>
+                </div>
+                <div class="game-details">
+                    <div class="game-info">
+                        <h3>${cardData.gameSlug ? cardData.gameSlug.toUpperCase().replace('_', ' ') : 'UNKNOWN GAME'}</h3>
+                        <span class="tag role">ROLE: ${cardData.inGameRole || 'Any'}</span>
+                        <span class="tag rank">RANK: ${cardData.skillLevel || 'Casual'}</span>
+                    </div>
+                </div>
+                <div class="card-bio">
+                    <p>${description}</p>
+                    <span class="tag platform">${cardData.platform || 'Unknown Platform'}</span>
+                    <span class="tag vibe">#${cardData.vibe || 'Neutral'}</span>
+                </div>
+            `;
 
-  // Hide all app pages
-  appPages.forEach(id => document.getElementById(id).classList.add("hidden"));
+            cardStackEl.innerHTML = '';
+            cardStackEl.appendChild(newCardEl);
+        }
 
-  // Show the requested page
-  document.getElementById(pageId).classList.remove("hidden");
+        // --- 6. INTERACTION LOGIC (Swiping) ---
 
-  // Execute page-specific loading logic
-  if(pageId === "home") {
-    loadUsers();
-  } else if (pageId === "profile") {
-    loadProfile(); // Ensure profile data is fresh when viewing the page
-  }
-};
+        function swipeCard(action) {
+            const currentCardEl = document.querySelector('.gamer-card');
+            if (!currentCardEl) return;
 
-document.getElementById("signin").onclick = async () => {
-  try {
-    msg.textContent = "Signing in...";
-    await signInWithEmailAndPassword(auth,email.value,password.value);
-    msg.textContent="";
-  } catch(e){ msg.textContent=`Sign In Failed: ${e.message.split('(')[0]}`; }
-};
+            let translateX = (action === 'request') ? '500px' : '-500px';
 
-document.getElementById("signup").onclick = async () => {
-  try {
-    msg.textContent = "Creating account...";
-    const cred = await createUserWithEmailAndPassword(auth,email.value,password.value);
-    const userDocRef = doc(db,"users",cred.user.uid);
-    await setDoc(userDocRef,{
-      uid: cred.user.uid,
-      nickname: email.value.split("@")[0],
-      email: email.value,
-      authType: "email",
-      lastActive: Date.now(),
-      bio: "",
-      friends: [],
-      profileImageUrl: ""
-    });
-    msg.textContent="Account created successfully! Redirecting...";
-  } catch(e){ msg.textContent=`Sign Up Failed: ${e.message.split('(')[0]}`; }
-};
+            // Visual exit animation
+            currentCardEl.style.transform = `translateX(${translateX}) rotate(${action === 'request' ? '10deg' : '-10deg'})`;
+            currentCardEl.style.opacity = '0';
 
-window.logout = () => signOut(auth);
+            // Advance the index and render the next card after animation
+            setTimeout(() => {
+                currentIndex++;
+                renderCurrentCard();
+            }, 500); 
+        }
 
-onAuthStateChanged(auth, async user=>{
-  if(user){
-    currentUser = user;
-    authUI.classList.add("hidden");
-    appUI.classList.remove("hidden");
-    header.classList.remove("hidden");
-    
-    // Critical: Ensure redirection to 'home' after successful sign-up/in
-    renderAppPage("home"); 
-    
-    await loadProfile();
-    updateLastActive();
-    setInterval(updateLastActive, 60000); // update online status every 1 min
-  }else{
-    authUI.classList.remove("hidden");
-    appUI.classList.add("hidden");
-    header.classList.add("hidden");
-  }
-});
+        // --- 7. FIREBASE ACTION LISTENERS ---
 
-async function updateLastActive(){
-  if(currentUser){
-    try {
-      await updateDoc(doc(db,"users",currentUser.uid), { lastActive: Date.now() });
-    } catch(e) {
-      console.warn("Failed to update last active status. Check Firestore rules.", e);
-    }
-  }
-}
+        skipBtn.addEventListener('click', () => {
+            if (currentIndex < cards.length) {
+                console.log(`Skipped card for User ID: ${cards[currentIndex].userId}`);
+                swipeCard('skip');
+            }
+        });
 
-async function loadProfile(){
-  try{
-    const snap = await getDoc(doc(db,"users",currentUser.uid));
-    if(snap.exists()){
-      const data = snap.data();
-      document.getElementById("bio").value = data.bio || "";
-      document.getElementById("profileImageUrl").value = data.profileImageUrl || "";
-    }
-  }catch(e){ console.error("Error loading profile:", e); }
-}
+        requestBtn.addEventListener('click', async () => {
+            if (currentIndex >= cards.length) return;
+            
+            const cardData = cards[currentIndex];
+            
+            // SECURITY CHECK: Ensure user is logged in before writing
+            if (!auth.currentUser) {
+                 alert('You must be logged in to send a Duo Request!');
+                 return;
+            }
 
-document.getElementById("saveProfileBtn").onclick = async ()=>{
-  try{
-    document.getElementById("saveProfileBtn").textContent = "Saving...";
-    await updateDoc(doc(db,"users",currentUser.uid),{
-      bio: document.getElementById("bio").value,
-      profileImageUrl: document.getElementById("profileImageUrl").value
-    });
-    profileMsg.textContent="Profile saved!";
-    document.getElementById("saveProfileBtn").textContent = "Save Profile";
-    setTimeout(()=>profileMsg.textContent="",3000);
-  }catch(e){ 
-    profileMsg.textContent="Error saving profile"; 
-    document.getElementById("saveProfileBtn").textContent = "Save Profile";
-    console.error(e); 
-  }
-};
-
-async function loadUsers(){
-  const grid = document.getElementById("grid");
-  grid.innerHTML="";
-  loadingSpinner.classList.remove("hidden");
-
-  try{
-    const now = Date.now();
-    const sevenDaysAgo = now - SEVEN_DAYS_MS;
-
-    // Server-side query: Get users active in the last 7 days
-    const usersRef = collection(db,"users");
-    const q = query(usersRef, where("lastActive", ">", sevenDaysAgo));
-    
-    const snap = await getDocs(q);
-
-    if (snap.empty) {
-        grid.innerHTML = '<p style="text-align: center; margin-top: 50px;">No active users found. Be the first!</p>';
-        loadingSpinner.classList.add("hidden");
-        return;
-    }
-
-    let activeUserCount = 0;
-
-    snap.forEach(d=>{
-      const u = d.data();
-      // Client-side filter to exclude the current user
-      if(u.uid===currentUser.uid) return;
-      
-      activeUserCount++;
-
-      // Avatar Logic: Use image if available, otherwise use initial
-      const initial = u.nickname? u.nickname[0].toUpperCase() : "?";
-      const avatarContent = u.profileImageUrl 
-            ? `<img src="${u.profileImageUrl}" alt="${u.nickname}" onerror="this.onerror=null;this.parentElement.innerHTML='${initial}'">` 
-            : initial;
-      const avatarClass = u.profileImageUrl ? 'style="background:none;"' : '';
-      
-      grid.innerHTML+=`
-        <div class="card">
-          <div class="card-header">
-            <div class="avatar" ${avatarClass}>${avatarContent}</div>
-            <strong>${u.nickname}</strong>
-          </div>
-          <div class="bio">${u.bio || "No bio set. Set your bio on the Profile tab!"}</div>
-          <button onclick="alert('Duo request sent to ${u.nickname}!')">Send Duo Request</button>
-        </div>`;
-    });
-
-    if (activeUserCount === 0) {
-        grid.innerHTML = '<p style="text-align: center; margin-top: 50px;">You are the only active user!</p>';
-    }
-
-  }catch(e){ 
-    grid.innerHTML = `<p style="color:red; text-align:center;">Error loading users. Check console for details.</p>`;
-    console.error(e); 
-  } finally {
-    loadingSpinner.classList.add("hidden");
-  }
-}
-</script>
-
+            // Create the new document for the friendRequests collection
+            const friendRequest = {
+                senderId: auth.currentUser.uid, // Use actual authenticated UID
+                receiverId: cardData.userId,
+                gameSlug: cardData.gameSlug,
+                status: 'pending', 
+                timestamp: firebase.firestore.FieldValue.serverTimestamp(), // Use server timestamp for accuracy
+            };
+            
+            try {
+                // The Security Rules we wrote will ensure this request is valid!
+                await db.collection('friendRequests').add(friendRequest);
+                console.log(`Duo Request SENT to User ID: ${cardData.userId}`);
+                
+                // Visually swipe the card after successful database write
+                swipeCard('request');
+                
+            } catch (error) {
+                console.error("Error sending Duo Request:", error);
+                alert(`Failed to send request. Error: ${error.message}`);
+            }
+        });
+        
+    </script>
 </body>
 </html>
