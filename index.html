@@ -211,7 +211,6 @@ async function loadUserData(user) {
 
     if (!docSnap.exists() || !userData.nickname) { 
         const authType = 'email'; 
-        // Fallback to email prefix if nickname is somehow missing
         const defaultNickname = user.email.split('@')[0] || "New Player";
 
         userData = {
@@ -224,7 +223,6 @@ async function loadUserData(user) {
             lastActive: Date.now(),
             authType: authType 
         };
-        // This will now pass the corrected security rules
         await setDoc(userDocRef, userData);
     }
     return userData;
@@ -252,7 +250,7 @@ async function handleSignUp(e) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const { user } = userCredential;
 
-        // FIX: Immediately set the global nickname state after successful sign-up
+        // Immediately set the global nickname state after successful sign-up
         currentNickname = nickname; 
 
         await setDoc(doc(db,"users", user.uid), {
@@ -333,9 +331,13 @@ async function handlePostSubmit(e) {
     const user = auth.currentUser;
     if (!user) return;
     
-    // FIX: Client-side nickname check added for robustness
+    // CRITICAL CHECK: Ensure nickname is loaded before posting
     if (!currentNickname) {
-        return alert("Error: User data is not fully loaded. Please wait a moment or refresh the page and try again.");
+        // If nickname is not loaded yet, we can't satisfy the security rule
+        await loadUserData(user); 
+        if (!currentNickname) {
+            return alert("User data is still loading. Please wait a moment and try again.");
+        }
     }
     
     try {
@@ -344,13 +346,14 @@ async function handlePostSubmit(e) {
             authorNickname: currentNickname, 
             content: content,
             timestamp: Date.now(),
-            likes: [], // <-- CRITICAL FIX: Required by the security rules
+            likes: [], // CRITICAL FIX: Required by the security rules
         });
         postContent.value = ""; 
         await loadPosts(); 
     } catch (err) {
         console.error("Error creating post:", err);
-        alert("Failed to create post. The issue is likely a security rule violation, but the code now sends all required fields.");
+        // Display a more specific message about the rule violation
+        alert("Failed to create post. This is a Security Rule issue (Authentication, Missing Field, or Timestamp check).");
     }
 }
 
@@ -453,6 +456,7 @@ onAuthStateChanged(auth, async user => {
         appSection.style.display = "block";
         mainHeader.style.display = "flex";
         
+        // Load user data immediately upon login/refresh
         const userData = await loadUserData(user); 
         currentNickname = userData.nickname || ''; 
         currentBio = userData.bio || '';
@@ -460,7 +464,7 @@ onAuthStateChanged(auth, async user => {
         await updateLastActiveStatus(user.uid); 
         
         if (!activityInterval) {
-            activityInterval = setInterval(() => updateLastActiveStatus(user.uid), 60000); // 1 minute
+            activityInterval = setInterval(() => updateLastActiveStatus(user.uid), 60000); // 1 minute ping
         }
 
         showSection('feed'); 
@@ -470,10 +474,11 @@ onAuthStateChanged(auth, async user => {
         mainHeader.style.display = "none";
         clearInterval(activityInterval); 
         activityInterval = null;
+        currentNickname = ""; // Clear nickname on logout
     }
 });
 
-// Expose functions
+// Expose functions to the global scope for use in onclick handlers
 window.showSection = showSection;
 window.toggleLikePost = toggleLikePost;
 </script>
