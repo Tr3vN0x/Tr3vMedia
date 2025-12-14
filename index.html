@@ -80,27 +80,70 @@ body {
 
 /* --- LED OWNER BADGE STYLES --- */
 .owner-badge-box {
-    /* Base Box */
     display: inline-block;
     padding: 2px 6px;
     margin-left: 8px;
-    font-size: 0.7em; /* Smaller text for the badge */
+    font-size: 0.7em; 
     font-weight: bold;
     letter-spacing: 1px;
     border-radius: 4px;
     text-transform: uppercase;
     
-    /* Neon/LED Effect */
-    background: #3a005c; /* Dark base purple */
-    color: #ffccff; /* Light glow text color */
-    border: 1px solid #ff00ff; /* Bright magenta border */
+    background: #3a005c; 
+    color: #ffccff; 
+    border: 1px solid #ff00ff; 
     box-shadow: 
-        0 0 5px #ff00ff,   /* Inner glow */
-        0 0 10px #cc33ff,  /* Outer glow */
-        inset 0 0 5px #ff00ff; /* Inner shadow for depth */
+        0 0 5px #ff00ff,   
+        0 0 10px #cc33ff,  
+        inset 0 0 5px #ff00ff; 
     vertical-align: middle;
 }
 
+/* --- RATING AND STATUS STYLES --- */
+.skill-rating {
+    color: gold; /* Classic star color */
+    font-size: 1.2em;
+    margin-bottom: 5px;
+}
+.status-indicator {
+    font-size: 0.8em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+.status-online { background-color: #00cc00; color: #0b0b0b; box-shadow: 0 0 5px #00ff00; }
+.status-ingame { background-color: #ffaa00; color: #0b0b0b; box-shadow: 0 0 5px #ffaa00; }
+.status-lfd { background-color: #00aaff; color: #0b0b0b; box-shadow: 0 0 5px #00aaff; }
+
+/* --- MESSAGE STYLES --- */
+.message-container { 
+    background: #181818; 
+    border-radius: 8px; 
+    padding: 15px; 
+    margin-top: 15px; 
+    border: 1px solid #333;
+}
+.message-item {
+    border-bottom: 1px dashed #444;
+    padding: 10px 0;
+}
+.message-item:last-child { border-bottom: none; }
+.message-header { font-size: 0.9em; color: cyan; margin-bottom: 5px; }
+.message-body { font-size: 1em; }
+.message-unread { background-color: #2a0038; border-left: 5px solid magenta; padding-left: 10px; }
+
+/* --- UNREAD COUNT BADGE --- */
+.unread-badge {
+    background-color: magenta;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 7px;
+    margin-left: 5px;
+    font-size: 0.7em;
+    font-weight: bold;
+    box-shadow: 0 0 5px magenta;
+}
 
 /* --- PROFILE EDITOR STYLES --- */
 #profileEditor {
@@ -119,7 +162,7 @@ body {
     font-weight: bold;
     color: cyan;
 }
-#profileEditor input, #profileEditor textarea {
+#profileEditor input, #profileEditor textarea, #profileEditor select {
     padding: 10px;
     border: 1px solid #333;
     background: #222;
@@ -206,7 +249,9 @@ body {
   <div style="margin-bottom: 20px;">
     <button class="neon-btn" onclick="showTab('suggested')">Suggested</button>
     <button class="neon-btn" onclick="showTab('requests')">Requests</button>
-    <button class="neon-btn" onclick="showTab('friends')">Friends</button>
+    <button id="friendsBtn" class="neon-btn" onclick="showTab('friends')">
+        Friends <span id="unreadBadge" class="unread-badge hidden">0</span>
+    </button>
     <button class="neon-btn" onclick="showTab('profile')">Profile</button>
     <button class="neon-btn" onclick="logout()">Logout</button>
   </div>
@@ -225,6 +270,23 @@ body {
         
         <label for="gamesInput">Favorite Games (Comma Separated):</label>
         <input type="text" id="gamesInput" placeholder="Valorant, League of Legends, Apex">
+        
+        <label for="skillRatingInput">Skill Rating (1-5 Stars):</label>
+        <select id="skillRatingInput">
+            <option value="1">⭐ 1 Star (Casual)</option>
+            <option value="2">⭐⭐ 2 Stars (Intermediate)</option>
+            <option value="3">⭐⭐⭐ 3 Stars (Competent)</option>
+            <option value="4">⭐⭐⭐⭐ 4 Stars (Advanced)</option>
+            <option value="5">⭐⭐⭐⭐⭐ 5 Stars (Expert)</option>
+        </select>
+
+        <label for="statusInput">Current Status:</label>
+        <select id="statusInput">
+            <option value="Online">Online</option>
+            <option value="Looking for Duo">Looking for Duo</option>
+            <option value="In Game">In Game</option>
+            <option value="Away">Away</option>
+        </select>
         
         <label for="avatarUrlInput">Profile Picture URL:</label>
         <input type="url" id="avatarUrlInput" placeholder="https://example.com/image.jpg" oninput="document.getElementById('currentAvatar').src = this.value || DEFAULT_AVATAR">
@@ -253,19 +315,46 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-// --- OWNER UID CONSTANT (CRITICAL: YOUR NEW OWNER ID) ---
+// --- OWNER UID CONSTANT (CRITICAL: YOUR OWNER ID) ---
 const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQKql9HQ2"; 
 
 let currentUser = null;
+let unreadMessageCount = 0; // Global variable to track unread messages
 
 // Helper function to render the Owner Badge (LED Box)
 function getOwnerBadge(uid) {
     if (uid === OWNER_UID) {
-        // LED Box Style
         return '<span class="owner-badge-box" title="App Owner">OWNER</span>';
     }
     return '';
 }
+
+// Helper function to render star rating
+function renderSkillRating(rating) {
+    rating = parseInt(rating) || 0;
+    const filledStars = '⭐'.repeat(rating);
+    const emptyStars = '☆'.repeat(5 - rating);
+    return `<div class="skill-rating" title="Skill Rating: ${rating}/5">${filledStars}${emptyStars}</div>`;
+}
+
+// Helper function to render status
+function renderStatus(status) {
+    let statusClass = '';
+    let displayStatus = status || 'Away';
+    
+    if (displayStatus === 'Online') {
+        statusClass = 'status-online';
+    } else if (displayStatus === 'In Game') {
+        statusClass = 'status-ingame';
+    } else if (displayStatus === 'Looking for Duo') {
+        statusClass = 'status-lfd';
+    } else {
+        statusClass = ''; // Default style for Away
+    }
+
+    return `<div class="status-indicator ${statusClass}">${displayStatus}</div>`;
+}
+
 
 // ---------------- LOGIN/AUTH ----------------
 function login(){
@@ -288,20 +377,21 @@ auth.onAuthStateChanged(async user=>{
   if(!userDoc.exists){
     await userDocRef.set({
       uid: user.uid,
-      // Nickname is set from Google display name and cannot be changed by the user
       nickname: user.displayName||"Player", 
       bio: "", 
       games: [], 
       friends: [],
       nicknames: {}, 
       profileImageUrl: user.photoURL||DEFAULT_AVATAR,
+      skillRating: 3, 
+      status: "Online"
     });
   }
 
   const data = (await userDocRef.get()).data();
-  // Add badge to welcome message
   document.getElementById("welcome").innerHTML = `Welcome, ${data.nickname}${getOwnerBadge(data.uid)}`;
 
+  loadUnreadCount(); // Load unread count immediately upon login
   loadSuggested();
   loadRequests();
   loadFriends();
@@ -340,6 +430,126 @@ function showTab(tab){
       loadFriends();
   }
 }
+
+// ---------------- MESSAGE FUNCTIONS ----------------
+
+async function loadUnreadCount() {
+    if (!currentUser) return;
+
+    try {
+        const snap = await db.collection("messages")
+            .where("receiverId", "==", currentUser.uid)
+            .where("read", "==", false)
+            .get();
+        
+        unreadMessageCount = snap.docs.length;
+        const badge = document.getElementById('unreadBadge');
+        
+        if (unreadMessageCount > 0) {
+            badge.textContent = unreadMessageCount;
+            badge.classList.remove('hidden');
+        } else {
+            badge.classList.add('hidden');
+        }
+    } catch (error) {
+        console.error("Error loading unread count:", error);
+    }
+}
+
+async function sendMessage(receiverId) {
+    if (!currentUser) return;
+
+    const messageContent = prompt("Enter your message (max 150 chars):");
+    if (messageContent === null || messageContent.trim() === "") return;
+    
+    const trimmedContent = messageContent.trim().substring(0, 150);
+
+    try {
+        await db.collection("messages").add({
+            senderId: currentUser.uid,
+            receiverId: receiverId,
+            content: trimmedContent,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            read: false
+        });
+        alert("Message sent!");
+    } catch (error) {
+        alert("Error sending message.");
+        console.error("Send Message Error:", error);
+    }
+}
+
+async function loadMessagesForProfile(targetUserId) {
+    const messageContainer = document.getElementById('messageInbox');
+    messageContainer.innerHTML = '<p>Loading messages...</p>';
+
+    // Load messages sent TO ME from this friend
+    const incomingSnap = await db.collection("messages")
+        .where("senderId", "==", targetUserId)
+        .where("receiverId", "==", currentUser.uid)
+        .orderBy("timestamp", "desc")
+        .get();
+
+    // Load messages sent BY ME to this friend
+    const outgoingSnap = await db.collection("messages")
+        .where("senderId", "==", currentUser.uid)
+        .where("receiverId", "==", targetUserId)
+        .orderBy("timestamp", "desc")
+        .get();
+
+    const allMessages = [
+        ...incomingSnap.docs.map(doc => ({ ...doc.data(), id: doc.id, type: 'incoming' })),
+        ...outgoingSnap.docs.map(doc => ({ ...doc.data(), id: doc.id, type: 'outgoing' }))
+    ];
+
+    // Sort all messages by timestamp (newest first)
+    allMessages.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
+
+    if (allMessages.length === 0) {
+        messageContainer.innerHTML = '<p style="text-align: center; opacity: 0.7;">No messages exchanged yet.</p>';
+        return;
+    }
+
+    let messageHtml = '';
+    const unreadIds = [];
+
+    allMessages.forEach(msg => {
+        const sender = msg.senderId === currentUser.uid ? "You" : u.nickname;
+        const senderColor = msg.senderId === currentUser.uid ? 'cyan' : 'magenta';
+        const date = msg.timestamp ? new Date(msg.timestamp.seconds * 1000).toLocaleString() : 'N/A';
+        const unreadClass = (msg.type === 'incoming' && !msg.read) ? ' message-unread' : '';
+        
+        if (msg.type === 'incoming' && !msg.read) {
+            unreadIds.push(msg.id);
+        }
+
+        messageHtml += `
+            <div class="message-item${unreadClass}">
+                <div class="message-header" style="color:${senderColor};">
+                    ${sender} @ ${date}
+                </div>
+                <div class="message-body">${msg.content}</div>
+            </div>
+        `;
+    });
+
+    messageContainer.innerHTML = messageHtml;
+
+    // Mark messages as read and reload the unread count
+    if (unreadIds.length > 0) {
+        const batch = db.batch();
+        unreadIds.forEach(id => {
+            const msgRef = db.collection('messages').doc(id);
+            batch.update(msgRef, { read: true });
+        });
+        batch.commit().then(() => {
+            loadUnreadCount(); // Update the main dashboard badge
+        }).catch(error => {
+            console.error("Error marking messages as read:", error);
+        });
+    }
+}
+
 
 // ---------------- PROFILE VIEWER LOGIC ----------------
 
@@ -381,7 +591,8 @@ async function viewProfile(targetUserId) {
 
         let actionButtonHTML = '';
         if (isFriend) {
-            actionButtonHTML = `<button class="neon-btn remove" onclick="removeFriend('${targetUserId}'); showTab('friends');">Remove Friend</button>`;
+            actionButtonHTML = `<button class="neon-btn" onclick="event.stopPropagation(); sendMessage('${targetUserId}');">Send Message</button>
+                                <button class="neon-btn remove" onclick="removeFriend('${targetUserId}'); showTab('friends');">Remove Friend</button>`;
         } else if (hasPendingRequest) {
             actionButtonHTML = '<button class="neon-btn" style="border-color: yellow; box-shadow: 0 0 10px yellow; cursor: default;">Request Pending</button>';
         } else {
@@ -389,6 +600,9 @@ async function viewProfile(targetUserId) {
         }
 
         const badgeHtml = getOwnerBadge(u.uid);
+        const statusHtml = renderStatus(u.status);
+        const ratingHtml = renderSkillRating(u.skillRating);
+
 
         profileViewer.innerHTML = `
             <button class="neon-btn" style="margin-bottom: 20px;" onclick="showTab('suggested')">← Back</button>
@@ -397,7 +611,9 @@ async function viewProfile(targetUserId) {
                 <img src="${u.profileImageUrl || DEFAULT_AVATAR}" alt="${u.nickname}">
                 <div>
                     <h2>${u.nickname}${badgeHtml}</h2>
-                    ${actionButtonHTML}
+                    ${statusHtml}
+                    ${ratingHtml}
+                    <div style="margin-top: 10px;">${actionButtonHTML}</div>
                 </div>
             </div>
 
@@ -410,6 +626,13 @@ async function viewProfile(targetUserId) {
                 <h3>Favorite Games</h3>
                 <div>${gamesList || '<p>No favorite games listed.</p>'}</div>
             </div>
+            
+            ${isFriend ? `
+                <div class="profile-section">
+                    <h3>Messages with ${u.nickname}</h3>
+                    <div id="messageInbox" class="message-container"></div>
+                </div>
+            ` : ''}
 
             <div class="profile-section">
                 <h3>${u.nickname}'s Connections (${friendIds.length})</h3>
@@ -420,8 +643,13 @@ async function viewProfile(targetUserId) {
         
         loadOtherUsersFriendsStatic(friendIds.length, document.getElementById('otherUsersFriendsList'));
 
+        if (isFriend) {
+            // Only load messages if they are friends
+            loadMessagesForProfile(targetUserId);
+        }
+
     } catch(error) {
-        profileViewer.innerHTML = `<p style="color:red; text-align: center;">Failed to load profile. Please check your browser console and ensure your Firebase Rules permit reading the /users collection.</p>`;
+        profileViewer.innerHTML = `<p style="color:red; text-align: center;">Failed to load profile. Please check your browser console and ensure your Firebase Rules permit reading the /users and /messages collections.</p>`;
         console.error("View Profile Error:", error);
     }
 }
@@ -431,10 +659,15 @@ function loadProfileEditor(data){
     data = data || {};
     // Display current read-only nickname with badge
     currentNicknameDisplay.innerHTML = `${data.nickname || "Player"}${getOwnerBadge(currentUser.uid)}`;
+    
     bioInput.value = data.bio || "";
     gamesInput.value = (data.games || []).join(', ');
     avatarUrlInput.value = data.profileImageUrl || currentUser.photoURL || "";
     currentAvatar.src = data.profileImageUrl || currentUser.photoURL || DEFAULT_AVATAR;
+
+    // Load status and rating fields
+    skillRatingInput.value = data.skillRating || "3";
+    statusInput.value = data.status || "Online";
 }
 
 async function saveProfile(){
@@ -449,7 +682,9 @@ async function saveProfile(){
     const profileUpdates = {
         bio: bioInput.value.trim(),
         games: gamesArray,
-        profileImageUrl: avatarUrlInput.value.trim() || DEFAULT_AVATAR
+        profileImageUrl: avatarUrlInput.value.trim() || DEFAULT_AVATAR,
+        skillRating: parseInt(skillRatingInput.value),
+        status: statusInput.value
     };
 
     try {
@@ -522,11 +757,16 @@ async function loadSuggested(){
         card.className = "card";
         card.setAttribute('onclick', `viewProfile('${doc.id}')`);
         
-        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
         const badgeHtml = getOwnerBadge(u.uid);
+        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
+        const ratingHtml = renderSkillRating(u.skillRating);
+        const statusHtml = renderStatus(u.status);
+
 
         card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
           <strong>${u.nickname}${badgeHtml}</strong>
+          ${ratingHtml}
+          ${statusHtml}
           ${gamesPreview}
           <button class="neon-btn" onclick="event.stopPropagation(); sendRequest('${doc.id}')">Send Request</button>`;
         suggestedTab.appendChild(card);
@@ -572,12 +812,16 @@ async function loadRequests(){
         card.className = "card";
         card.setAttribute('onclick', `viewProfile('${data.senderId}')`);
 
-        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
         const badgeHtml = getOwnerBadge(u.uid);
+        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
+        const ratingHtml = renderSkillRating(u.skillRating);
+        const statusHtml = renderStatus(u.status);
 
 
         card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
           <strong>${u.nickname}${badgeHtml}</strong>
+          ${ratingHtml}
+          ${statusHtml}
           ${gamesPreview}
           <button class="neon-btn" onclick="event.stopPropagation(); acceptRequest('${data.requestId}','${data.senderId}')">Accept</button>
           <button class="neon-btn" onclick="event.stopPropagation(); rejectRequest('${data.requestId}')">Reject</button>`;
@@ -617,12 +861,16 @@ async function loadFriends(){
 
         const displayNickname = myNicknames[doc.id] || u.nickname;
 
-        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
         const badgeHtml = getOwnerBadge(u.uid);
+        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
+        const ratingHtml = renderSkillRating(u.skillRating);
+        const statusHtml = renderStatus(u.status);
 
 
         card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
           <strong>${displayNickname}${badgeHtml}</strong>
+          ${ratingHtml}
+          ${statusHtml}
           ${gamesPreview}
           <button class="neon-btn" onclick="event.stopPropagation(); saveFriendNickname('${doc.id}', '${u.nickname}')">Edit Nickname</button>
           <button class="neon-btn remove" onclick="event.stopPropagation(); removeFriend('${doc.id}')">Remove</button>`;
@@ -710,8 +958,6 @@ function removeFriend(friendId){
     console.error("Remove Friend Error:", err);
   });
 }
-
-// ---------------- CHAT FUNCTIONS (ALL REMOVED) ----------------
 
 </script>
 </body>
