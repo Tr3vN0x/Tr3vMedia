@@ -2,11 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>DUO UP</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+<title>DUO UP</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
@@ -63,7 +61,6 @@ input{
 }
 </style>
 </head>
-
 <body>
 
 <!-- LOGIN -->
@@ -119,7 +116,6 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
-
 const DEFAULT_AVATAR =
 "https://www.shutterstock.com/image-vector/default-avatar-profile-icon-social-600nw-1677509740.jpg";
 
@@ -140,7 +136,6 @@ auth.onAuthStateChanged(async user=>{
   }
 
   loginPage.classList.add("hidden");
-
   const ref = db.collection("users").doc(user.uid);
   const snap = await ref.get();
 
@@ -203,14 +198,16 @@ function loadSuggested(){
     snap.forEach(u=>{
       if(u.id===auth.currentUser.uid) return;
       const d=u.data();
-      suggestedTab.innerHTML+=`
-      <div class="card">
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
         <div class="user">
           <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
           <strong>${d.nickname}</strong>
         </div><br>
         <button class="neon-btn" onclick="sendRequest('${u.id}')">DUO UP</button>
-      </div>`;
+      `;
+      suggestedTab.appendChild(card);
     });
   });
 }
@@ -227,18 +224,27 @@ function sendRequest(id){
 // ---------------- REQUESTS ----------------
 function loadRequests(){
   db.collection("friendRequests")
-    .where("receiverId","==",auth.currentUser.uid)
-    .where("status","==","pending")
-    .onSnapshot(snap=>{
-      requestsTab.innerHTML="";
-      snap.forEach(r=>{
+    .where("receiverId", "==", auth.currentUser.uid)
+    .where("status", "==", "pending")
+    .onSnapshot(snap => {
+      requestsTab.innerHTML = "";
+      if(snap.empty){
+        requestsTab.innerHTML = "<p>No requests</p>";
+      }
+      snap.forEach(r => {
         db.collection("users").doc(r.data().senderId).get().then(u=>{
-          requestsTab.innerHTML+=`
-          <div class="card">
-            <strong>${u.data().nickname}</strong><br><br>
+          const d = u.data();
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
+            <div class="user">
+              <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
+              <strong>${d.nickname}</strong>
+            </div><br>
             <button class="neon-btn" onclick="acceptRequest('${r.id}','${u.id}')">Accept</button>
             <button class="neon-btn" onclick="rejectRequest('${r.id}')">Reject</button>
-          </div>`;
+          `;
+          requestsTab.appendChild(card);
         });
       });
     });
@@ -261,15 +267,20 @@ function loadFriends(){
   db.collection("users").doc(auth.currentUser.uid)
     .onSnapshot(doc=>{
       friendsTab.innerHTML="";
-      (doc.data().friends||[]).forEach(fid=>{
+      const friends = doc.data().friends || [];
+      if(friends.length===0) friendsTab.innerHTML="<p>No friends yet</p>";
+      friends.forEach(fid=>{
         db.collection("users").doc(fid).get().then(u=>{
-          friendsTab.innerHTML+=`
-          <div class="card">
+          const d = u.data();
+          const card = document.createElement("div");
+          card.className = "card";
+          card.innerHTML = `
             <div class="user">
-              <img class="avatar" src="${u.data().profileImageUrl||DEFAULT_AVATAR}">
-              <strong>${u.data().nickname}</strong>
+              <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
+              <strong>${d.nickname}</strong>
             </div>
-          </div>`;
+          `;
+          friendsTab.appendChild(card);
         });
       });
     });
@@ -279,7 +290,6 @@ function loadFriends(){
 function openProfile(){
   dashboard.classList.add("hidden");
   profilePage.classList.remove("hidden");
-
   db.collection("users").doc(auth.currentUser.uid).get().then(d=>{
     profilePreview.src = d.data().profileImageUrl || DEFAULT_AVATAR;
     statusInput.value = d.data().status || "";
@@ -293,7 +303,6 @@ function closeProfile(){
 
 function saveProfile(){
   const file = profileImage.files[0];
-
   if(file){
     const ref = storage.ref("avatars/"+auth.currentUser.uid);
     ref.put(file).then(()=>{
@@ -309,7 +318,6 @@ function saveProfile(){
 function updateProfile(url){
   const data={ status: statusInput.value };
   if(url) data.profileImageUrl = url;
-
   db.collection("users").doc(auth.currentUser.uid)
     .update(data)
     .then(closeProfile);
