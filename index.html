@@ -2,306 +2,192 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DuoUp - Social Gaming</title>
+<title>DuoUp</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-<link rel="icon" type="image/png" href="https://i.imgur.com/3UQx9gR.png">
-<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <style>
-:root {
-    --duoup-primary:#00FFFF;
-    --duoup-secondary:#FF5733;
-    --duoup-accent:#8A2BE2;
-    --duoup-dark:#050510;
-    --duoup-light:#F0F8FF;
-    --duoup-muted:#80809C;
-}
-html,body{
-    margin:0;
-    height:100%;
-    background:var(--duoup-dark);
-    color:var(--duoup-light);
-    font-family:'Rajdhani',sans-serif;
-}
-h1,h2,h3{font-family:'Orbitron',sans-serif;}
-a{color:var(--duoup-primary);text-decoration:none;}
-button{cursor:pointer;border:none;border-radius:6px}
-
-/* Header */
-header{
-    position:fixed;top:0;width:100%;height:60px;
-    background:#141426;
-    display:flex;justify-content:space-between;align-items:center;
-    padding:0 15px;z-index:1000;
-}
-header h1{color:var(--duoup-primary)}
-nav{display:flex;gap:15px}
-#logoutBtnHeader{background:var(--duoup-secondary);padding:6px 12px;font-weight:bold}
-
-/* Auth */
-#auth-section{
-    min-height:100vh;
-    display:flex;flex-direction:column;
-    justify-content:center;align-items:center;
-}
-form{
-    background:#141426;
-    padding:25px;border-radius:12px;
-    width:90%;max-width:360px;margin:10px;
-}
-input,textarea{
-    width:100%;padding:10px;margin:6px 0;
-    background:#2D2D44;color:white;border:1px solid var(--duoup-primary);
-}
-button{margin-top:10px;padding:10px;font-weight:bold}
-
-/* App */
-#app-section{display:none;padding-top:60px}
-.container{max-width:1200px;margin:auto;padding:15px}
-
-/* Cards */
-.results-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-    gap:15px;
-}
-.duo-card{
-    background:#1A1A2E;border-radius:12px;
-    border:1px solid #333;
-    overflow:hidden;
-}
-.card-header{display:flex;align-items:center;padding:10px}
-.avatar{
-    width:50px;height:50px;border-radius:50%;
-    background:var(--duoup-secondary);
-    display:flex;align-items:center;justify-content:center;
-    margin-right:10px;font-weight:bold;
-    overflow:hidden;
-}
-.avatar img{width:100%;height:100%;object-fit:cover}
-.bio{padding:10px;color:var(--duoup-muted)}
-.action-button{
-    width:100%;padding:12px;
-    background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));
-    font-weight:bold;
-}
-
-/* Profile */
-#profile-container{display:flex;gap:20px;flex-wrap:wrap}
-#profile-editor,#profile-preview{
-    background:#141426;padding:20px;border-radius:12px;
-}
+body{margin:0;font-family:Arial;background:#050510;color:white}
+button{cursor:pointer}
+header{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#141426}
+.hidden{display:none}
+.container{padding:20px}
+input,textarea{width:100%;padding:8px;margin:5px 0}
+.duo-card{background:#1A1A2E;border-radius:8px;margin:10px 0;padding:10px}
+.avatar{width:40px;height:40px;border-radius:50%;background:#FF5733;display:flex;align-items:center;justify-content:center;font-weight:bold}
 </style>
 </head>
 
 <body>
 
-<header id="mainHeader" style="display:none">
-    <h1>DUO<span style="color:#FF5733">UP</span></h1>
-    <nav>
-        <a href="#" onclick="showSection('home')">Duo Search</a>
-        <a href="#" onclick="showSection('profile')">Profile</a>
-        <button id="logoutBtnHeader">Logout</button>
-    </nav>
+<header id="mainHeader" class="hidden">
+  <strong>DuoUp</strong>
+  <nav>
+    <button id="homeBtn">Home</button>
+    <button id="profileBtn">Profile</button>
+    <button id="logoutBtn">Logout</button>
+  </nav>
 </header>
 
-<!-- AUTH -->
-<div id="auth-section">
-    <form id="signin">
-        <h3>Sign In</h3>
-        <input id="signin-email" placeholder="Email" required>
-        <input id="signin-password" type="password" placeholder="Password" required>
-        <button>Sign In</button>
-    </form>
+<div id="authSection" class="container">
+  <form id="signinForm">
+    <h3>Sign In</h3>
+    <input id="signinEmail" placeholder="Email" required>
+    <input id="signinPassword" type="password" placeholder="Password" required>
+    <button type="submit">Sign In</button>
+  </form>
 
-    <form id="signup">
-        <h3>Sign Up</h3>
-        <input id="signup-nickname" placeholder="Nickname" required>
-        <input id="signup-email" type="email" placeholder="Email" required>
-        <input id="signup-password" type="password" placeholder="Password" required>
-        <button>Create Account</button>
-    </form>
+  <form id="signupForm">
+    <h3>Sign Up</h3>
+    <input id="signupNickname" placeholder="Nickname" required>
+    <input id="signupEmail" type="email" placeholder="Email" required>
+    <input id="signupPassword" type="password" placeholder="Password" required>
+    <button type="submit">Create Account</button>
+  </form>
 </div>
 
-<!-- APP -->
-<div id="app-section">
+<div id="appSection" class="hidden">
+  <div id="homeSection" class="container">
+    <h2>Duo Search</h2>
+    <div id="usersGrid"></div>
+  </div>
 
-<div id="home-section" class="container">
-    <h2>Duo Search <span id="userCount"></span></h2>
-    <div class="results-grid" id="usersGrid"></div>
-</div>
-
-<div id="profile-section" class="container" style="display:none">
-    <h2>Profile Customizer</h2>
-    <div id="profile-container">
-
-        <div id="profile-editor">
-            <label>Bio</label>
-            <textarea id="profileBio"></textarea>
-
-            <label>Profile Image URL</label>
-            <input id="profileImageUrl">
-
-            <button id="saveProfileBtn">Save Profile</button>
-        </div>
-
-        <div id="profile-preview">
-            <h3>Preview</h3>
-            <div class="duo-card" id="previewCard"></div>
-        </div>
-
-    </div>
-</div>
-
+  <div id="profileSection" class="container hidden">
+    <h2>Profile</h2>
+    <textarea id="profileBio" placeholder="Your bio"></textarea>
+    <input id="profileImageUrl" placeholder="Image URL">
+    <button id="saveProfileBtn">Save</button>
+    <div id="preview"></div>
+  </div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import {
-    getAuth,createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,onAuthStateChanged,signOut
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 import {
-    getFirestore,doc,setDoc,getDoc,getDocs,collection
+  getFirestore,
+  doc,
+  setDoc,
+  getDoc,
+  getDocs,
+  collection
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
-    authDomain:"duoup-cfae6.firebaseapp.com",
-    projectId:"duoup-cfae6"
+  apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
+  authDomain:"duoup-cfae6.firebaseapp.com",
+  projectId:"duoup-cfae6"
 };
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+/* DOM */
+const authSection = document.getElementById("authSection");
+const appSection = document.getElementById("appSection");
+const mainHeader = document.getElementById("mainHeader");
+
+const signinForm = document.getElementById("signinForm");
+const signupForm = document.getElementById("signupForm");
+
+const signinEmail = document.getElementById("signinEmail");
+const signinPassword = document.getElementById("signinPassword");
+
+const signupEmail = document.getElementById("signupEmail");
+const signupPassword = document.getElementById("signupPassword");
+const signupNickname = document.getElementById("signupNickname");
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+const homeSection = document.getElementById("homeSection");
+const profileSection = document.getElementById("profileSection");
 const usersGrid = document.getElementById("usersGrid");
-const userCount = document.getElementById("userCount");
+
 const profileBio = document.getElementById("profileBio");
 const profileImageUrl = document.getElementById("profileImageUrl");
-const previewCard = document.getElementById("previewCard");
 const saveProfileBtn = document.getElementById("saveProfileBtn");
+const preview = document.getElementById("preview");
 
 let currentUserData = {};
-let currentNickname = "";
 
-/* ---------- UI ---------- */
-function renderCard(data){
-    const avatar = data.profileImageUrl
-        ? `<img src="${data.profileImageUrl}">`
-        : data.nickname[0];
-    return `
-        <div class="card-header">
-            <div class="avatar">${avatar}</div>
-            <strong>${data.nickname}</strong>
-        </div>
-        <div class="bio">${data.bio || "No bio yet"}</div>
-        <button class="action-button">Send Duo</button>
-    `;
-}
+/* Auth */
+signinForm.onsubmit = async e => {
+  e.preventDefault();
+  await signInWithEmailAndPassword(auth, signinEmail.value, signinPassword.value);
+};
 
-function updatePreview(){
-    previewCard.innerHTML = renderCard({
-        nickname: currentNickname,
-        bio: profileBio.value,
-        profileImageUrl: profileImageUrl.value
-    });
-}
+signupForm.onsubmit = async e => {
+  e.preventDefault();
+  const cred = await createUserWithEmailAndPassword(auth, signupEmail.value, signupPassword.value);
+  await setDoc(doc(db,"users",cred.user.uid),{
+    uid:cred.user.uid,
+    nickname:signupNickname.value,
+    bio:"",
+    profileImageUrl:"",
+    friends:[]
+  });
+};
 
-/* ---------- PROFILE SAVE (FIXED) ---------- */
-async function saveProfile(){
-    const user = auth.currentUser;
-    if(!user) return;
+logoutBtn.onclick = () => signOut(auth);
 
-    const payload = {
-        bio: profileBio.value.trim(),
-        profileImageUrl: profileImageUrl.value.trim(),
-        friends: currentUserData.friends || [],
-        lastActive: Date.now()
-    };
+/* State */
+onAuthStateChanged(auth, async user => {
+  if(user){
+    authSection.classList.add("hidden");
+    appSection.classList.remove("hidden");
+    mainHeader.classList.remove("hidden");
+    await loadUser(user);
+    loadUsers();
+  } else {
+    authSection.classList.remove("hidden");
+    appSection.classList.add("hidden");
+    mainHeader.classList.add("hidden");
+  }
+});
 
-    await setDoc(
-        doc(db,"users",user.uid),
-        payload,
-        { merge:true }
-    );
-
-    currentUserData = {...currentUserData, ...payload};
-    updatePreview();
-    alert("Profile saved!");
-}
-
-/* ---------- LOAD ---------- */
+/* Data */
 async function loadUser(user){
-    const snap = await getDoc(doc(db,"users",user.uid));
-    currentUserData = snap.exists() ? snap.data() : {};
-    currentNickname = currentUserData.nickname;
-
-    profileBio.value = currentUserData.bio || "";
-    profileImageUrl.value = currentUserData.profileImageUrl || "";
-    updatePreview();
+  const snap = await getDoc(doc(db,"users",user.uid));
+  currentUserData = snap.data();
+  profileBio.value = currentUserData.bio || "";
+  profileImageUrl.value = currentUserData.profileImageUrl || "";
+  renderPreview();
 }
 
 async function loadUsers(){
-    usersGrid.innerHTML="";
-    const snap = await getDocs(collection(db,"users"));
-    let count = 0;
-    snap.forEach(d=>{
-        if(d.id === auth.currentUser.uid) return;
-        usersGrid.innerHTML += `<div class="duo-card">${renderCard(d.data())}</div>`;
-        count++;
-    });
-    userCount.textContent = `(${count})`;
+  usersGrid.innerHTML="";
+  const snap = await getDocs(collection(db,"users"));
+  snap.forEach(d=>{
+    usersGrid.innerHTML += `<div class="duo-card">${d.data().nickname}</div>`;
+  });
 }
 
-/* ---------- AUTH ---------- */
-document.getElementById("signin").onsubmit = async e=>{
-    e.preventDefault();
-    await signInWithEmailAndPassword(auth,
-        signin-email.value,signin-password.value);
-};
+/* Profile */
+function renderPreview(){
+  preview.innerHTML = `
+    <div class="duo-card">
+      <strong>${currentUserData.nickname}</strong>
+      <p>${profileBio.value}</p>
+    </div>`;
+}
 
-document.getElementById("signup").onsubmit = async e=>{
-    e.preventDefault();
-    const cred = await createUserWithEmailAndPassword(
-        auth,signup-email.value,signup-password.value);
-    await setDoc(doc(db,"users",cred.user.uid),{
-        uid:cred.user.uid,
-        nickname:signup-nickname.value,
-        bio:"",
-        profileImageUrl:"",
-        friends:[]
-    });
-};
-
-logoutBtnHeader.onclick = ()=>signOut(auth);
-
-/* ---------- STATE ---------- */
-onAuthStateChanged(auth,user=>{
-    if(user){
-        auth-section.style.display="none";
-        app-section.style.display="block";
-        mainHeader.style.display="flex";
-        loadUser(user);
-        loadUsers();
-    }else{
-        auth-section.style.display="flex";
-        app-section.style.display="none";
-    }
-});
-
-saveProfileBtn.onclick = saveProfile;
-profileBio.oninput = updatePreview;
-profileImageUrl.oninput = updatePreview;
-
-window.showSection = s=>{
-    home-section.style.display="none";
-    profile-section.style.display="none";
-    document.getElementById(s+"-section").style.display="block";
-    if(s==="home") loadUsers();
+saveProfileBtn.onclick = async () => {
+  await setDoc(doc(db,"users",auth.currentUser.uid),{
+    bio:profileBio.value,
+    profileImageUrl:profileImageUrl.value,
+    friends:currentUserData.friends || []
+  },{merge:true});
+  renderPreview();
 };
 </script>
+
 </body>
 </html>
