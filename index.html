@@ -631,6 +631,7 @@
             requestBtn.disabled = false;
             
             const cardsRef = db.collection('gamerCards');
+            // This query requires Index 1: gamerCards, gameSlug, isActive
             const q = cardsRef
                 .where('gameSlug', '==', 'valorant') 
                 .where('isActive', '==', true)     
@@ -642,7 +643,8 @@
                 currentIndex = 0;
                 renderCurrentCard();
             } catch (error) {
-                cardStackEl.innerHTML = `<p style="color: #ff4560;">Error: Failed to load cards. Index issue is still present. Check console.</p>`;
+                // If this is still throwing an error, the gamerCards index (with __name__) is still BUILDING
+                cardStackEl.innerHTML = `<p style="color: #ff4560;">Error: Failed to load cards. The required index is likely still building or incorrect. Check console.</p>`;
             }
         }
 
@@ -659,6 +661,7 @@
             newCardEl.className = 'gamer-card';
             newCardEl.dataset.targetUserId = cardData.userId;
             
+            // Placeholder data fallback if user document hasn't been fetched/updated
             const username = cardData.username || 'Gamer';
             const profileImg = cardData.profileImageUrl || 'https://via.placeholder.com/150';
             const description = cardData.description || 'No description provided.'; 
@@ -702,6 +705,7 @@
             if (currentIndex >= cards.length || !currentUserId) return;
             const cardData = cards[currentIndex];
             
+            // Create friendRequest document
             const friendRequest = {
                 senderId: currentUserId, 
                 receiverId: cardData.userId, 
@@ -718,7 +722,7 @@
         });
 
 
-        // --- 8. CLIENT-SIDE MATCH ACCEPT LOGIC (For handling received requests in a real app, though not fully built here) ---
+        // --- 8. CLIENT-SIDE MATCH ACCEPT LOGIC (Simplified since no dedicated 'chats' collection) ---
         async function acceptFriendRequestAndCreateChat(requestId, senderId, receiverId, gameSlug, senderName) {
             await db.collection('friendRequests').doc(requestId).update({ status: 'accepted' });
             
@@ -752,10 +756,11 @@
 
             const friendRequestsRef = db.collection('friendRequests');
             
+            // Queries require Index 2 (senderId/status) and Index 3 (receiverId/status)
             let duos = new Map();
 
             try {
-                // Query 1: Where I am the Sender and they Accepted (Requires Index 2)
+                // Query 1: Where I am the Sender and they Accepted
                 const q1 = friendRequestsRef
                     .where('senderId', '==', currentUserId)
                     .where('status', '==', 'accepted');
@@ -765,7 +770,7 @@
                     duos.set(doc.data().receiverId, { partnerId: doc.data().receiverId });
                 });
 
-                // Query 2: Where I am the Receiver and they Accepted (Requires Index 3)
+                // Query 2: Where I am the Receiver and they Accepted
                 const q2 = friendRequestsRef
                     .where('receiverId', '==', currentUserId)
                     .where('status', '==', 'accepted');
@@ -787,7 +792,7 @@
                     const partnerName = partnerData?.username || 'Duo';
                     const partnerImg = partnerData?.profileImageUrl;
                     
-                    // Get Last Message (Requires Index 4)
+                    // Get Last Message (Requires Index 4: chatId/timestamp)
                     const chatId = generateChatId(currentUserId, partnerId);
                     const lastMessageQuery = db.collection('messages')
                         .where('chatId', '==', chatId)
@@ -809,7 +814,7 @@
                 }
 
             } catch (error) {
-                chatListEl.innerHTML = `<p style="color: #ff4560; text-align: center;">Error: Failed to load Duos. Ensure your friendRequests and messages indexes are ENALBED.</p>`;
+                chatListEl.innerHTML = `<p style="color: #ff4560; text-align: center;">Error: Failed to load Duos. Check friendRequests/messages indexes.</p>`;
             }
         }
 
