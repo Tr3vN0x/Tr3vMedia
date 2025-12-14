@@ -61,8 +61,44 @@ body {
 .neon-btn.remove { border-color: red; box-shadow: 0 0 10px red; }
 .neon-btn.remove:hover { border-color: orange; box-shadow: 0 0 15px orange; }
 
+/* --- FILTER STYLES --- */
+.filter-box {
+    margin-bottom: 20px;
+    padding: 15px;
+    border: 1px solid magenta;
+    border-radius: 8px;
+    background: #181818;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.filter-box label {
+    font-weight: bold;
+    color: cyan;
+    white-space: nowrap;
+}
+.filter-box input {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #444;
+    background: #222;
+    color: white;
+    border-radius: 4px;
+    font-family: inherit;
+    outline: none;
+}
+.filter-box .neon-btn {
+    margin: 0;
+    padding: 8px 12px;
+}
+
 /* --- CARD/LAYOUT STYLES --- */
 .flex { display:flex; gap:15px; flex-wrap:wrap; }
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
 .card { 
     width:250px; 
     padding:15px; 
@@ -263,7 +299,16 @@ body {
     <button class="neon-btn" onclick="logout()">Logout</button>
   </div>
 
-  <div id="suggestedTab" class="flex"></div>
+  <div id="suggestedTab">
+    <div class="filter-box">
+        <label for="gameFilterInput">Filter by Game:</label>
+        <input type="text" id="gameFilterInput" placeholder="e.g., Valorant" onkeydown="if(event.key === 'Enter') loadSuggested()">
+        <button class="neon-btn" onclick="loadSuggested()">Filter</button>
+        <button class="neon-btn remove" onclick="clearFilter()">Clear</button>
+    </div>
+    <div id="suggestedCards" class="card-container">
+        </div>
+  </div>
   <div id="requestsTab" class="flex hidden"></div>
   <div id="friendsTab" class="flex hidden"></div>
   <div id="profileTab" class="hidden">
@@ -410,11 +455,11 @@ function logout(){
 }
 
 function hideAllTabs() {
-    suggestedTab.classList.add("hidden");
-    requestsTab.classList.add("hidden");
-    friendsTab.classList.add("hidden");
-    profileTab.classList.add("hidden");
-    profileViewer.classList.add("hidden");
+    document.getElementById("suggestedTab").classList.add("hidden");
+    document.getElementById("requestsTab").classList.add("hidden");
+    document.getElementById("friendsTab").classList.add("hidden");
+    document.getElementById("profileTab").classList.add("hidden");
+    document.getElementById("profileViewer").classList.add("hidden");
 }
 
 function showTab(tab){
@@ -737,13 +782,32 @@ async function saveFriendNickname(friendId, currentNickname) {
 
 // ---------------- LOAD FUNCTIONS ----------------
 
+function clearFilter() {
+    document.getElementById('gameFilterInput').value = '';
+    loadSuggested();
+}
+
+
 async function loadSuggested(){
-  suggestedTab.innerHTML="<p>Loading suggested users...</p>";
+  const suggestedCards = document.getElementById("suggestedCards");
+  suggestedCards.innerHTML="<p>Loading suggested users...</p>";
   
   try {
-      const usersSnap = await db.collection("users").get(); 
+      // 1. Get Filter Value
+      const filterGame = document.getElementById('gameFilterInput').value.trim();
+      let usersQuery = db.collection("users");
+
+      if (filterGame) {
+          // NOTE: array-contains is case-sensitive and must match the item exactly.
+          usersQuery = usersQuery.where("games", "array-contains", filterGame);
+          suggestedCards.innerHTML = `<p>Filtering users who play: <b>${filterGame}</b>...</p>`;
+      } else {
+          suggestedCards.innerHTML = "<p>Loading all suggested users...</p>";
+      }
+      
+      const usersSnap = await usersQuery.get(); 
       const me = (await db.collection("users").doc(currentUser.uid).get()).data();
-      suggestedTab.innerHTML = ""; 
+      suggestedCards.innerHTML = ""; 
 
       const myFriends = me.friends || [];
       const mySentRequestsSnap = await db.collection("friendRequests").where("senderId", "==", currentUser.uid).get();
@@ -780,15 +844,15 @@ async function loadSuggested(){
             </div>
             <button class="neon-btn" onclick="event.stopPropagation(); sendRequest('${doc.id}')">Send Request</button>
         `;
-        suggestedTab.appendChild(card);
+        suggestedCards.appendChild(card);
         suggestedCount++;
       });
 
       if (suggestedCount === 0) {
-          suggestedTab.innerHTML="<p>No suggested players available right now.</p>";
+          suggestedCards.innerHTML=`<p>No suggested players available right now${filterGame ? ` who play <b>${filterGame}</b>` : ''}.</p>`;
       }
   } catch(error) {
-      suggestedTab.innerHTML = `<p style="color:red;">Error loading suggested users: ${error.message}</p>`;
+      suggestedCards.innerHTML = `<p style="color:red;">Error loading suggested users: ${error.message}</p>`;
       console.error("Suggested Load Error:", error);
   }
 }
