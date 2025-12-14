@@ -19,8 +19,13 @@ body{margin:0;font-family:'Orbitron',sans-serif;background:#0b0b0b;color:white;}
 .card{width:260px;padding:15px;border:2px solid cyan;border-radius:14px;background:#111;box-shadow:0 0 10px cyan;}
 .avatar{width:48px;height:48px;border-radius:50%;border:2px solid cyan;object-fit:cover;}
 .user{display:flex;gap:10px;align-items:center;}
-input{width:100%;padding:8px;margin:5px 0;background:#000;border:2px solid cyan;color:white;border-radius:6px;}
+.input{width:100%;padding:8px;margin:5px 0;background:#000;border:2px solid cyan;color:white;border-radius:6px;}
 .status-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:5px;}
+#chatMessages{flex-direction:column;max-height:400px;overflow-y:auto;}
+.message-bubble{padding:8px 12px;border-radius:12px;max-width:70%;margin:5px 0;position:relative;word-wrap:break-word;}
+.message-incoming{background:#111;border:2px solid cyan;align-self:flex-start;box-shadow:0 0 5px cyan;}
+.message-outgoing{background:#111;border:2px solid magenta;align-self:flex-end;box-shadow:0 0 5px magenta;}
+.message-header{font-size:0.8em;color:gray;margin-bottom:2px;}
 </style>
 </head>
 <body>
@@ -34,7 +39,7 @@ input{width:100%;padding:8px;margin:5px 0;background:#000;border:2px solid cyan;
 <!-- USERNAME -->
 <div id="usernamePage" class="container hidden">
   <h2>Choose a Username</h2>
-  <input id="usernameInput" placeholder="Username">
+  <input id="usernameInput" class="input" placeholder="Username">
   <button class="neon-btn" onclick="saveUsername()">Continue</button>
 </div>
 
@@ -57,9 +62,18 @@ input{width:100%;padding:8px;margin:5px 0;background:#000;border:2px solid cyan;
   <h2>Edit Profile</h2>
   <img id="profilePreview" class="avatar"><br><br>
   <input type="file" id="profileImage">
-  <input id="statusInput" placeholder="Status">
+  <input id="statusInput" class="input" placeholder="Status">
   <button class="neon-btn" onclick="saveProfile()">Save</button>
   <button class="neon-btn" onclick="closeProfile()">Back</button>
+</div>
+
+<!-- CHAT -->
+<div id="chatPage" class="container hidden">
+  <h2 id="chatWith"></h2>
+  <div id="chatMessages" class="flex"></div>
+  <input id="chatInput" class="input" placeholder="Type a message">
+  <button class="neon-btn" onclick="sendMessage()">Send</button>
+  <button class="neon-btn" onclick="closeChat()">Back</button>
 </div>
 
 <script>
@@ -81,6 +95,8 @@ const suggestedTab=document.getElementById("suggestedTab");
 const requestsTab=document.getElementById("requestsTab");
 const friendsTab=document.getElementById("friendsTab");
 
+let currentChatUser = null;
+
 // ---------------- LOGIN ----------------
 function loginWithGoogle(){
   auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err=>alert(err.message));
@@ -93,6 +109,7 @@ auth.onAuthStateChanged(async user=>{
     usernamePage.classList.add("hidden");
     dashboard.classList.add("hidden");
     profilePage.classList.add("hidden");
+    chatPage.classList.add("hidden");
     return;
   }
   loginPage.classList.add("hidden");
@@ -236,7 +253,8 @@ function loadFriends(){
           <img class="avatar" src="${avatar}">
           <strong>${d.nickname}</strong>
           <span class="status-dot" style="background:${statusColor}"></span>
-        </div>`;
+        </div>
+        <button class="neon-btn" onclick="openChat('${fid}')">Chat</button>`;
         friendsTab.appendChild(card);
       });
     });
@@ -270,6 +288,56 @@ function updateProfile(url){
   const data={ status:statusInput.value };
   if(url) data.profileImageUrl=url;
   db.collection("users").doc(auth.currentUser.uid).update(data).then(closeProfile);
+}
+
+// ---------------- CHAT ----------------
+function openChat(friendId){
+  currentChatUser = friendId;
+  dashboard.classList.add("hidden");
+  chatPage.classList.remove("hidden");
+  db.collection("users").doc(friendId).get().then(doc=>{
+    chatWith.innerText = "Chat with " + doc.data().nickname;
+  });
+  loadMessages();
+}
+
+function loadMessages(){
+  if(!currentChatUser) return;
+  chatMessages.innerHTML = "";
+  db.collection("messages")
+    .where("senderId","in",[auth.currentUser.uid,currentChatUser])
+    .where("receiverId","in",[auth.currentUser.uid,currentChatUser])
+    .orderBy("timestamp")
+    .onSnapshot(snap=>{
+      chatMessages.innerHTML="";
+      snap.forEach(m=>{
+        const msg = m.data();
+        const bubble=document.createElement("div");
+        bubble.className="message-bubble "+(msg.senderId===auth.currentUser.uid?"message-outgoing":"message-incoming");
+        bubble.innerHTML=`<div class="message-header">${msg.senderId===auth.currentUser.uid?"You":"Friend"} - ${msg.timestamp?.toDate().toLocaleTimeString()||""}</div>
+        <div>${msg.content}</div>`;
+        chatMessages.appendChild(bubble);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      });
+    });
+}
+
+function sendMessage(){
+  const text = chatInput.value.trim();
+  if(!text || !currentChatUser) return;
+  db.collection("messages").add({
+    senderId: auth.currentUser.uid,
+    receiverId: currentChatUser,
+    content: text,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  chatInput.value = "";
+}
+
+function closeChat(){
+  currentChatUser = null;
+  chatPage.classList.add("hidden");
+  dashboard.classList.remove("hidden");
 }
 </script>
 </body>
