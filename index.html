@@ -1,56 +1,161 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Duoup: TEAM UP, BUILD TOGETHER.</title>
-    <link rel="stylesheet" href="styles.css"> 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DUO Up - Cyberpunk Neon Theme</title>
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* --- Body & Background --- */
+    body {
+      margin: 0;
+      font-family: 'Orbitron', sans-serif;
+      background: linear-gradient(270deg, #0D0D0D, #1A1A1A, #0D0D0D);
+      background-size: 600% 600%;
+      animation: gradientAnimation 15s ease infinite;
+      color: white;
+      display: flex;
+      height: 100vh;
+    }
+
+    @keyframes gradientAnimation {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* --- Sidebar --- */
+    .sidebar {
+      width: 80px;
+      background-color: #0D0D0D;
+      border-right: 2px solid #00FFFF;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0;
+    }
+    .sidebar h1 {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      font-family: 'Orbitron', sans-serif;
+      color: #00FFFF;
+      text-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF;
+      margin-bottom: 40px;
+    }
+    .sidebar .icon {
+      font-size: 24px;
+      color: #00FFFF;
+      margin: 20px 0;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+    .sidebar .icon:hover {
+      color: #FF00FF;
+      text-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF, 0 0 30px #FF00FF;
+    }
+
+    /* --- Main Content --- */
+    .main {
+      flex: 1;
+      padding: 40px;
+      overflow-y: auto;
+    }
+    .main h1 {
+      font-size: 3em;
+      margin-bottom: 40px;
+      color: #00FFFF;
+      text-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF, 0 0 40px #00FFFF;
+    }
+
+    /* --- Neon Cards --- */
+    .card-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .card {
+      background-color: #1A1A1A;
+      border: 2px solid #00FFFF;
+      border-radius: 16px;
+      padding: 20px;
+      width: 300px;
+      box-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF;
+      transition: all 0.3s;
+    }
+    .card:hover {
+      border-color: #FF00FF;
+      box-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF, 0 0 30px #FF00FF;
+    }
+    .card h3 {
+      font-family: 'Audiowide', sans-serif;
+      font-size: 1.5em;
+      margin-bottom: 10px;
+      color: #00FFFF;
+    }
+    .card p {
+      font-size: 1em;
+      margin-bottom: 15px;
+    }
+
+    /* --- Neon Buttons --- */
+    .neon-btn {
+      padding: 10px 20px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: bold;
+      font-size: 1em;
+      color: white;
+      background: transparent;
+      border: 2px solid #00FFFF;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 0 5px #00FFFF, 0 0 10px #00FFFF, 0 0 20px #00FFFF;
+      transition: all 0.3s;
+      margin-right: 10px;
+    }
+    .neon-btn:hover {
+      border-color: #FF00FF;
+      box-shadow: 0 0 10px #FF00FF, 0 0 20px #FF00FF, 0 0 30px #FF00FF;
+    }
+  </style>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
-<body class="bg-dark text-light">
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h1>DUO UP</h1>
+    <i class="fas fa-home icon"></i>
+    <i class="fas fa-users icon"></i>
+    <i class="fas fa-comments icon"></i>
+    <i class="fas fa-user icon"></i>
+  </div>
 
-    <header class="navbar bg-dark-alt border-magenta-glow">
-        <div class="logo">Duoup</div>
-        <nav>
-            <a href="#" class="nav-link text-cyan hover-glow">Find Gamers</a>
-            <a href="#" class="nav-link text-cyan hover-glow">My Squads</a>
-            <a href="#" class="nav-link text-cyan hover-glow">Messages</a>
-            <a href="#" class="nav-link btn-action-small">Profile</a>
-        </nav>
-    </header>
+  <!-- Main Content -->
+  <div class="main">
+    <h1>Welcome to DUO Up</h1>
 
-    <section class="hero-section center-content">
-        <h1 class="text-cyan text-shadow-glow">TEAM UP, BUILD TOGETHER.</h1>
-        <p class="text-light-alt">The Gamer Network. Reloaded. Find your squad, sync up, and dominate the leaderboards.</p>
-        <button class="btn-action btn-cyan-glow">Start Finding Teammates</button>
-    </section>
+    <div class="card-container">
+      <!-- Friend Request Card -->
+      <div class="card">
+        <h3>Friend Request</h3>
+        <p>PlayerX wants to duo with you in Overwatch.</p>
+        <button class="neon-btn" onclick="alert('Accepted!')">Accept</button>
+        <button class="neon-btn" onclick="alert('Rejected!')">Reject</button>
+      </div>
 
-    <section class="discovery-section">
-        <h2 class="section-title text-magenta text-shadow-glow">Gamers Looking for Squads</h2>
-        
-        <div class="gamer-grid">
-            
-            <div class="gamer-card border-cyan-glow">
-                <img src="profile-placeholder-1.jpg" alt="Gamer Profile Picture" class="profile-pic">
-                <h3 class="username">SwiftBlade</h3>
-                <p class="game-tag text-cyan">Playing: Apex Legends</p>
-                <p class="role text-magenta">Role: Assault / Aggressive</p>
-                <button class="btn-action-small btn-magenta-glow">Send Invite</button>
-            </div>
+      <!-- Suggested Duo Card -->
+      <div class="card">
+        <h3>Suggested Duo</h3>
+        <p>PlayerY also plays Valorant. Send a friend request?</p>
+        <button class="neon-btn" onclick="alert('Request sent!')">Send Request</button>
+      </div>
 
-            <div class="gamer-card border-cyan-glow">
-                <img src="profile-placeholder-2.jpg" alt="Gamer Profile Picture" class="profile-pic">
-                <h3 class="username">ZeroLatency</h3>
-                <p class="game-tag text-cyan">Playing: Valorant</p>
-                <p class="role text-magenta">Role: Controller / Main</p>
-                <button class="btn-action-small btn-magenta-glow">Send Invite</button>
-            </div>
-
-            </div>
-    </section>
-    
-    <footer class="footer bg-dark-alt text-light-alt">
-        <p>&copy; 2025 Duoup. All rights reserved.</p>
-    </footer>
-
+      <!-- Active Duo Card -->
+      <div class="card">
+        <h3>Active Duo</h3>
+        <p>PlayerZ is online in Fortnite. Start chat?</p>
+        <button class="neon-btn" onclick="alert('Chat opened!')">Chat Now</button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
