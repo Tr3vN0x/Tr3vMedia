@@ -76,6 +76,13 @@ body {
     margin-bottom: 15px;
     cursor: pointer; 
 }
+.card-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 10px; /* Space before buttons */
+}
 .avatar { width:50px; height:50px; border-radius:50%; border:2px solid cyan; object-fit:cover; margin-bottom:10px; }
 
 /* --- LED OWNER BADGE STYLES --- */
@@ -319,7 +326,7 @@ const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQKql9HQ2"; 
 
 let currentUser = null;
-let unreadMessageCount = 0; // Global variable to track unread messages
+let unreadMessageCount = 0; 
 
 // Helper function to render the Owner Badge (LED Box)
 function getOwnerBadge(uid) {
@@ -391,7 +398,7 @@ auth.onAuthStateChanged(async user=>{
   const data = (await userDocRef.get()).data();
   document.getElementById("welcome").innerHTML = `Welcome, ${data.nickname}${getOwnerBadge(data.uid)}`;
 
-  loadUnreadCount(); // Load unread count immediately upon login
+  loadUnreadCount(); 
   loadSuggested();
   loadRequests();
   loadFriends();
@@ -479,7 +486,7 @@ async function sendMessage(receiverId) {
     }
 }
 
-async function loadMessagesForProfile(targetUserId) {
+async function loadMessagesForProfile(targetUserId, targetNickname) {
     const messageContainer = document.getElementById('messageInbox');
     messageContainer.innerHTML = '<p>Loading messages...</p>';
 
@@ -514,7 +521,7 @@ async function loadMessagesForProfile(targetUserId) {
     const unreadIds = [];
 
     allMessages.forEach(msg => {
-        const sender = msg.senderId === currentUser.uid ? "You" : u.nickname;
+        const sender = msg.senderId === currentUser.uid ? "You" : targetNickname;
         const senderColor = msg.senderId === currentUser.uid ? 'cyan' : 'magenta';
         const date = msg.timestamp ? new Date(msg.timestamp.seconds * 1000).toLocaleString() : 'N/A';
         const unreadClass = (msg.type === 'incoming' && !msg.read) ? ' message-unread' : '';
@@ -645,7 +652,7 @@ async function viewProfile(targetUserId) {
 
         if (isFriend) {
             // Only load messages if they are friends
-            loadMessagesForProfile(targetUserId);
+            loadMessagesForProfile(targetUserId, u.nickname);
         }
 
     } catch(error) {
@@ -758,17 +765,21 @@ async function loadSuggested(){
         card.setAttribute('onclick', `viewProfile('${doc.id}')`);
         
         const badgeHtml = getOwnerBadge(u.uid);
-        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
+        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">Games: ${u.games.slice(0, 2).join(', ')}...</p>` : '';
         const ratingHtml = renderSkillRating(u.skillRating);
         const statusHtml = renderStatus(u.status);
 
 
-        card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
-          <strong>${u.nickname}${badgeHtml}</strong>
-          ${ratingHtml}
-          ${statusHtml}
-          ${gamesPreview}
-          <button class="neon-btn" onclick="event.stopPropagation(); sendRequest('${doc.id}')">Send Request</button>`;
+        card.innerHTML = `
+            <div class="card-content">
+                <img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
+                <strong>${u.nickname}${badgeHtml}</strong>
+                ${ratingHtml}
+                ${statusHtml}
+                ${gamesPreview}
+            </div>
+            <button class="neon-btn" onclick="event.stopPropagation(); sendRequest('${doc.id}')">Send Request</button>
+        `;
         suggestedTab.appendChild(card);
         suggestedCount++;
       });
@@ -813,18 +824,22 @@ async function loadRequests(){
         card.setAttribute('onclick', `viewProfile('${data.senderId}')`);
 
         const badgeHtml = getOwnerBadge(u.uid);
-        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
+        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">Games: ${u.games.slice(0, 2).join(', ')}...</p>` : '';
         const ratingHtml = renderSkillRating(u.skillRating);
         const statusHtml = renderStatus(u.status);
 
 
-        card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
-          <strong>${u.nickname}${badgeHtml}</strong>
-          ${ratingHtml}
-          ${statusHtml}
-          ${gamesPreview}
-          <button class="neon-btn" onclick="event.stopPropagation(); acceptRequest('${data.requestId}','${data.senderId}')">Accept</button>
-          <button class="neon-btn" onclick="event.stopPropagation(); rejectRequest('${data.requestId}')">Reject</button>`;
+        card.innerHTML = `
+            <div class="card-content">
+                <img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
+                <strong>${u.nickname}${badgeHtml}</strong>
+                ${ratingHtml}
+                ${statusHtml}
+                ${gamesPreview}
+            </div>
+            <button class="neon-btn" onclick="event.stopPropagation(); acceptRequest('${data.requestId}','${data.senderId}')">Accept</button>
+            <button class="neon-btn" onclick="event.stopPropagation(); rejectRequest('${data.requestId}')">Reject</button>
+        `;
         requestsTab.appendChild(card);
       });
   } catch (error) {
@@ -862,18 +877,22 @@ async function loadFriends(){
         const displayNickname = myNicknames[doc.id] || u.nickname;
 
         const badgeHtml = getOwnerBadge(u.uid);
-        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
+        const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">Games: ${u.games.slice(0, 2).join(', ')}...</p>` : '';
         const ratingHtml = renderSkillRating(u.skillRating);
         const statusHtml = renderStatus(u.status);
 
 
-        card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
-          <strong>${displayNickname}${badgeHtml}</strong>
-          ${ratingHtml}
-          ${statusHtml}
-          ${gamesPreview}
-          <button class="neon-btn" onclick="event.stopPropagation(); saveFriendNickname('${doc.id}', '${u.nickname}')">Edit Nickname</button>
-          <button class="neon-btn remove" onclick="event.stopPropagation(); removeFriend('${doc.id}')">Remove</button>`;
+        card.innerHTML = `
+            <div class="card-content">
+                <img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
+                <strong>${displayNickname}${badgeHtml}</strong>
+                ${ratingHtml}
+                ${statusHtml}
+                ${gamesPreview}
+            </div>
+            <button class="neon-btn" onclick="event.stopPropagation(); saveFriendNickname('${doc.id}', '${u.nickname}')">Edit Nickname</button>
+            <button class="neon-btn remove" onclick="event.stopPropagation(); removeFriend('${doc.id}')">Remove</button>
+        `;
         friendsTab.appendChild(card);
       });
   } catch (error) {
