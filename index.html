@@ -78,6 +78,16 @@ body {
 }
 .avatar { width:50px; height:50px; border-radius:50%; border:2px solid cyan; object-fit:cover; margin-bottom:10px; }
 
+/* --- IMAGE BADGE STYLES --- */
+.owner-badge-img {
+    height: 16px; /* Adjust size for inline use */
+    width: 16px;
+    margin-left: 5px;
+    vertical-align: middle;
+    /* Optional: Add a slight glow/shadow if desired for a neon feel */
+    filter: drop-shadow(0 0 2px purple);
+}
+
 
 /* --- PROFILE EDITOR STYLES --- */
 #profileEditor {
@@ -233,13 +243,15 @@ const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 // --- OWNER UID CONSTANT (CRITICAL: YOUR NEW OWNER ID) ---
 const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQKql9HQ2"; 
 
+// --- IMAGE URL FOR THE BADGE ---
+const OWNER_BADGE_IMAGE_URL = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQwzTbW9XBZQiLs_hAGYaszZ7Vu6WEGkr_Bkw&s";
+
 let currentUser = null;
 
-// Helper function to render the Owner Badge (Purple Checkmark)
+// Helper function to render the Owner Badge (Image Checkmark)
 function getOwnerBadge(uid) {
     if (uid === OWNER_UID) {
-        // Neon Purple Checkmark for the Owner
-        return '<span style="color: purple; text-shadow: 0 0 5px #800080, 0 0 10px #cc33ff; margin-left: 5px; font-weight: 700; font-size: 1.2em;" title="App Owner">✓</span>';
+        return `<img class="owner-badge-img" src="${OWNER_BADGE_IMAGE_URL}" alt="Owner Verified Badge" title="App Owner">`;
     }
     return '';
 }
