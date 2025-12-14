@@ -384,6 +384,7 @@ const db = firebase.firestore();
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
 // --- OWNER UID CONSTANT (CRITICAL: YOUR OWNER ID) ---
+// **UPDATE THIS WITH YOUR ACTUAL UID**
 const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQKql9HQ2"; 
 
 let currentUser = null;
@@ -790,7 +791,7 @@ async function viewProfile(targetUserId) {
         }
 
     } catch(error) {
-        profileViewer.innerHTML = `<p style="color:red; text-align: center;">Failed to load profile. Please check your browser console and ensure your Firebase Rules permit reading the /users and /messages collections.</p>`;
+        profileViewer.innerHTML = `<p style="color:red; text-align: center;">Failed to load profile. Check console for error details.</p>`;
         console.error("View Profile Error:", error);
     }
 }
@@ -911,7 +912,17 @@ async function loadSuggested(){
 
 
       const usersSnap = await usersQuery.get(); 
-      const me = (await db.collection("users").doc(currentUser.uid).get()).data();
+      
+      // If the query fails due to a missing index, usersSnap might be empty or throw a silent error.
+      // This is the most likely failure point.
+      
+      // Attempt to load current user data
+      const meDoc = await db.collection("users").doc(currentUser.uid).get();
+      if (!meDoc.exists) {
+          suggestedCards.innerHTML = `<p style="color:red;">Error: Current user profile not found. Please log in again.</p>`;
+          return;
+      }
+      const me = meDoc.data();
       suggestedCards.innerHTML = ""; 
 
       const myFriends = me.friends || [];
@@ -957,7 +968,8 @@ async function loadSuggested(){
           suggestedCards.innerHTML=`<p>No suggested players available right now${filterGame ? ` who play <b>${filterGame}</b>` : ''}.</p>`;
       }
   } catch(error) {
-      suggestedCards.innerHTML = `<p style="color:red;">Error loading suggested users: ${error.message}</p>`;
+      suggestedCards.innerHTML = `<p style="color:red;">Error loading suggested users: ${error.message}</p>
+      <p style="font-size: 0.9em; color: orange;">**ACTION REQUIRED**: Check your browser console (F12) for a Firebase error link. If filtering is active, you likely need a **Firestore Index**.</p>`;
       console.error("Suggested Load Error:", error);
   }
 }
