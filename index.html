@@ -191,23 +191,6 @@ body {
     object-fit: cover;
 }
 
-/* --- MESSAGE STYLES --- */
-.message-container { 
-    background: #181818; 
-    border-radius: 8px; 
-    padding: 15px; 
-    margin-top: 15px; 
-    border: 1px solid #333;
-}
-.message-item {
-    border-bottom: 1px dashed #444;
-    padding: 10px 0;
-}
-.message-item:last-child { border-bottom: none; }
-.message-header { font-size: 0.9em; color: cyan; margin-bottom: 5px; }
-.message-body { font-size: 1em; }
-.message-unread { background-color: #2a0038; border-left: 5px solid magenta; padding-left: 10px; }
-
 /* --- UNREAD COUNT BADGE --- */
 .unread-badge {
     background-color: magenta;
@@ -399,15 +382,15 @@ const GAME_CONFIG = {
     "Dota 2": {}
 };
 
-// --- FIREBASE CONFIGURATION (UPDATE THIS BLOCK) ---
+// --- FIREBASE CONFIGURATION (YOUR ACTUAL CONFIGURATION) ---
 const firebaseConfig = {
-  // 🚨🚨🚨 REPLACE WITH YOUR ACTUAL CONFIGURATION 🚨🚨🚨
-  apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw", 
-  authDomain:"duoup-cfae6.firebaseapp.com", 
-  projectId:"duoup-cfae6", 
-  storageBucket:"duoup-cfae6.firebasestorage.app", 
-  messagingSenderId:"812263060524", 
-  appId:"1:812263060524:web:ac09c3ae610db1cd110d89" 
+  apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
+  authDomain: "duoup-cfae6.firebaseapp.com",
+  projectId: "duoup-cfae6",
+  storageBucket: "duoup-cfae6.firebasestorage.app",
+  messagingSenderId: "812263060524",
+  appId: "1:812263060524:web:ac09c3ae610db1cd110d89",
+  measurementId: "G-46B67F90FK"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -677,13 +660,13 @@ function clearFilter() {
 }
 
 
-// ---------------- MESSAGE/UNREAD FUNCTIONS ----------------
+// ---------------- UNREAD COUNT FUNCTIONS (Counts pending requests) ----------------
 
 async function loadUnreadCount() {
     if (!currentUser) return;
 
     try {
-        // We use 'friendRequests' to show the badge count for pending requests.
+        // Count pending friend requests where the current user is the receiver
         const snap = await db.collection("friendRequests")
             .where("receiverId", "==", currentUser.uid)
             .get();
@@ -741,8 +724,11 @@ function acceptRequest(requestId, senderId){
   
   // Use a transaction for atomic update of all three documents
   db.runTransaction(async (transaction) => {
+    // 1. Add sender to my friends list
     transaction.update(meRef, {friends: firebase.firestore.FieldValue.arrayUnion(senderId)});
+    // 2. Add me to the sender's friends list
     transaction.update(senderRef, {friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
+    // 3. Delete the pending request document (requires delete rule in security rules)
     transaction.delete(db.collection("friendRequests").doc(requestId));
   }).then(() => {
     alert("Request accepted! You are now friends.");
@@ -975,7 +961,7 @@ async function loadFriends(){
                 ${statusHtml}
                 ${gamesPreview}
             </div>
-            <button class="neon-btn" onclick="event.stopPropagation(); sendMessage('${doc.id}')">Chat</button>
+            <button class="neon-btn" onclick="event.stopPropagation(); viewProfile('${doc.id}')">View Profile</button>
             <button class="neon-btn remove" onclick="event.stopPropagation(); removeFriend('${doc.id}')">Remove</button>
         `;
         friendsTab.appendChild(card);
@@ -987,17 +973,6 @@ async function loadFriends(){
 }
 
 // ---------------- PROFILE VIEWER & MESSAGE FUNCTIONS ----------------
-// Placeholder functions for profile viewer dependencies
-
-function sendMessage(receiverId) {
-    if (!currentUser) return;
-    const messageContent = prompt("Enter your message (max 150 chars):");
-    if (messageContent === null || messageContent.trim() === "") return;
-    
-    // NOTE: Actual Firestore write to 'messages' collection is skipped here for brevity 
-    // In a real app, you would write this message to the 'messages' collection.
-    alert(`Message functionality is next! Message to ${receiverId} sent: "${messageContent.trim().substring(0, 150)}"`);
-}
 
 function loadOtherUsersFriendsStatic(friendCount, containerElement) {
     containerElement.innerHTML = `<p style="opacity: 0.8;">This player has <b>${friendCount}</b> connections.</p>`;
@@ -1067,8 +1042,7 @@ async function viewProfile(targetUserId) {
         // --- Determine Action Buttons ---
         let actionButtonHTML = '';
         if (isFriend) {
-            actionButtonHTML = `<button class="neon-btn" onclick="event.stopPropagation(); sendMessage('${targetUserId}');">Chat</button>
-                                <button class="neon-btn remove" onclick="removeFriend('${targetUserId}'); showTab('friends');">Remove Friend</button>`;
+            actionButtonHTML = `<button class="neon-btn remove" onclick="removeFriend('${targetUserId}'); showTab('friends');">Remove Friend</button>`;
         } else if (hasPendingRequest) {
             const requestForMe = hasPendingRequestSnap.docs.find(doc => doc.data().receiverId === currentUser.uid);
             if (requestForMe) {
@@ -1111,13 +1085,6 @@ async function viewProfile(targetUserId) {
             
             ${gameDetailsHtml} 
             
-            ${isFriend ? `
-                <div class="profile-section">
-                    <h3>Messages with ${u.nickname}</h3>
-                    <div id="messageInbox" class="message-container"><p>This area will contain the real-time chat history.</p></div>
-                </div>
-            ` : ''}
-
             <div class="profile-section">
                 <h3>${u.nickname}'s Connections (${friendIds.length})</h3>
                 <div id="otherUsersFriendsList" style="padding: 10px; border: 1px dashed #555; border-radius: 8px;">
