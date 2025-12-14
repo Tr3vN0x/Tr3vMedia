@@ -581,6 +581,10 @@ function showTab(tab){
 
 // ---------------- MESSAGE FUNCTIONS ----------------
 
+/**
+ * Loads the total count of unread messages received by the current user
+ * and updates the badge on the Friends button.
+ */
 async function loadUnreadCount() {
     if (!currentUser) return;
 
@@ -604,6 +608,9 @@ async function loadUnreadCount() {
     }
 }
 
+/**
+ * Prompts the user for a message and sends it to the specified receiver.
+ */
 async function sendMessage(receiverId) {
     if (!currentUser) return;
 
@@ -621,33 +628,48 @@ async function sendMessage(receiverId) {
             read: false
         });
         alert("Message sent!");
+        // If viewing the friend's profile, reload the messages to show the new one
+        if (document.getElementById('profileViewer').classList.contains('hidden') === false) {
+            const targetUserDoc = await db.collection("users").doc(receiverId).get();
+            if (targetUserDoc.exists) {
+                loadMessagesForProfile(receiverId, targetUserDoc.data().nickname);
+            }
+        }
     } catch (error) {
         alert("Error sending message.");
         console.error("Send Message Error:", error);
     }
 }
 
+/**
+ * Loads and displays the chat history between the current user and a target friend.
+ * It also marks incoming messages as read.
+ */
 async function loadMessagesForProfile(targetUserId, targetNickname) {
     const messageContainer = document.getElementById('messageInbox');
     messageContainer.innerHTML = '<p>Loading messages...</p>';
 
+    // Load incoming messages (from target to me)
     const incomingSnap = await db.collection("messages")
         .where("senderId", "==", targetUserId)
         .where("receiverId", "==", currentUser.uid)
         .orderBy("timestamp", "desc")
         .get();
 
+    // Load outgoing messages (from me to target)
     const outgoingSnap = await db.collection("messages")
         .where("senderId", "==", currentUser.uid)
         .where("receiverId", "==", targetUserId)
         .orderBy("timestamp", "desc")
         .get();
 
+    // Combine and process all messages
     const allMessages = [
         ...incomingSnap.docs.map(doc => ({ ...doc.data(), id: doc.id, type: 'incoming' })),
         ...outgoingSnap.docs.map(doc => ({ ...doc.data(), id: doc.id, type: 'outgoing' }))
     ];
 
+    // Sort by timestamp (most recent first)
     allMessages.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
 
     if (allMessages.length === 0) {
@@ -665,7 +687,7 @@ async function loadMessagesForProfile(targetUserId, targetNickname) {
         const unreadClass = (msg.type === 'incoming' && !msg.read) ? ' message-unread' : '';
         
         if (msg.type === 'incoming' && !msg.read) {
-            unreadIds.push(msg.id);
+            unreadIds.push(msg.id); // Collect IDs of incoming unread messages
         }
 
         messageHtml += `
@@ -678,8 +700,9 @@ async function loadMessagesForProfile(targetUserId, targetNickname) {
         `;
     });
 
-    messageContainer.innerHTML = messageHtml;
+    messageContainer.innerHTML = `<button class="neon-btn" onclick="sendMessage('${targetUserId}')" style="margin-bottom: 10px; width: 100%;">Send New Message to ${targetNickname}</button>` + messageHtml;
 
+    // Mark unread messages as read
     if (unreadIds.length > 0) {
         const batch = db.batch();
         unreadIds.forEach(id => {
@@ -687,7 +710,7 @@ async function loadMessagesForProfile(targetUserId, targetNickname) {
             batch.update(msgRef, { read: true });
         });
         batch.commit().then(() => {
-            loadUnreadCount(); 
+            loadUnreadCount(); // Update the Friends badge
         }).catch(error => {
             console.error("Error marking messages as read:", error);
         });
@@ -734,6 +757,7 @@ async function viewProfile(targetUserId) {
 
         let actionButtonHTML = '';
         if (isFriend) {
+            // Message button visible for friends
             actionButtonHTML = `<button class="neon-btn" onclick="event.stopPropagation(); sendMessage('${targetUserId}');">Send Message</button>
                                 <button class="neon-btn remove" onclick="removeFriend('${targetUserId}'); showTab('friends');">Remove Friend</button>`;
         } else if (hasPendingRequest) {
@@ -786,6 +810,7 @@ async function viewProfile(targetUserId) {
         
         loadOtherUsersFriendsStatic(friendIds.length, document.getElementById('otherUsersFriendsList'));
 
+        // Load chat history if they are friends
         if (isFriend) {
             loadMessagesForProfile(targetUserId, u.nickname);
         }
@@ -913,9 +938,6 @@ async function loadSuggested(){
 
       const usersSnap = await usersQuery.get(); 
       
-      // If the query fails due to a missing index, usersSnap might be empty or throw a silent error.
-      // This is the most likely failure point.
-      
       // Attempt to load current user data
       const meDoc = await db.collection("users").doc(currentUser.uid).get();
       if (!meDoc.exists) {
@@ -969,7 +991,7 @@ async function loadSuggested(){
       }
   } catch(error) {
       suggestedCards.innerHTML = `<p style="color:red;">Error loading suggested users: ${error.message}</p>
-      <p style="font-size: 0.9em; color: orange;">**ACTION REQUIRED**: Check your browser console (F12) for a Firebase error link. If filtering is active, you likely need a **Firestore Index**.</p>`;
+      <p style="font-size: 0.9em; color: orange;">**ACTION REQUIRED**: Check your browser console (F12) for a Firebase error link. If filtering is active, you likely need a **Firestore Index** for the 'games' array.</p>`;
       console.error("Suggested Load Error:", error);
   }
 }
