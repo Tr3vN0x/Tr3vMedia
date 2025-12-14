@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DUO UP Friends & Chat (V2)</title>
+<title>DUO UP Friends & Chat</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script> <style>
+<style>
 /* --- BASE STYLES --- */
 body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:white; }
 .container { width:90%; max-width: 1000px; margin:auto; padding:20px; }
@@ -196,8 +196,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const functions = firebase.functions(); // Initialize Functions
-const sendMessageFunction = functions.httpsCallable('sendMessageFunction'); // Callable function reference
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
 const loginPage = document.getElementById("loginPage");
@@ -519,23 +517,27 @@ function listenForMessages(chatId) {
             chatMessages.scrollTop = chatMessages.scrollHeight;
         }, error => {
             console.error("Error listening to chat:", error);
-            chatMessages.innerHTML = '<p style="color:red;">Error loading messages. (Index or Rules issue on read access.)</p>';
+            // This is the read error, often caused by a missing index
+            chatMessages.innerHTML = '<p style="color:red;">Error loading messages. (Check Firebase Indexing!)</p>';
         });
 }
 
 async function sendMessage() {
     const text = messageInput.value.trim();
-    if (text === '' || !currentFriendId) return;
+    if (text === '' || !currentChatId) return;
 
     try {
-        // CALL THE CLOUD FUNCTION INSTEAD OF DIRECT FIREBASE WRITE
-        await sendMessageFunction({ 
-            receiverId: currentFriendId, 
-            text: text 
+        // DIRECT FIREBASE WRITE (Requires strict security rules below)
+        await db.collection('chats').doc(currentChatId).collection('messages').add({
+            senderId: currentUser.uid,
+            receiverId: currentFriendId,
+            text: text,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
         messageInput.value = ''; 
     } catch (error) {
-        alert("Failed to send message: Server function error or network issue.");
+        // This is the write error, usually caused by the strict security rules failing
+        alert("Failed to send message: Please verify your Firebase Security Rules and Indexing for chat.");
         console.error("Send message error:", error);
     }
 }
