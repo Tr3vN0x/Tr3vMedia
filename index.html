@@ -494,6 +494,7 @@ function closeChat() {
 function listenForMessages(chatId) {
     const chatRef = db.collection('chats').doc(chatId).collection('messages');
     
+    // THIS LINE REQUIRES the Collection Group Index on 'messages' / 'timestamp' Ascending
     unsubscribeChatListener = chatRef
         .orderBy('timestamp', 'asc')
         .onSnapshot(snapshot => {
@@ -527,7 +528,7 @@ async function sendMessage() {
     if (text === '' || !currentChatId) return;
 
     try {
-        // DIRECT FIREBASE WRITE (Requires strict security rules below)
+        // DIRECT FIREBASE WRITE (Requires strict security rules to pass)
         await db.collection('chats').doc(currentChatId).collection('messages').add({
             senderId: currentUser.uid,
             receiverId: currentFriendId,
