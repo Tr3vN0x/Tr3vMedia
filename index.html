@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All-in-One Firebase Auth (Ready)</title>
+    <title>Complete Firebase App Demo</title>
     
     <style>
         body {
@@ -15,21 +15,19 @@
             min-height: 100vh;
             margin: 0;
         }
-
         .container {
             width: 90%;
-            max-width: 400px;
+            max-width: 600px; /* Increased size for dashboard content */
             text-align: center;
         }
-
         .card {
             background: white;
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
+            text-align: left;
         }
-
         input {
             width: 100%;
             padding: 10px;
@@ -38,7 +36,6 @@
             border: 1px solid #ccc;
             border-radius: 4px;
         }
-
         button {
             background-color: #5cb85c;
             color: white;
@@ -49,37 +46,30 @@
             margin: 5px;
             transition: background-color 0.3s;
         }
-
-        button:hover {
-            background-color: #4cae4c;
-        }
-
-        .button-group {
-            margin: 15px 0;
-        }
-
+        button:hover { background-color: #4cae4c; }
+        .button-group { margin: 15px 0; text-align: center; }
         .settings-group {
             margin-top: 20px;
             padding-top: 15px;
             border-top: 1px solid #eee;
         }
-
-        .hidden {
-            display: none;
-        }
-
-        .error {
-            color: red;
-            font-weight: bold;
-        }
-
-        .status {
-            color: blue;
+        .hidden { display: none; }
+        .error { color: red; font-weight: bold; }
+        .status { color: blue; }
+        .query-results {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 4px;
+            white-space: pre-wrap;
+            font-size: 0.8em;
+            max-height: 200px;
+            overflow-y: auto;
         }
     </style>
     
     <script type="module">
-        // --- 1. YOUR FIREBASE CONFIGURATION (INTEGRATED HERE) ---
+        // --- 1. FIREBASE CONFIGURATION (YOUR DETAILS) ---
         const firebaseConfig = {
           apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
           authDomain: "duoup-cfae6.firebaseapp.com",
@@ -101,14 +91,24 @@
             updatePassword,
             sendPasswordResetEmail
         } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-auth.js";
+        import { 
+            getFirestore, 
+            collection, 
+            query, 
+            where, 
+            orderBy, 
+            limit, 
+            getDocs
+        } from "https://www.gstatic.com/firebasejs/9.1.0/firebase-firestore.js";
 
 
-        // --- 3. INITIALIZE FIREBASE & AUTH SERVICE ---
+        // --- 3. INITIALIZE FIREBASE SERVICES ---
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
+        const db = getFirestore(app); // Initialize Firestore
 
 
-        // --- 4. GET DOM ELEMENTS (Wait for the document to be fully loaded) ---
+        // --- 4. DOM ELEMENTS & UTILITIES ---
         document.addEventListener('DOMContentLoaded', () => {
             const authSection = document.getElementById('auth-section');
             const dashboardSection = document.getElementById('dashboard-section');
@@ -116,133 +116,169 @@
             const authError = document.getElementById('auth-error');
             const userEmailDisplay = document.getElementById('user-email-display');
             const passwordStatus = document.getElementById('password-status');
+            const queryResults = document.getElementById('query-results');
 
             const emailInput = document.getElementById('email');
             const passwordInput = document.getElementById('password');
             const newPasswordInput = document.getElementById('new-password');
 
-            // --- 5. UTILITY FUNCTIONS ---
-
             const updateUI = (user) => {
                 if (user) {
-                    // Logged In State
                     authSection.classList.add('hidden');
                     dashboardSection.classList.remove('hidden');
                     authStatus.textContent = 'Status: Logged In';
                     userEmailDisplay.textContent = user.email;
-                    authError.textContent = ''; // Clear any previous errors
+                    authError.textContent = '';
                     emailInput.value = '';
                     passwordInput.value = '';
                 } else {
-                    // Logged Out State
                     authSection.classList.remove('hidden');
                     dashboardSection.classList.add('hidden');
                     authStatus.textContent = 'Status: Logged Out';
                     newPasswordInput.value = '';
                     passwordStatus.textContent = '';
-                    authError.style.color = 'red'; // Reset error text color
+                    authError.style.color = 'red';
+                    queryResults.textContent = '';
                 }
             }
 
 
-            // --- 6. EVENT HANDLERS (LOGIC) ---
+            // --- 5. FIRESTORE QUERY FUNCTIONS (Matching your Indexes) ---
+            
+            // 5A. Fetching Pending Friend Requests (Uses: friendRequests: receiverId, status, __name__)
+            async function fetchPendingFriendRequests() {
+                const user = auth.currentUser;
+                if (!user) return [];
+                const receiverId = user.uid; 
+                const friendRequestsRef = collection(db, "friendRequests");
 
-            // 6A. STATE LISTENER (Keeps UI in sync)
+                const q = query(
+                    friendRequestsRef,
+                    where("receiverId", "==", receiverId),
+                    where("status", "==", "pending")
+                );
+
+                try {
+                    const querySnapshot = await getDocs(q);
+                    const requests = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    queryResults.textContent = `Pending Friend Requests (${requests.length}):\n${JSON.stringify(requests, null, 2)}`;
+                } catch (error) {
+                    queryResults.textContent = `Error fetching requests: ${error.message}`;
+                }
+            }
+
+            // 5B. Loading the Last 50 Messages (Uses: messages: chatId, timestamp, __name__)
+            async function loadChatMessages(chatId) {
+                if (!chatId) return;
+                const messagesRef = collection(db, "messages");
+                
+                const q = query(
+                    messagesRef,
+                    where("chatId", "==", chatId),
+                    orderBy("timestamp", "desc"), 
+                    limit(50)
+                );
+
+                try {
+                    const querySnapshot = await getDocs(q);
+                    let messages = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    messages.reverse(); // Display oldest first
+                    queryResults.textContent = `Messages for Chat ${chatId} (${messages.length}):\n${JSON.stringify(messages, null, 2)}`;
+                } catch (error) {
+                    queryResults.textContent = `Error loading messages: ${error.message}`;
+                }
+            }
+            
+            // 5C. Querying Active Gamer Cards (Uses: gamerCards: gameSlug, isActive, __name__)
+            async function queryActiveGamerCards(gameSlug) {
+                if (!gameSlug) return;
+                const gamerCardsRef = collection(db, "gamerCards");
+
+                const q = query(
+                    gamerCardsRef,
+                    where("gameSlug", "==", gameSlug),
+                    where("isActive", "==", true)
+                );
+
+                try {
+                    const querySnapshot = await getDocs(q);
+                    const activeCards = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    queryResults.textContent = `Active Gamer Cards for ${gameSlug} (${activeCards.length}):\n${JSON.stringify(activeCards, null, 2)}`;
+                } catch (error) {
+                    queryResults.textContent = `Error querying gamer cards: ${error.message}`;
+                }
+            }
+
+
+            // --- 6. AUTHENTICATION HANDLERS ---
+
+            // 6A. STATE LISTENER (Runs on load, login, and logout)
             onAuthStateChanged(auth, (user) => {
                 updateUI(user);
+                // Immediately run a sample query after login
+                if (user) {
+                    fetchPendingFriendRequests(); 
+                }
             });
-
 
             // 6B. SIGN UP
             document.getElementById('signup-btn').addEventListener('click', () => {
                 const email = emailInput.value;
                 const password = passwordInput.value;
-                
                 authError.textContent = '';
-                
                 createUserWithEmailAndPassword(auth, email, password)
-                    .then((userCredential) => {
-                        console.log("User signed up and logged in:", userCredential.user);
-                        // UI update handled by onAuthStateChanged
-                    })
-                    .catch((error) => {
-                        authError.textContent = `Sign Up Failed: ${error.message}`;
-                    });
+                    .catch((error) => { authError.textContent = `Sign Up Failed: ${error.message}`; });
             });
-
 
             // 6C. LOGIN
             document.getElementById('login-btn').addEventListener('click', () => {
                 const email = emailInput.value;
                 const password = passwordInput.value;
-                
                 authError.textContent = '';
-
                 signInWithEmailAndPassword(auth, email, password)
-                    .then((userCredential) => {
-                        console.log("User logged in:", userCredential.user);
-                        // UI update handled by onAuthStateChanged
-                    })
-                    .catch((error) => {
-                        authError.textContent = `Login Failed: ${error.message}`;
-                    });
+                    .catch((error) => { authError.textContent = `Login Failed: ${error.message}`; });
             });
-
 
             // 6D. LOGOUT
             document.getElementById('logout-btn').addEventListener('click', () => {
-                signOut(auth)
-                    .then(() => {
-                        console.log("User signed out.");
-                        // UI update handled by onAuthStateChanged
-                    })
-                    .catch((error) => {
-                        console.error("Logout Error:", error.message);
-                    });
+                signOut(auth).catch((error) => { console.error("Logout Error:", error.message); });
             });
-
 
             // 6E. CHANGE PASSWORD
             document.getElementById('change-password-btn').addEventListener('click', async () => {
                 const user = auth.currentUser;
                 const newPassword = newPasswordInput.value;
                 passwordStatus.textContent = '';
-
-                if (!user || newPassword.length < 6) {
-                    passwordStatus.textContent = "Please enter a new password (min 6 characters).";
-                    return;
-                }
-                
+                if (!user || newPassword.length < 6) { passwordStatus.textContent = "Enter new password (min 6 chars)."; return; }
                 try {
                     await updatePassword(user, newPassword);
                     passwordStatus.textContent = "Password updated successfully!";
                     newPasswordInput.value = '';
                 } catch (error) {
-                    passwordStatus.textContent = `Password Update Failed: ${error.message}`;
-                    console.error(error);
+                    passwordStatus.textContent = `Update Failed: ${error.message}`;
                 }
             });
-
 
             // 6F. PASSWORD RESET
             document.getElementById('reset-password-link').addEventListener('click', (e) => {
                 e.preventDefault();
                 const email = emailInput.value;
                 authError.textContent = '';
-
-                if (!email) {
-                    authError.textContent = "Please enter your email address in the field above to reset the password.";
-                    return;
-                }
-
+                if (!email) { authError.textContent = "Enter email to reset password."; return; }
                 sendPasswordResetEmail(auth, email)
-                    .then(() => {
-                        authError.textContent = `Password reset email sent to ${email}! Check your inbox.`;
-                        authError.style.color = 'green';
-                    })
-                    .catch((error) => {
-                        authError.textContent = `Password Reset Error: ${error.message}`;
-                    });
+                    .then(() => { authError.textContent = `Reset email sent to ${email}!`; authError.style.color = 'green'; })
+                    .catch((error) => { authError.textContent = `Password Reset Error: ${error.message}`; });
+            });
+            
+            // --- 7. QUERY BUTTON HANDLERS ---
+            document.getElementById('fetch-requests-btn').addEventListener('click', fetchPendingFriendRequests);
+            document.getElementById('load-messages-btn').addEventListener('click', () => {
+                const chatId = document.getElementById('chat-id-input').value || "sampleChatId"; // Use a default for testing
+                loadChatMessages(chatId);
+            });
+            document.getElementById('query-cards-btn').addEventListener('click', () => {
+                const gameSlug = document.getElementById('game-slug-input').value || "sample-game-slug"; // Use a default for testing
+                queryActiveGamerCards(gameSlug);
             });
         });
 
@@ -250,7 +286,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Firebase Authentication Demo</h1>
+        <h1>Complete Firebase App Demo</h1>
         <p id="auth-status"></p>
         
         <div id="auth-section" class="card">
@@ -274,10 +310,32 @@
             <button id="logout-btn">Logout</button>
             
             <div class="settings-group">
-                <h3>Change Password</h3>
+                <h3>Account Settings</h3>
                 <input type="password" id="new-password" placeholder="New Password (min 6 chars)">
                 <button id="change-password-btn">Update Password</button>
                 <p id="password-status" class="status"></p>
+            </div>
+
+            <div class="settings-group">
+                <h3>Test Firestore Queries</h3>
+                <p>Results will appear below.</p>
+                
+                <div class="button-group">
+                    <button id="fetch-requests-btn">1. Fetch Pending Requests</button>
+                </div>
+                
+                <p>Chat Messages (Use "sampleChatId" or a real ID):</p>
+                <input type="text" id="chat-id-input" placeholder="Enter Chat ID (e.g., sampleChatId)">
+                <button id="load-messages-btn">2. Load Last 50 Messages</button>
+                
+                <p>Gamer Cards (Use "sample-game-slug" or a real slug):</p>
+                <input type="text" id="game-slug-input" placeholder="Enter Game Slug (e.g., sample-game-slug)">
+                <button id="query-cards-btn">3. Query Active Gamer Cards</button>
+                
+                <h4>Query Output:</h4>
+                <div id="query-results" class="query-results">
+                    Awaiting query execution...
+                </div>
             </div>
         </div>
     </div>
