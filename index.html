@@ -12,63 +12,67 @@
 <style>
 body{margin:0;font-family:'Orbitron',sans-serif;background:#0b0b0b;color:white;}
 .hidden{display:none;}
-.container{width:90%;margin:auto;padding:20px;}
-.neon-btn{border:2px solid cyan;background:transparent;color:white;padding:8px 14px;margin:5px;border-radius:6px;cursor:pointer;box-shadow:0 0 10px cyan;}
-.neon-btn:hover{border-color:magenta;box-shadow:0 0 15px magenta;}
-.flex{display:flex;gap:15px;flex-wrap:wrap;}
-.card{width:260px;padding:15px;border:2px solid cyan;border-radius:14px;background:#111;box-shadow:0 0 10px cyan;}
-.avatar{width:48px;height:48px;border-radius:50%;border:2px solid cyan;object-fit:cover;}
-.user{display:flex;gap:10px;align-items:center;}
-.input{width:100%;padding:8px;margin:5px 0;background:#000;border:2px solid cyan;color:white;border-radius:6px;}
-.status-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:5px;}
-#chatMessages{flex-direction:column;max-height:400px;overflow-y:auto;}
-.message-bubble{padding:8px 12px;border-radius:12px;max-width:70%;margin:5px 0;position:relative;word-wrap:break-word;}
+#app{display:flex;height:100vh;}
+.sidebar{width:250px;background:#111;display:flex;flex-direction:column;overflow-y:auto;border-right:2px solid cyan;padding:10px;}
+.sidebar h3{text-align:center;}
+.sidebar .user-card{display:flex;align-items:center;gap:10px;padding:8px;margin-bottom:5px;border-radius:8px;cursor:pointer;border:1px solid cyan;}
+.sidebar .user-card:hover{background:#222;}
+.sidebar .avatar{width:40px;height:40px;border-radius:50%;object-fit:cover;}
+.main{flex:1;display:flex;flex-direction:column;}
+.header{padding:10px;border-bottom:2px solid cyan;display:flex;justify-content:space-between;align-items:center;}
+.chat-window{flex:1;display:flex;flex-direction:column;overflow-y:auto;padding:10px;}
+.message-bubble{padding:8px 12px;border-radius:12px;max-width:70%;margin:5px 0;word-wrap:break-word;position:relative;}
 .message-incoming{background:#111;border:2px solid cyan;align-self:flex-start;box-shadow:0 0 5px cyan;}
 .message-outgoing{background:#111;border:2px solid magenta;align-self:flex-end;box-shadow:0 0 5px magenta;}
 .message-header{font-size:0.8em;color:gray;margin-bottom:2px;}
+.input-bar{display:flex;padding:10px;border-top:2px solid cyan;}
+.input-bar input{flex:1;padding:8px;border-radius:6px;border:2px solid cyan;background:#000;color:white;margin-right:5px;}
+.neon-btn{border:2px solid cyan;background:transparent;color:white;padding:6px 12px;border-radius:6px;cursor:pointer;box-shadow:0 0 10px cyan;}
+.neon-btn:hover{border-color:magenta;box-shadow:0 0 15px magenta;}
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
-<div id="loginPage" class="container">
+<div id="loginPage" class="hidden" style="padding:20px;">
   <h1>DUO UP</h1>
   <button class="neon-btn" onclick="loginWithGoogle()">Login with Google</button>
 </div>
 
-<!-- USERNAME -->
-<div id="usernamePage" class="container hidden">
-  <h2>Choose a Username</h2>
+<div id="usernamePage" class="hidden" style="padding:20px;">
+  <h2>Pick a username</h2>
   <input id="usernameInput" class="input" placeholder="Username">
   <button class="neon-btn" onclick="saveUsername()">Continue</button>
 </div>
 
-<!-- DASHBOARD -->
-<div id="dashboard" class="container hidden">
-  <h2 id="welcome"></h2>
-  <button class="neon-btn" onclick="openProfile()">Profile</button>
-  <button class="neon-btn" onclick="logout()">Logout</button>
-  <h3>Users:</h3>
-  <div id="usersList" class="flex"></div>
+<div id="app" class="hidden">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h3>Users</h3>
+    <div id="userList"></div>
+    <button class="neon-btn" onclick="openProfile()">Profile</button>
+    <button class="neon-btn" onclick="logout()">Logout</button>
+  </div>
+  <!-- Main Chat -->
+  <div class="main">
+    <div class="header">
+      <h2 id="chatHeader">Select a user to chat</h2>
+    </div>
+    <div id="chatWindow" class="chat-window"></div>
+    <div class="input-bar">
+      <input id="chatInput" placeholder="Type a message...">
+      <button class="neon-btn" onclick="sendMessage()">Send</button>
+    </div>
+  </div>
 </div>
 
-<!-- PROFILE -->
-<div id="profilePage" class="container hidden">
+<!-- Profile -->
+<div id="profilePage" class="hidden" style="padding:20px;">
   <h2>Edit Profile</h2>
-  <img id="profilePreview" class="avatar"><br><br>
+  <img id="profilePreview" class="avatar" style="width:80px;height:80px;"><br><br>
   <input type="file" id="profileImage">
   <input id="statusInput" class="input" placeholder="Status">
   <button class="neon-btn" onclick="saveProfile()">Save</button>
   <button class="neon-btn" onclick="closeProfile()">Back</button>
-</div>
-
-<!-- CHAT -->
-<div id="chatPage" class="container hidden">
-  <h2 id="chatWith"></h2>
-  <div id="chatMessages" class="flex"></div>
-  <input id="chatInput" class="input" placeholder="Type a message">
-  <button class="neon-btn" onclick="sendMessage()">Send</button>
-  <button class="neon-btn" onclick="closeChat()">Back</button>
 </div>
 
 <script>
@@ -93,24 +97,22 @@ function loginWithGoogle(){
   auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err=>alert(err.message));
 }
 
-// ---------------- AUTH STATE ----------------
 auth.onAuthStateChanged(async user=>{
   if(!user){
     loginPage.classList.remove("hidden");
     usernamePage.classList.add("hidden");
-    dashboard.classList.add("hidden");
+    app.classList.add("hidden");
     profilePage.classList.add("hidden");
-    chatPage.classList.add("hidden");
     return;
   }
   loginPage.classList.add("hidden");
   const ref=db.collection("users").doc(user.uid);
   const snap=await ref.get();
-  if(!snap.exists){ 
-    usernamePage.classList.remove("hidden"); 
-  } else { 
-    usernamePage.classList.add("hidden"); 
-    loadDashboard(snap.data()); 
+  if(!snap.exists){
+    usernamePage.classList.remove("hidden");
+  } else {
+    usernamePage.classList.add("hidden");
+    loadApp(snap.data());
   }
 });
 
@@ -124,122 +126,101 @@ function saveUsername(){
     nickname:name,
     email:user.email,
     authType:"google",
-    lastActive:firebase.firestore.FieldValue.serverTimestamp(),
-    bio:"",
     profileImageUrl:user.photoURL||DEFAULT_AVATAR,
-    status:"online"
-  }).then(()=>{
-    usernamePage.classList.add("hidden");
-    loadDashboard({nickname:name});
-  }).catch(err=>alert("Error creating profile: "+err.message));
+    status:"online",
+    lastActive:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(()=>loadApp({nickname:name}));
 }
 
-// ---------------- DASHBOARD ----------------
-function loadDashboard(data){
-  dashboard.classList.remove("hidden");
-  welcome.innerText="Welcome, "+data.nickname;
+// ---------------- LOAD APP ----------------
+function loadApp(data){
+  app.classList.remove("hidden");
   loadUsers();
 }
 
-function logout(){ auth.signOut(); }
-
 // ---------------- USERS LIST ----------------
 function loadUsers(){
-  usersList.innerHTML="";
+  const userListDiv=document.getElementById("userList");
+  userListDiv.innerHTML="";
   const currentUserId=auth.currentUser.uid;
-  db.collection("users").get().then(snap=>{
+  db.collection("users").onSnapshot(snap=>{
+    userListDiv.innerHTML="";
     snap.forEach(u=>{
       if(u.id===currentUserId) return;
       const d=u.data();
       const card=document.createElement("div");
-      card.className="card";
-      card.innerHTML=`<div class="user">
-        <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
-        <strong>${d.nickname}</strong></div><br>
-        <button class="neon-btn" onclick="openChat('${u.id}')">Message</button>`;
-      usersList.appendChild(card);
+      card.className="user-card";
+      card.innerHTML=`<img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
+                        <strong>${d.nickname}</strong>`;
+      card.onclick=()=>openChat(u.id,d.nickname);
+      userListDiv.appendChild(card);
     });
   });
 }
 
+// ---------------- CHAT ----------------
+function openChat(uid,nickname){
+  currentChatUser=uid;
+  chatHeader.innerText = "Chat with "+nickname;
+  loadMessages();
+}
+
+function loadMessages(){
+  if(!currentChatUser) return;
+  chatWindow.innerHTML="";
+  db.collection("messages")
+    .where("participants","array-contains",auth.currentUser.uid)
+    .orderBy("timestamp")
+    .onSnapshot(snap=>{
+      chatWindow.innerHTML="";
+      snap.forEach(doc=>{
+        const m=doc.data();
+        if(!m.participants.includes(currentChatUser)) return;
+        const bubble=document.createElement("div");
+        bubble.className="message-bubble "+(m.senderId===auth.currentUser.uid?"message-outgoing":"message-incoming");
+        bubble.innerHTML=`<div class="message-header">${m.senderId===auth.currentUser.uid?"You":"Friend"} - ${m.timestamp?.toDate().toLocaleTimeString()||""}</div>
+                          <div>${m.content}</div>`;
+        chatWindow.appendChild(bubble);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+      });
+    });
+}
+
+function sendMessage(){
+  const text=chatInput.value.trim();
+  if(!text||!currentChatUser) return;
+  db.collection("messages").add({
+    senderId: auth.currentUser.uid,
+    participants: [auth.currentUser.uid,currentChatUser],
+    content: text,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  chatInput.value="";
+}
+
 // ---------------- PROFILE ----------------
 function openProfile(){
-  dashboard.classList.add("hidden");
+  app.classList.add("hidden");
   profilePage.classList.remove("hidden");
   db.collection("users").doc(auth.currentUser.uid).get().then(d=>{
     profilePreview.src=d.data().profileImageUrl||DEFAULT_AVATAR;
     statusInput.value=d.data().status||"";
   });
 }
-
-function closeProfile(){
-  profilePage.classList.add("hidden");
-  dashboard.classList.remove("hidden");
-}
-
+function closeProfile(){ profilePage.classList.add("hidden"); app.classList.remove("hidden"); }
 function saveProfile(){
   const file=profileImage.files[0];
   if(file){
     const ref=storage.ref("avatars/"+auth.currentUser.uid);
     ref.put(file).then(()=>ref.getDownloadURL().then(url=>updateProfile(url)));
-  } else { updateProfile(null); }
+  } else updateProfile(null);
 }
-
 function updateProfile(url){
   const data={ status:statusInput.value };
   if(url) data.profileImageUrl=url;
-  db.collection("users").doc(auth.currentUser.uid).update(data).then(closeProfile);
+  db.collection("users").doc(auth.currentUser.uid).update(data).then(()=>closeProfile());
 }
-
-// ---------------- CHAT ----------------
-function openChat(friendId){
-  currentChatUser = friendId;
-  dashboard.classList.add("hidden");
-  chatPage.classList.remove("hidden");
-  db.collection("users").doc(friendId).get().then(doc=>{
-    chatWith.innerText = "Chat with " + doc.data().nickname;
-  });
-  loadMessages();
-}
-
-function loadMessages(){
-  if(!currentChatUser) return;
-  chatMessages.innerHTML = "";
-  db.collection("messages")
-    .where("senderId","in",[auth.currentUser.uid,currentChatUser])
-    .where("receiverId","in",[auth.currentUser.uid,currentChatUser])
-    .orderBy("timestamp")
-    .onSnapshot(snap=>{
-      chatMessages.innerHTML="";
-      snap.forEach(m=>{
-        const msg = m.data();
-        const bubble=document.createElement("div");
-        bubble.className="message-bubble "+(msg.senderId===auth.currentUser.uid?"message-outgoing":"message-incoming");
-        bubble.innerHTML=`<div class="message-header">${msg.senderId===auth.currentUser.uid?"You":"Friend"} - ${msg.timestamp?.toDate().toLocaleTimeString()||""}</div>
-        <div>${msg.content}</div>`;
-        chatMessages.appendChild(bubble);
-        chatMessages.scrollTop = chatMessages.scrollHeight;
-      });
-    });
-}
-
-function sendMessage(){
-  const text = chatInput.value.trim();
-  if(!text || !currentChatUser) return;
-  db.collection("messages").add({
-    senderId: auth.currentUser.uid,
-    receiverId: currentChatUser,
-    content: text,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  chatInput.value = "";
-}
-
-function closeChat(){
-  currentChatUser = null;
-  chatPage.classList.add("hidden");
-  dashboard.classList.remove("hidden");
-}
+function logout(){ auth.signOut(); }
 </script>
 </body>
 </html>
