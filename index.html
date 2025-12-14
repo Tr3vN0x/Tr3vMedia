@@ -36,14 +36,7 @@ button:not(.google-btn):not(#duoSearchForm button):not(.like-btn){margin-top:10p
 .action-button{width:100%;padding:12px;background:linear-gradient(90deg,var(--duoup-primary),var(--duoup-accent));color:var(--duoup-dark);font-weight:bold;border-radius:0 0 12px 12px;}
 .nickname-display{display:flex;align-items:center;font-size:1.1em;}
 .verified-badge{color:#1DA1F2;margin-left:5px;}
-/* Highlight disabled input */
-#profile-nickname { 
-    background: #1a1a2e; 
-    color: var(--duoup-muted); 
-    cursor: not-allowed; 
-    border-color: #3A3A52; 
-    font-weight: 700;
-}
+/* Highlight disabled input - Removed unused #profile-nickname style */
 .input-help{font-size:0.8em;color:var(--duoup-muted);margin-top:-5px;margin-bottom:10px;}
 
 /* Post Specific Styles */
@@ -228,7 +221,7 @@ async function loadUserData(user) {
             nickname: defaultNickname, 
             bio: "",
             profileImageUrl: user.photoURL || "",
-            friends: "",
+            friends: [], // Initialize as an array for future friend features
             lastActive: Date.now(),
             authType: authType 
         };
@@ -268,7 +261,7 @@ async function handleSignUp(e) {
             nickname: nickname, 
             bio: "",
             profileImageUrl: "",
-            friends: [], // Initialize as an array for future friend features
+            friends: [], 
             lastActive: Date.now(),
             authType: 'email' 
         });
@@ -352,7 +345,7 @@ async function handlePostSubmit(e) {
         await loadPosts(); 
     } catch (err) {
         console.error("Error creating post:", err);
-        alert("Failed to create post.");
+        alert("Failed to create post. Check console for Firestore error details.");
     }
 }
 
@@ -368,6 +361,7 @@ window.toggleLikePost = async function(postId, isLiked) {
 
     const postRef = doc(db, "posts", postId);
     try {
+        // arrayUnion and arrayRemove are atomic operations that modify the array field.
         const updateOperation = isLiked ? arrayRemove(user.uid) : arrayUnion(user.uid);
         
         await updateDoc(postRef, {
@@ -378,7 +372,7 @@ window.toggleLikePost = async function(postId, isLiked) {
 
     } catch (err) {
         console.error("Error toggling like:", err);
-        alert("Failed to update like status.");
+        alert("Failed to update like status. Check console for Firestore error details.");
     }
 }
 
