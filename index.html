@@ -230,33 +230,16 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-// --- VERIFIED USER CONSTANT (UPDATE THIS UID) ---
-// IMPORTANT: Replace 'Tr3vN0x_UID_HERE' with the actual UID for the user you want verified.
-const VERIFIED_UIDS = ["Tr3vN0x_UID_HERE"]; 
-
-// UI Element References
-const loginPage = document.getElementById("loginPage");
-const dashboard = document.getElementById("dashboard");
-const suggestedTab = document.getElementById("suggestedTab");
-const requestsTab = document.getElementById("requestsTab");
-const friendsTab = document.getElementById("friendsTab");
-const profileTab = document.getElementById("profileTab"); 
-const profileViewer = document.getElementById("profileViewer");
-
-// Profile Editor Elements
-const currentAvatar = document.getElementById("currentAvatar");
-const currentNicknameDisplay = document.getElementById("currentNicknameDisplay"); // New
-const bioInput = document.getElementById("bioInput");
-const gamesInput = document.getElementById("gamesInput");
-const avatarUrlInput = document.getElementById("avatarUrlInput");
+// --- OWNER UID CONSTANT (CRITICAL: REPLACE THIS UID WITH THE ACTUAL OWNER'S UID) ---
+const OWNER_UID = "OWNER_UID_HERE"; 
 
 let currentUser = null;
 
-// Helper function to render the verified badge
-function getVerifiedBadge(uid) {
-    if (VERIFIED_UIDS.includes(uid)) {
-        // Neon blue star badge
-        return '<span style="color: cyan; text-shadow: 0 0 5px cyan; margin-left: 5px;" title="Verified User">★</span>';
+// Helper function to render the Owner Badge
+function getOwnerBadge(uid) {
+    if (uid === OWNER_UID) {
+        // Neon Pink/Magenta Starburst
+        return '<span style="color: magenta; text-shadow: 0 0 5px magenta, 0 0 10px #ff00ff; margin-left: 5px; font-weight: 700;" title="App Owner">◈</span>';
     }
     return '';
 }
@@ -279,8 +262,6 @@ auth.onAuthStateChanged(async user=>{
   const userDocRef = db.collection("users").doc(user.uid);
   const userDoc = await userDocRef.get();
   
-  const isVerified = VERIFIED_UIDS.includes(user.uid);
-
   if(!userDoc.exists){
     await userDocRef.set({
       uid: user.uid,
@@ -291,17 +272,12 @@ auth.onAuthStateChanged(async user=>{
       friends: [],
       nicknames: {}, 
       profileImageUrl: user.photoURL||DEFAULT_AVATAR,
-      isVerified: isVerified 
     });
-  } else {
-    // Ensure existing users also get their verified status updated if needed
-    if (userDoc.data().isVerified !== isVerified) {
-        await userDocRef.update({ isVerified: isVerified });
-    }
   }
 
   const data = (await userDocRef.get()).data();
-  document.getElementById("welcome").innerHTML = `Welcome, ${data.nickname}${getVerifiedBadge(data.uid)}`;
+  // Add badge to welcome message
+  document.getElementById("welcome").innerHTML = `Welcome, ${data.nickname}${getOwnerBadge(data.uid)}`;
 
   loadSuggested();
   loadRequests();
@@ -389,7 +365,7 @@ async function viewProfile(targetUserId) {
             actionButtonHTML = `<button class="neon-btn" onclick="sendRequest('${targetUserId}'); showTab('suggested');">Send Request</button>`;
         }
 
-        const badgeHtml = getVerifiedBadge(u.uid);
+        const badgeHtml = getOwnerBadge(u.uid);
 
         profileViewer.innerHTML = `
             <button class="neon-btn" style="margin-bottom: 20px;" onclick="showTab('suggested')">← Back</button>
@@ -430,8 +406,8 @@ async function viewProfile(targetUserId) {
 // ---------------- PROFILE EDITOR FUNCTIONS ----------------
 function loadProfileEditor(data){
     data = data || {};
-    // Display current read-only nickname
-    currentNicknameDisplay.innerText = data.nickname || "Player";
+    // Display current read-only nickname with badge
+    currentNicknameDisplay.innerHTML = `${data.nickname || "Player"}${getOwnerBadge(currentUser.uid)}`;
     bioInput.value = data.bio || "";
     gamesInput.value = (data.games || []).join(', ');
     avatarUrlInput.value = data.profileImageUrl || currentUser.photoURL || "";
@@ -448,7 +424,6 @@ async function saveProfile(){
     const gamesArray = gamesInput.value.split(',').map(game => game.trim()).filter(game => game !== '');
     
     const profileUpdates = {
-        // Nickname is excluded from user updates
         bio: bioInput.value.trim(),
         games: gamesArray,
         profileImageUrl: avatarUrlInput.value.trim() || DEFAULT_AVATAR
@@ -458,8 +433,8 @@ async function saveProfile(){
         await db.collection("users").doc(currentUser.uid).update(profileUpdates);
         alert("Profile updated successfully!");
         
-        // Update welcome message (since nickname wasn't changed)
-        document.getElementById("welcome").innerHTML = `Welcome, ${currentNickname}${getVerifiedBadge(currentUser.uid)}`;
+        // Update welcome message 
+        document.getElementById("welcome").innerHTML = `Welcome, ${currentNickname}${getOwnerBadge(currentUser.uid)}`;
         
         loadSuggested();
         loadFriends();
@@ -525,7 +500,7 @@ async function loadSuggested(){
         card.setAttribute('onclick', `viewProfile('${doc.id}')`);
         
         const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
-        const badgeHtml = getVerifiedBadge(u.uid);
+        const badgeHtml = getOwnerBadge(u.uid);
 
         card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
           <strong>${u.nickname}${badgeHtml}</strong>
@@ -575,7 +550,7 @@ async function loadRequests(){
         card.setAttribute('onclick', `viewProfile('${data.senderId}')`);
 
         const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
-        const badgeHtml = getVerifiedBadge(u.uid);
+        const badgeHtml = getOwnerBadge(u.uid);
 
 
         card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
@@ -620,7 +595,7 @@ async function loadFriends(){
         const displayNickname = myNicknames[doc.id] || u.nickname;
 
         const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
-        const badgeHtml = getVerifiedBadge(u.uid);
+        const badgeHtml = getOwnerBadge(u.uid);
 
 
         card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
