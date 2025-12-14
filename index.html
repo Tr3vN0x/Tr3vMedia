@@ -218,13 +218,18 @@ async function loadUserData(user) {
             email: user.email,
             nickname: defaultNickname, 
             bio: "",
-            profileImageUrl: user.photoURL || "",
+            profileImageUrl: "",
             friends: [],
             lastActive: Date.now(),
             authType: authType 
         };
         await setDoc(userDocRef, userData);
     }
+    
+    // Update the global nickname variable after loading the data
+    currentNickname = userData.nickname || ''; 
+    currentBio = userData.bio || '';
+
     return userData;
 }
 
@@ -250,7 +255,7 @@ async function handleSignUp(e) {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const { user } = userCredential;
 
-        // Immediately set the global nickname state after successful sign-up
+        // Set the global nickname state before Firestore write, for immediate use
         currentNickname = nickname; 
 
         await setDoc(doc(db,"users", user.uid), {
@@ -329,14 +334,14 @@ async function handlePostSubmit(e) {
     if (!content) return;
 
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) return alert("You must be signed in to post.");
     
-    // CRITICAL CHECK: Ensure nickname is loaded before posting
+    // CRITICAL FIX: Ensure nickname is ready and loaded before post attempt
     if (!currentNickname) {
-        // If nickname is not loaded yet, we can't satisfy the security rule
+        // Attempt to load the data immediately if it was somehow missed
         await loadUserData(user); 
         if (!currentNickname) {
-            return alert("User data is still loading. Please wait a moment and try again.");
+            return alert("User data is not ready. Please wait a moment or refresh and try again.");
         }
     }
     
@@ -352,8 +357,8 @@ async function handlePostSubmit(e) {
         await loadPosts(); 
     } catch (err) {
         console.error("Error creating post:", err);
-        // Display a more specific message about the rule violation
-        alert("Failed to create post. This is a Security Rule issue (Authentication, Missing Field, or Timestamp check).");
+        // Display a helpful message based on the debugging we've done
+        alert("Failed to create post. Please try logging out and logging back in, then wait a few seconds before posting.");
     }
 }
 
@@ -456,10 +461,8 @@ onAuthStateChanged(auth, async user => {
         appSection.style.display = "block";
         mainHeader.style.display = "flex";
         
-        // Load user data immediately upon login/refresh
-        const userData = await loadUserData(user); 
-        currentNickname = userData.nickname || ''; 
-        currentBio = userData.bio || '';
+        // Load user data to ensure currentNickname is set
+        await loadUserData(user); 
         
         await updateLastActiveStatus(user.uid); 
         
