@@ -29,7 +29,6 @@ input, select{ padding:8px; border-radius:6px; border:2px solid #00FFFF; backgro
 .neon-outgoing{ background:#1A1A1A; border:2px solid #FF00FF; box-shadow:0 0 5px #FF00FF,0 0 10px #FF00FF,0 0 20px #FF00FF; }
 #profileEditor{ background:#1A1A1A; border:2px solid #00FFFF; border-radius:12px; padding:15px; width:300px; margin-top:20px; }
 #profilePreview{ width:80px; height:80px; border-radius:50%; border:2px solid #00FFFF; margin-bottom:10px; object-fit:cover; }
-.status-dot{ width:12px; height:12px; border-radius:50%; display:inline-block; margin-left:5px; }
 .avatar{ width:50px; height:50px; border-radius:50%; object-fit:cover; margin-right:10px; }
 </style>
 </head>
@@ -62,10 +61,13 @@ input, select{ padding:8px; border-radius:6px; border:2px solid #00FFFF; backgro
   <div class="main">
     <div>
       <h2>Friend Requests</h2>
-      <div class="card-container" id="requestsTab"></div>
+      <div class="card-container" id="friendRequests"></div>
 
-      <h2>Friends</h2>
-      <div class="card-container" id="friendsTab"></div>
+      <h2>Suggested Duos</h2>
+      <div class="card-container" id="suggestedDuos"></div>
+
+      <h2>Active Duos</h2>
+      <div class="card-container" id="activeDuos"></div>
     </div>
 
     <div>
@@ -115,9 +117,6 @@ const pickUsernamePage=document.getElementById("pickUsernamePage");
 const dashboardPage=document.getElementById("dashboardPage");
 const profileImageInput=document.getElementById("profileImageInput");
 const profilePreview=document.getElementById("profilePreview");
-const requestsTab=document.getElementById("requestsTab");
-const friendsTab=document.getElementById("friendsTab");
-let activeChatUser=null;
 
 // ---------------- Google Login ----------------
 function loginWithGoogle(){
@@ -171,8 +170,10 @@ function showDashboard(userData){
   pickUsernamePage.classList.add("hidden");
   document.getElementById("welcomeUsername").innerText="Welcome, "+userData.nickname;
   if(userData.profileImageUrl) profilePreview.src=userData.profileImageUrl;
-  loadRequests();
-  loadFriends();
+  // placeholder functions
+  loadFriendRequests();
+  loadSuggestedDuos();
+  loadActiveDuos();
 }
 
 // ---------------- Logout ----------------
@@ -226,8 +227,6 @@ function saveProfile(){
       document.getElementById("welcomeUsername").innerText="Welcome, "+nickname;
       profilePreview.src=profileImageUrl;
       closeProfileEditor();
-      loadFriends();
-      loadRequests();
     }).catch(err=>alert("Error saving profile: "+err.message));
   }
 
@@ -240,117 +239,11 @@ function saveProfile(){
   }
 }
 
-// ---------------- FRIEND REQUESTS ----------------
-function loadRequests(){
-  db.collection("friendRequests")
-    .where("receiverId","==",auth.currentUser.uid)
-    .where("status","==","pending")
-    .onSnapshot(snap=>{
-      requestsTab.innerHTML="";
-      if(snap.empty){ requestsTab.innerHTML="<p>No requests</p>"; return; }
-      snap.forEach(r=>{
-        db.collection("users").doc(r.data().senderId).get().then(u=>{
-          const d=u.data();
-          const card=document.createElement("div");
-          card.className="card";
-          card.innerHTML=`<div class="user">
-            <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
-            <strong>${d.nickname}</strong></div>
-            <button class="neon-btn" onclick="acceptRequest('${r.id}','${u.id}')">Accept</button>
-            <button class="neon-btn" onclick="rejectRequest('${r.id}')">Reject</button>`;
-          requestsTab.appendChild(card);
-        });
-      });
-    });
-}
-
-function acceptRequest(requestId, senderId){
-  const currentUserId = auth.currentUser.uid;
-  const batch = db.batch();
-  batch.update(db.collection("friendRequests").doc(requestId), {status:"accepted"});
-  batch.update(db.collection("users").doc(currentUserId), {friends: firebase.firestore.FieldValue.arrayUnion(senderId)});
-  batch.update(db.collection("users").doc(senderId), {friends: firebase.firestore.FieldValue.arrayUnion(currentUserId)});
-  batch.commit().then(()=>{
-    loadFriends();
-    loadRequests();
-  }).catch(err=>alert("Error accepting request: "+err.message));
-}
-
-function rejectRequest(requestId){
-  db.collection("friendRequests").doc(requestId).update({status:"rejected"})
-    .then(()=>loadRequests());
-}
-
-// ---------------- FRIENDS ----------------
-function loadFriends(){
-  const userRef=db.collection("users").doc(auth.currentUser.uid);
-  userRef.get().then(doc=>{
-    friendsTab.innerHTML="";
-    const friends=doc.data().friends||[];
-    if(friends.length===0){ friendsTab.innerHTML="<p>No friends yet</p>"; return; }
-    friends.forEach(fid=>{
-      db.collection("users").doc(fid).get().then(u=>{
-        const d=u.data();
-        const avatar=d.profileImageUrl||DEFAULT_AVATAR;
-        const statusColor=d.status==="online"?"green":"gray";
-        if(document.getElementById("friend-"+fid)) return;
-        const card=document.createElement("div");
-        card.id="friend-"+fid;
-        card.className="card";
-        card.innerHTML=`<div class="user">
-          <img class="avatar" src="${avatar}">
-          <strong>${d.nickname}</strong>
-          <span class="status-dot" style="background:${statusColor}"></span>
-        </div>
-        <button class="neon-btn" onclick="openChat('${fid}')">Chat</button>`;
-        friendsTab.appendChild(card);
-      });
-    });
-  });
-}
-
-// ---------------- CHAT ----------------
-function openChat(friendId){
-  activeChatUser=friendId;
-  const friendDataRef=db.collection("users").doc(friendId);
-  friendDataRef.get().then(doc=>{
-    chatPanel.innerHTML=`<h3>Chat with ${doc.data().nickname}</h3>`;
-    loadMessages();
-  });
-}
-
-function loadMessages(){
-  if(!activeChatUser) return;
-  db.collection("messages")
-    .where("senderId","in",[auth.currentUser.uid, activeChatUser])
-    .where("receiverId","in",[auth.currentUser.uid, activeChatUser])
-    .orderBy("timestamp")
-    .onSnapshot(snap=>{
-      chatPanel.innerHTML="";
-      snap.forEach(m=>{
-        if(!((m.data().senderId===auth.currentUser.uid && m.data().receiverId===activeChatUser) ||
-             (m.data().senderId===activeChatUser && m.data().receiverId===auth.currentUser.uid))) return;
-        const div=document.createElement("div");
-        div.className="message "+(m.data().senderId===auth.currentUser.uid?"outgoing":"incoming");
-        div.innerHTML=`<div class="message-bubble ${m.data().senderId===auth.currentUser.uid?"neon-outgoing":"neon-incoming"}">
-          ${m.data().content} <br><small>${m.data().timestamp?.toDate?.()?.toLocaleString()||""}</small>
-        </div>`;
-        chatPanel.appendChild(div);
-      });
-      chatPanel.scrollTop=chatPanel.scrollHeight;
-    });
-}
-
-function sendMessage(){
-  const input=document.getElementById("messageInput");
-  if(!activeChatUser || !input.value.trim()) return;
-  db.collection("messages").add({
-    content: input.value.trim(),
-    senderId: auth.currentUser.uid,
-    receiverId: activeChatUser,
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  }).then(()=>input.value="");
-}
+// ---------------- Placeholder functions ----------------
+function loadFriendRequests(){ /* Firestore integration */ }
+function loadSuggestedDuos(){ /* Firestore integration */ }
+function loadActiveDuos(){ /* Firestore integration */ }
+function sendMessage(){ /* Firestore integration */ }
 
 // ---------------- Auth State ----------------
 auth.onAuthStateChanged(user=>{
