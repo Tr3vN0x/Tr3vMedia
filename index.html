@@ -9,9 +9,36 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
+/* --- BASE STYLES --- */
 body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:white; }
 .container { width:90%; max-width: 1000px; margin:auto; padding:20px; }
 .hidden { display:none; }
+
+/* --- HEADER & ICON STYLES (NEW) --- */
+.header {
+    background: #111;
+    border-bottom: 3px solid cyan;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.5);
+    padding: 10px 0;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.header h1 {
+    font-size: 2.5em;
+    color: #fff;
+    text-shadow: 0 0 5px cyan, 0 0 10px cyan, 0 0 15px magenta;
+    margin: 0;
+}
+.icon-container {
+    margin-right: 15px;
+    font-size: 2.5em;
+    color: cyan;
+    text-shadow: 0 0 5px cyan, 0 0 10px magenta;
+}
+
+/* --- BUTTON STYLES --- */
 .neon-btn { 
     border:2px solid cyan; 
     background:transparent; 
@@ -22,11 +49,13 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
     cursor:pointer; 
     box-shadow:0 0 10px cyan; 
     transition: all 0.2s ease-in-out;
+    text-transform: uppercase;
 }
 .neon-btn:hover { border-color:magenta; box-shadow:0 0 15px magenta; }
 .neon-btn.remove { border-color: red; box-shadow: 0 0 10px red; }
 .neon-btn.remove:hover { border-color: orange; box-shadow: 0 0 15px orange; }
 
+/* --- CARD/LAYOUT STYLES --- */
 .flex { display:flex; gap:15px; flex-wrap:wrap; }
 .card { 
     width:250px; 
@@ -45,8 +74,15 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 </head>
 <body>
 
+<div class="header">
+    <div class="icon-container">
+        ⚡
+    </div>
+    <h1>DUO UP</h1>
+</div>
+
 <div id="loginPage" class="container">
-  <h1>DUO UP</h1>
+  <p>Find your perfect partner and dominate the cyber-arena.</p>
   <button class="neon-btn" onclick="login()">Login with Google</button>
 </div>
 
@@ -141,7 +177,6 @@ async function loadSuggested(){
   suggestedTab.innerHTML="<p>Loading suggested users...</p>";
   
   try {
-      // NOTE: This READ operation requires 'allow read: if request.auth != null;' on the /users collection
       const usersSnap = await db.collection("users").get(); 
       const me = (await db.collection("users").doc(currentUser.uid).get()).data();
       suggestedTab.innerHTML = ""; 
@@ -158,9 +193,9 @@ async function loadSuggested(){
 
       let suggestedCount = 0;
       usersSnap.forEach(doc=>{
-        if(doc.id === currentUser.uid) return; // skip self
-        if(myFriends.includes(doc.id)) return; // skip friends
-        if(pendingUsers.has(doc.id)) return; // skip users with pending requests
+        if(doc.id === currentUser.uid) return; 
+        if(myFriends.includes(doc.id)) return; 
+        if(pendingUsers.has(doc.id)) return; 
         
         const u = doc.data();
         const card = document.createElement("div");
@@ -259,7 +294,6 @@ async function loadFriends(){
 // ---------------- REQUEST ACTIONS ----------------
 async function sendRequest(receiverId){
   try {
-      // Check for existing request
       const existingRequestSnap = await db.collection("friendRequests")
         .where("senderId", "==", currentUser.uid)
         .where("receiverId", "==", receiverId)
@@ -275,8 +309,6 @@ async function sendRequest(receiverId){
         return; 
       }
 
-      // Create new request
-      // NOTE: This CREATE operation requires 'allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;'
       await db.collection("friendRequests").add({
         senderId: currentUser.uid,
         receiverId: receiverId
@@ -285,7 +317,7 @@ async function sendRequest(receiverId){
       alert("Request sent!"); 
       loadSuggested(); 
   } catch(err) {
-      alert("Error sending request: Please check your security rules for 'friendRequests' create operation. Error: " + err.message);
+      alert("Error sending request: " + err.message);
       console.error("Send Request Error:", err);
   }
 }
@@ -295,11 +327,8 @@ function acceptRequest(requestId,senderId){
   const senderRef = db.collection("users").doc(senderId);
   
   db.runTransaction(async (transaction) => {
-    // These UPDATEs require 'allow update: if request.auth.uid == userId;' on the /users collection
     transaction.update(meRef, {friends: firebase.firestore.FieldValue.arrayUnion(senderId)});
     transaction.update(senderRef, {friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
-    
-    // This DELETE requires 'allow delete: if request.auth != null && (resource.data.receiverId == request.auth.uid);' on friendRequests
     transaction.delete(db.collection("friendRequests").doc(requestId));
   }).then(() => {
     alert("Request accepted! You are now friends.");
@@ -313,12 +342,11 @@ function acceptRequest(requestId,senderId){
 }
 
 function rejectRequest(requestId){
-  // This DELETE requires 'allow delete: if request.auth != null && (resource.data.receiverId == request.auth.uid);' on friendRequests
   db.collection("friendRequests").doc(requestId).delete().then(() => {
     alert("Request rejected.");
     loadRequests();
   }).catch(err => {
-    alert("Error rejecting request: Please check permissions for deletion on /friendRequests. Error: " + err.message);
+    alert("Error rejecting request: " + err.message);
     console.error("Reject Request Error:", err);
   });
 }
@@ -331,7 +359,6 @@ function removeFriend(friendId){
   const friendRef = db.collection("users").doc(friendId);
   
   db.runTransaction(async (transaction) => {
-    // Both UPDATEs require 'allow update: if request.auth.uid == userId;' on the /users collection
     transaction.update(meRef, {friends: firebase.firestore.FieldValue.arrayRemove(friendId)});
     transaction.update(friendRef, {friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)});
   }).then(() => {
@@ -339,7 +366,7 @@ function removeFriend(friendId){
     loadFriends(); 
     loadSuggested(); 
   }).catch(err => {
-    alert("Removal failed (Remove Friend): Please check permissions for updates on /users. Error: " + err.message);
+    alert("Removal failed (Remove Friend): " + err.message);
     console.error("Remove Friend Error:", err);
   });
 }
