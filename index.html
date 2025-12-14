@@ -3,257 +3,342 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DUO Up</title>
-<link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+<title>DUO UP</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
 <style>
-body { margin:0; font-family:'Orbitron',sans-serif; background:linear-gradient(270deg,#0D0D0D,#1A1A1A,#0D0D0D); background-size:600% 600%; animation:gradientAnimation 15s ease infinite; color:white; display:flex; flex-direction:column; align-items:center; min-height:100vh; }
-@keyframes gradientAnimation { 0%{background-position:0% 50%} 50%{background-position:100% 50%} 100%{background-position:0% 50%} }
-.hidden{ display:none; }
-.neon-btn{ padding:8px 20px; font-weight:bold; color:white; background:transparent; border:2px solid #00FFFF; border-radius:6px; cursor:pointer; box-shadow:0 0 5px #00FFFF,0 0 10px #00FFFF,0 0 20px #00FFFF; margin:5px; }
-.neon-btn:hover{ border-color:#FF00FF; box-shadow:0 0 10px #FF00FF,0 0 20px #FF00FF,0 0 30px #FF00FF; }
-input, select{ padding:8px; border-radius:6px; border:2px solid #00FFFF; background:transparent; color:white; margin:5px 0; }
-.header{ display:flex; justify-content:space-between; width:90%; margin-top:10px; }
-.main{ display:flex; gap:20px; width:90%; margin-top:20px; }
-.card-container{ display:flex; flex-wrap:wrap; gap:15px; }
-.card{ background:#1A1A1A; border:2px solid #00FFFF; border-radius:16px; padding:15px; width:280px; box-shadow:0 0 5px #00FFFF,0 0 10px #00FFFF,0 0 20px #00FFFF; transition:0.3s; }
-.card:hover{ border-color:#FF00FF; box-shadow:0 0 10px #FF00FF,0 0 20px #FF00FF,0 0 30px #FF00FF; }
-.chat-panel{ background:#0D0D0D; border:2px solid #FF00FF; border-radius:16px; padding:15px; width:400px; max-height:400px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
-.message{ display:flex; align-items:flex-end; gap:10px; }
-.message.outgoing{ flex-direction:row-reverse; }
-.message-bubble{ padding:10px 15px; border-radius:12px; max-width:70%; word-wrap: break-word; position: relative; }
-.neon-incoming{ background:#1A1A1A; border:2px solid #00FFFF; box-shadow:0 0 5px #00FFFF,0 0 10px #00FFFF,0 0 20px #00FFFF; }
-.neon-outgoing{ background:#1A1A1A; border:2px solid #FF00FF; box-shadow:0 0 5px #FF00FF,0 0 10px #FF00FF,0 0 20px #FF00FF; }
-#profileEditor{ background:#1A1A1A; border:2px solid #00FFFF; border-radius:12px; padding:15px; width:300px; margin-top:20px; }
-#profilePreview{ width:80px; height:80px; border-radius:50%; border:2px solid #00FFFF; margin-bottom:10px; object-fit:cover; }
-.avatar{ width:50px; height:50px; border-radius:50%; object-fit:cover; margin-right:10px; }
+body{margin:0;font-family:'Orbitron',sans-serif;background:#0b0b0b;color:white;}
+.hidden{display:none;}
+.container{width:90%;margin:auto;padding:20px;}
+.neon-btn{border:2px solid cyan;background:transparent;color:white;padding:8px 14px;margin:5px;border-radius:6px;cursor:pointer;box-shadow:0 0 10px cyan;}
+.neon-btn:hover{border-color:magenta;box-shadow:0 0 15px magenta;}
+.flex{display:flex;gap:15px;flex-wrap:wrap;}
+.card{width:260px;padding:15px;border:2px solid cyan;border-radius:14px;background:#111;box-shadow:0 0 10px cyan;}
+.avatar{width:48px;height:48px;border-radius:50%;border:2px solid cyan;object-fit:cover;}
+.user{display:flex;gap:10px;align-items:center;}
+.input{width:100%;padding:8px;margin:5px 0;background:#000;border:2px solid cyan;color:white;border-radius:6px;}
+.status-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:5px;}
+#chatMessages{flex-direction:column;max-height:400px;overflow-y:auto;}
+.message-bubble{padding:8px 12px;border-radius:12px;max-width:70%;margin:5px 0;position:relative;word-wrap:break-word;}
+.message-incoming{background:#111;border:2px solid cyan;align-self:flex-start;box-shadow:0 0 5px cyan;}
+.message-outgoing{background:#111;border:2px solid magenta;align-self:flex-end;box-shadow:0 0 5px magenta;}
+.message-header{font-size:0.8em;color:gray;margin-bottom:2px;}
 </style>
 </head>
 <body>
 
-<!-- Login Page -->
-<div id="loginPage">
-  <h1>DUO Up</h1>
-  <button type="button" class="neon-btn" onclick="loginWithGoogle()">Login with Google</button>
+<!-- LOGIN -->
+<div id="loginPage" class="container">
+  <h1>DUO UP</h1>
+  <button class="neon-btn" onclick="loginWithGoogle()">Login with Google</button>
 </div>
 
-<!-- Pick Username Page -->
-<div id="pickUsernamePage" class="hidden">
-  <h2>Pick Your Username</h2>
-  <input type="text" id="usernameInput" placeholder="Enter username">
-  <button type="button" class="neon-btn" onclick="saveUsername()">Submit</button>
-  <button type="button" class="neon-btn" onclick="logout()">Logout</button>
+<!-- USERNAME -->
+<div id="usernamePage" class="container hidden">
+  <h2>Choose a Username</h2>
+  <input id="usernameInput" class="input" placeholder="Username">
+  <button class="neon-btn" onclick="saveUsername()">Continue</button>
 </div>
 
-<!-- Dashboard -->
-<div id="dashboardPage" class="hidden">
-  <div class="header">
-    <span id="welcomeUsername">Welcome, Gamer</span>
-    <div>
-      <button class="neon-btn" onclick="openProfileEditor()">Edit Profile</button>
-      <button class="neon-btn" onclick="logout()">Logout</button>
-    </div>
-  </div>
+<!-- DASHBOARD -->
+<div id="dashboard" class="container hidden">
+  <h2 id="welcome"></h2>
+  <button class="neon-btn" onclick="showTab('suggested')">Suggested</button>
+  <button class="neon-btn" onclick="showTab('requests')">Requests</button>
+  <button class="neon-btn" onclick="showTab('friends')">Friends</button>
+  <button class="neon-btn" onclick="openProfile()">Profile</button>
+  <button class="neon-btn" onclick="logout()">Logout</button>
 
-  <div class="main">
-    <div>
-      <h2>Friend Requests</h2>
-      <div class="card-container" id="friendRequests"></div>
+  <div id="suggestedTab" class="flex"></div>
+  <div id="requestsTab" class="flex hidden"></div>
+  <div id="friendsTab" class="flex hidden"></div>
+</div>
 
-      <h2>Suggested Duos</h2>
-      <div class="card-container" id="suggestedDuos"></div>
+<!-- PROFILE -->
+<div id="profilePage" class="container hidden">
+  <h2>Edit Profile</h2>
+  <img id="profilePreview" class="avatar"><br><br>
+  <input type="file" id="profileImage">
+  <input id="statusInput" class="input" placeholder="Status">
+  <button class="neon-btn" onclick="saveProfile()">Save</button>
+  <button class="neon-btn" onclick="closeProfile()">Back</button>
+</div>
 
-      <h2>Active Duos</h2>
-      <div class="card-container" id="activeDuos"></div>
-    </div>
-
-    <div>
-      <h2>Chat</h2>
-      <div class="chat-panel" id="chatPanel"></div>
-      <div class="chat-input">
-        <input type="text" id="messageInput" placeholder="Type a message...">
-        <button class="neon-btn" onclick="sendMessage()">Send</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Profile Editor -->
-  <div id="profileEditor" class="hidden">
-    <h2>Edit Profile</h2>
-    <div>
-      <img id="profilePreview" src="" alt="Profile Preview">
-      <input type="file" id="profileImageInput" accept="image/*">
-    </div>
-    <input type="text" id="editUsername" placeholder="Username">
-    <input type="text" id="editStatus" placeholder="Status message">
-    <div id="gameSelection"></div>
-    <button class="neon-btn" onclick="saveProfile()">Save</button>
-    <button class="neon-btn" onclick="closeProfileEditor()">Cancel</button>
-  </div>
+<!-- CHAT -->
+<div id="chatPage" class="container hidden">
+  <h2 id="chatWith"></h2>
+  <div id="chatMessages" class="flex"></div>
+  <input id="chatInput" class="input" placeholder="Type a message">
+  <button class="neon-btn" onclick="sendMessage()">Send</button>
+  <button class="neon-btn" onclick="closeChat()">Back</button>
 </div>
 
 <script>
-const DEFAULT_AVATAR="https://cdn-icons-png.flaticon.com/512/3135/3135715.png";
-
-const firebaseConfig = {
+const firebaseConfig={
   apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
   authDomain:"duoup-cfae6.firebaseapp.com",
   projectId:"duoup-cfae6",
   storageBucket:"duoup-cfae6.firebasestorage.app",
   messagingSenderId:"812263060524",
-  appId:"1:812263060524:web:ac09c3ae610db1cd110d89",
-  measurementId:"G-46B67F90FK"
+  appId:"1:812263060524:web:ac09c3ae610db1cd110d89"
 };
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth();
 const db=firebase.firestore();
 const storage=firebase.storage();
+const DEFAULT_AVATAR="https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-const loginPage=document.getElementById("loginPage");
-const pickUsernamePage=document.getElementById("pickUsernamePage");
-const dashboardPage=document.getElementById("dashboardPage");
-const profileImageInput=document.getElementById("profileImageInput");
-const profilePreview=document.getElementById("profilePreview");
+const suggestedTab=document.getElementById("suggestedTab");
+const requestsTab=document.getElementById("requestsTab");
+const friendsTab=document.getElementById("friendsTab");
 
-// ---------------- Google Login ----------------
+let currentChatUser = null;
+
+// ---------------- LOGIN ----------------
 function loginWithGoogle(){
-  const provider=new firebase.auth.GoogleAuthProvider();
-  auth.signInWithPopup(provider).then(result=>{
-    checkNickname(result.user);
-  }).catch(err=>alert("Google login failed: "+err.message));
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(err=>alert(err.message));
 }
 
-function checkNickname(user){
-  const userRef=db.collection("users").doc(user.uid);
-  userRef.get().then(doc=>{
-    if(doc.exists && doc.data().nickname){
-      showDashboard(doc.data());
-    } else {
-      loginPage.classList.add("hidden");
-      pickUsernamePage.classList.remove("hidden");
-    }
-  });
-}
-
-// ---------------- Pick Username ----------------
-function saveUsername(){
-  const nickname=document.getElementById("usernameInput").value.trim();
-  if(!nickname) return alert("Enter a username");
-  const user=auth.currentUser;
-  if(!user) return alert("No logged-in user found");
-
-  db.collection("users").doc(user.uid).set({
-    nickname: nickname,
-    uid: user.uid,
-    email: user.email,
-    authType: "google",
-    lastActive: firebase.firestore.FieldValue.serverTimestamp(),
-    bio: "",
-    friends: [],
-    profileImageUrl: user.photoURL || DEFAULT_AVATAR,
-    isPremium: false,
-    status: "online",
-    favoriteGames: []
-  }, {merge:true}).then(()=>{
-    pickUsernamePage.classList.add("hidden");
-    showDashboard({nickname: nickname, profileImageUrl: user.photoURL || DEFAULT_AVATAR});
-  }).catch(err=>alert("Error saving username: "+err.message));
-}
-
-// ---------------- Dashboard ----------------
-function showDashboard(userData){
-  dashboardPage.classList.remove("hidden");
-  loginPage.classList.add("hidden");
-  pickUsernamePage.classList.add("hidden");
-  document.getElementById("welcomeUsername").innerText="Welcome, "+userData.nickname;
-  if(userData.profileImageUrl) profilePreview.src=userData.profileImageUrl;
-  // placeholder functions
-  loadFriendRequests();
-  loadSuggestedDuos();
-  loadActiveDuos();
-}
-
-// ---------------- Logout ----------------
-function logout(){
-  auth.signOut().then(()=>{
+// ---------------- AUTH STATE ----------------
+auth.onAuthStateChanged(async user=>{
+  if(!user){
     loginPage.classList.remove("hidden");
-    pickUsernamePage.classList.add("hidden");
-    dashboardPage.classList.add("hidden");
-  });
-}
-
-// ---------------- Profile Editor ----------------
-profileImageInput.addEventListener("change", (e) => {
-  const file = e.target.files[0];
-  if(file){
-    const reader = new FileReader();
-    reader.onload = function(ev){ profilePreview.src = ev.target.result; };
-    reader.readAsDataURL(file);
+    usernamePage.classList.add("hidden");
+    dashboard.classList.add("hidden");
+    profilePage.classList.add("hidden");
+    chatPage.classList.add("hidden");
+    return;
+  }
+  loginPage.classList.add("hidden");
+  const ref=db.collection("users").doc(user.uid);
+  const snap=await ref.get();
+  if(!snap.exists){ 
+    usernamePage.classList.remove("hidden"); 
+  } else { 
+    usernamePage.classList.add("hidden"); 
+    loadDashboard(snap.data()); 
   }
 });
 
-function openProfileEditor(){
-  document.getElementById("profileEditor").classList.remove("hidden");
-  const userRef=db.collection("users").doc(auth.currentUser.uid);
-  userRef.get().then(doc=>{
-    const data=doc.data();
-    document.getElementById("editUsername").value=data.nickname||"";
-    document.getElementById("editStatus").value=data.status||"";
-    profilePreview.src = data.profileImageUrl || DEFAULT_AVATAR;
+// ---------------- SAVE USERNAME ----------------
+function saveUsername(){
+  const name=usernameInput.value.trim();
+  if(!name) return alert("Username required");
+  const user=auth.currentUser;
+  db.collection("users").doc(user.uid).set({
+    uid:user.uid,
+    nickname:name,
+    email:user.email,
+    authType:"google",
+    lastActive:firebase.firestore.FieldValue.serverTimestamp(),
+    bio:"",
+    friends:[],
+    profileImageUrl:user.photoURL||DEFAULT_AVATAR,
+    isPremium:false,
+    status:"online",
+    favoriteGames:[]
+  })
+  .then(()=>{
+    usernamePage.classList.add("hidden");
+    loadDashboard({nickname:name});
+  })
+  .catch(err=>alert("Error creating profile: "+err.message));
+}
+
+// ---------------- DASHBOARD ----------------
+function loadDashboard(data){
+  dashboard.classList.remove("hidden");
+  welcome.innerText="Welcome, "+data.nickname;
+  loadSuggested(); loadRequests(); loadFriends();
+  showTab("suggested");
+}
+
+function logout(){ auth.signOut(); }
+
+// ---------------- TABS ----------------
+function showTab(tab){
+  suggestedTab.classList.add("hidden");
+  requestsTab.classList.add("hidden");
+  friendsTab.classList.add("hidden");
+  document.getElementById(tab+"Tab").classList.remove("hidden");
+}
+
+// ---------------- SUGGESTED ----------------
+function loadSuggested(){
+  suggestedTab.innerHTML="";
+  const currentUserId=auth.currentUser.uid;
+  db.collection("users").get().then(snap=>{
+    snap.forEach(u=>{
+      if(u.id===currentUserId) return;
+      db.collection("users").doc(currentUserId).get().then(me=>{
+        const friends=me.data().friends||[];
+        if(friends.includes(u.id)) return; // Skip existing friends
+        const d=u.data();
+        const card=document.createElement("div");
+        card.className="card";
+        card.innerHTML=`<div class="user">
+          <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
+          <strong>${d.nickname}</strong></div><br>
+          <button class="neon-btn" onclick="sendRequest('${u.id}')">DUO UP</button>`;
+        suggestedTab.appendChild(card);
+      });
+    });
   });
 }
 
-function closeProfileEditor(){
-  document.getElementById("profileEditor").classList.add("hidden");
+// ---------------- SEND REQUEST ----------------
+function sendRequest(id){
+  db.collection("friendRequests").add({
+    senderId:auth.currentUser.uid,
+    receiverId:id,
+    status:"pending",
+    timestamp:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(()=>alert("Request sent!"));
+}
+
+// ---------------- REQUESTS ----------------
+function loadRequests(){
+  db.collection("friendRequests")
+    .where("receiverId","==",auth.currentUser.uid)
+    .where("status","==","pending")
+    .onSnapshot(snap=>{
+      requestsTab.innerHTML="";
+      if(snap.empty){ requestsTab.innerHTML="<p>No requests</p>"; }
+      snap.forEach(r=>{
+        db.collection("users").doc(r.data().senderId).get().then(u=>{
+          const d=u.data();
+          const card=document.createElement("div");
+          card.className="card";
+          card.innerHTML=`<div class="user">
+            <img class="avatar" src="${d.profileImageUrl||DEFAULT_AVATAR}">
+            <strong>${d.nickname}</strong></div><br>
+            <button class="neon-btn" onclick="acceptRequest('${r.id}','${u.id}')">Accept</button>
+            <button class="neon-btn" onclick="rejectRequest('${r.id}')">Reject</button>`;
+          requestsTab.appendChild(card);
+        });
+      });
+    });
+}
+
+function acceptRequest(rid,sender){
+  db.collection("friendRequests").doc(rid).update({status:"accepted"});
+  db.collection("users").doc(auth.currentUser.uid)
+    .update({friends:firebase.firestore.FieldValue.arrayUnion(sender)});
+  db.collection("users").doc(sender)
+    .update({friends:firebase.firestore.FieldValue.arrayUnion(auth.currentUser.uid)});
+}
+
+function rejectRequest(id){
+  db.collection("friendRequests").doc(id).update({status:"rejected"});
+}
+
+// ---------------- FRIENDS ----------------
+function loadFriends(){
+  const userRef = db.collection("users").doc(auth.currentUser.uid);
+  userRef.onSnapshot(doc => {
+    friendsTab.innerHTML = "";
+    const friends = doc.data().friends || [];
+    if(friends.length === 0){ friendsTab.innerHTML="<p>No friends yet</p>"; return; }
+    friends.forEach(fid=>{
+      db.collection("users").doc(fid).get().then(u=>{
+        const d=u.data();
+        const avatar=d.profileImageUrl||DEFAULT_AVATAR;
+        const statusColor=d.status==="online"?"green":"gray";
+        const card=document.createElement("div");
+        card.className="card";
+        card.innerHTML=`<div class="user">
+          <img class="avatar" src="${avatar}">
+          <strong>${d.nickname}</strong>
+          <span class="status-dot" style="background:${statusColor}"></span>
+        </div>
+        <button class="neon-btn" onclick="openChat('${fid}')">Chat</button>`;
+        friendsTab.appendChild(card);
+      });
+    });
+  });
+}
+
+// ---------------- PROFILE ----------------
+function openProfile(){
+  dashboard.classList.add("hidden");
+  profilePage.classList.remove("hidden");
+  db.collection("users").doc(auth.currentUser.uid).get().then(d=>{
+    profilePreview.src=d.data().profileImageUrl||DEFAULT_AVATAR;
+    statusInput.value=d.data().status||"";
+  });
+}
+
+function closeProfile(){
+  profilePage.classList.add("hidden");
+  dashboard.classList.remove("hidden");
 }
 
 function saveProfile(){
-  const nickname=document.getElementById("editUsername").value.trim();
-  const status=document.getElementById("editStatus").value.trim();
-  const file=profileImageInput.files[0];
-  const userId=auth.currentUser.uid;
-  if(!nickname) return alert("Username cannot be empty");
-
-  function saveData(profileImageUrl){
-    db.collection("users").doc(userId).set({
-      nickname: nickname,
-      status: status,
-      profileImageUrl: profileImageUrl,
-      lastActive: firebase.firestore.FieldValue.serverTimestamp()
-    }, {merge:true}).then(()=>{
-      document.getElementById("welcomeUsername").innerText="Welcome, "+nickname;
-      profilePreview.src=profileImageUrl;
-      closeProfileEditor();
-    }).catch(err=>alert("Error saving profile: "+err.message));
-  }
-
+  const file=profileImage.files[0];
   if(file){
-    const storageRef=storage.ref(`profileImages/${userId}/${file.name}`);
-    storageRef.put(file).then(snap=>snap.ref.getDownloadURL()).then(url=>saveData(url))
-      .catch(err=>alert("Upload failed: "+err.message));
-  } else {
-    saveData(profilePreview.src || DEFAULT_AVATAR);
-  }
+    const ref=storage.ref("avatars/"+auth.currentUser.uid);
+    ref.put(file).then(()=>ref.getDownloadURL().then(url=>updateProfile(url)));
+  } else { updateProfile(null); }
 }
 
-// ---------------- Placeholder functions ----------------
-function loadFriendRequests(){ /* Firestore integration */ }
-function loadSuggestedDuos(){ /* Firestore integration */ }
-function loadActiveDuos(){ /* Firestore integration */ }
-function sendMessage(){ /* Firestore integration */ }
+function updateProfile(url){
+  const data={ status:statusInput.value };
+  if(url) data.profileImageUrl=url;
+  db.collection("users").doc(auth.currentUser.uid).update(data).then(closeProfile);
+}
 
-// ---------------- Auth State ----------------
-auth.onAuthStateChanged(user=>{
-  if(user) checkNickname(user);
-  else {
-    loginPage.classList.remove("hidden");
-    pickUsernamePage.classList.add("hidden");
-    dashboardPage.classList.add("hidden");
-  }
-});
+// ---------------- CHAT ----------------
+function openChat(friendId){
+  currentChatUser = friendId;
+  dashboard.classList.add("hidden");
+  chatPage.classList.remove("hidden");
+  db.collection("users").doc(friendId).get().then(doc=>{
+    chatWith.innerText = "Chat with " + doc.data().nickname;
+  });
+  loadMessages();
+}
+
+function loadMessages(){
+  if(!currentChatUser) return;
+  chatMessages.innerHTML = "";
+  db.collection("messages")
+    .where("senderId","in",[auth.currentUser.uid,currentChatUser])
+    .where("receiverId","in",[auth.currentUser.uid,currentChatUser])
+    .orderBy("timestamp")
+    .onSnapshot(snap=>{
+      chatMessages.innerHTML="";
+      snap.forEach(m=>{
+        const msg = m.data();
+        const bubble=document.createElement("div");
+        bubble.className="message-bubble "+(msg.senderId===auth.currentUser.uid?"message-outgoing":"message-incoming");
+        bubble.innerHTML=`<div class="message-header">${msg.senderId===auth.currentUser.uid?"You":"Friend"} - ${msg.timestamp?.toDate().toLocaleTimeString()||""}</div>
+        <div>${msg.content}</div>`;
+        chatMessages.appendChild(bubble);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      });
+    });
+}
+
+function sendMessage(){
+  const text = chatInput.value.trim();
+  if(!text || !currentChatUser) return;
+  db.collection("messages").add({
+    senderId: auth.currentUser.uid,
+    receiverId: currentChatUser,
+    content: text,
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  chatInput.value = "";
+}
+
+function closeChat(){
+  currentChatUser = null;
+  chatPage.classList.add("hidden");
+  dashboard.classList.remove("hidden");
+}
 </script>
 </body>
 </html>
