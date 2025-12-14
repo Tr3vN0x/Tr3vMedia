@@ -195,8 +195,7 @@ body {
     <div id="profileEditor">
         <img id="currentAvatar" src="" alt="Current Profile Picture">
         
-        <label for="nicknameInput">Nickname:</label>
-        <input type="text" id="nicknameInput" maxlength="20">
+        <p><b>Nickname:</b> <span id="currentNicknameDisplay"></span></p>
 
         <label for="bioInput">Bio:</label>
         <textarea id="bioInput" rows="3" maxlength="150" placeholder="Tell the community about yourself..."></textarea>
@@ -217,7 +216,7 @@ body {
 
 
 <script>
-// --- FIREBASE CONFIGURATION (Update this block with your actual details) ---
+// --- FIREBASE CONFIGURATION (UPDATE THIS BLOCK) ---
 const firebaseConfig = {
   apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
   authDomain:"duoup-cfae6.firebaseapp.com",
@@ -231,6 +230,10 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
+// --- VERIFIED USER CONSTANT (UPDATE THIS UID) ---
+// IMPORTANT: Replace 'Tr3vN0x_UID_HERE' with the actual UID for the user you want verified.
+const VERIFIED_UIDS = ["Tr3vN0x_UID_HERE"]; 
+
 // UI Element References
 const loginPage = document.getElementById("loginPage");
 const dashboard = document.getElementById("dashboard");
@@ -242,12 +245,21 @@ const profileViewer = document.getElementById("profileViewer");
 
 // Profile Editor Elements
 const currentAvatar = document.getElementById("currentAvatar");
-const nicknameInput = document.getElementById("nicknameInput");
+const currentNicknameDisplay = document.getElementById("currentNicknameDisplay"); // New
 const bioInput = document.getElementById("bioInput");
 const gamesInput = document.getElementById("gamesInput");
 const avatarUrlInput = document.getElementById("avatarUrlInput");
 
 let currentUser = null;
+
+// Helper function to render the verified badge
+function getVerifiedBadge(uid) {
+    if (VERIFIED_UIDS.includes(uid)) {
+        // Neon blue star badge
+        return '<span style="color: cyan; text-shadow: 0 0 5px cyan; margin-left: 5px;" title="Verified User">★</span>';
+    }
+    return '';
+}
 
 // ---------------- LOGIN/AUTH ----------------
 function login(){
@@ -264,21 +276,32 @@ auth.onAuthStateChanged(async user=>{
   dashboard.classList.remove("hidden");
   currentUser = user;
 
-  const userDoc = await db.collection("users").doc(user.uid).get();
+  const userDocRef = db.collection("users").doc(user.uid);
+  const userDoc = await userDocRef.get();
+  
+  const isVerified = VERIFIED_UIDS.includes(user.uid);
+
   if(!userDoc.exists){
-    await db.collection("users").doc(user.uid).set({
+    await userDocRef.set({
       uid: user.uid,
-      nickname: user.displayName||"Player",
+      // Nickname is set from Google display name and cannot be changed by the user
+      nickname: user.displayName||"Player", 
       bio: "", 
       games: [], 
       friends: [],
       nicknames: {}, 
-      profileImageUrl: user.photoURL||DEFAULT_AVATAR
+      profileImageUrl: user.photoURL||DEFAULT_AVATAR,
+      isVerified: isVerified 
     });
+  } else {
+    // Ensure existing users also get their verified status updated if needed
+    if (userDoc.data().isVerified !== isVerified) {
+        await userDocRef.update({ isVerified: isVerified });
+    }
   }
 
-  const data = (await db.collection("users").doc(user.uid).get()).data();
-  document.getElementById("welcome").innerText = "Welcome, "+data.nickname;
+  const data = (await userDocRef.get()).data();
+  document.getElementById("welcome").innerHTML = `Welcome, ${data.nickname}${getVerifiedBadge(data.uid)}`;
 
   loadSuggested();
   loadRequests();
@@ -319,10 +342,9 @@ function showTab(tab){
   }
 }
 
-// ---------------- PROFILE VIEWER LOGIC (Static Friend Count) ----------------
+// ---------------- PROFILE VIEWER LOGIC ----------------
 
 function loadOtherUsersFriendsStatic(friendCount, containerElement) {
-    // Shows static text instead of trying to fetch and display every single friend profile
     containerElement.innerHTML = `<p style="opacity: 0.8;">This player has **${friendCount}** connections. Connect with them to find your next duo!</p>`;
 }
 
@@ -367,6 +389,7 @@ async function viewProfile(targetUserId) {
             actionButtonHTML = `<button class="neon-btn" onclick="sendRequest('${targetUserId}'); showTab('suggested');">Send Request</button>`;
         }
 
+        const badgeHtml = getVerifiedBadge(u.uid);
 
         profileViewer.innerHTML = `
             <button class="neon-btn" style="margin-bottom: 20px;" onclick="showTab('suggested')">← Back</button>
@@ -374,7 +397,7 @@ async function viewProfile(targetUserId) {
             <div class="profile-header">
                 <img src="${u.profileImageUrl || DEFAULT_AVATAR}" alt="${u.nickname}">
                 <div>
-                    <h2>${u.nickname}</h2>
+                    <h2>${u.nickname}${badgeHtml}</h2>
                     ${actionButtonHTML}
                 </div>
             </div>
@@ -407,7 +430,8 @@ async function viewProfile(targetUserId) {
 // ---------------- PROFILE EDITOR FUNCTIONS ----------------
 function loadProfileEditor(data){
     data = data || {};
-    nicknameInput.value = data.nickname || currentUser.displayName || "Player";
+    // Display current read-only nickname
+    currentNicknameDisplay.innerText = data.nickname || "Player";
     bioInput.value = data.bio || "";
     gamesInput.value = (data.games || []).join(', ');
     avatarUrlInput.value = data.profileImageUrl || currentUser.photoURL || "";
@@ -416,14 +440,15 @@ function loadProfileEditor(data){
 
 async function saveProfile(){
     if (!currentUser) return;
-    const newNickname = nicknameInput.value.trim();
-    if (newNickname.length < 2) {
-        alert("Nickname must be at least 2 characters long.");
-        return;
-    }
+    
+    // Fetch current nickname (since it's read-only)
+    const currentData = (await db.collection("users").doc(currentUser.uid).get()).data();
+    const currentNickname = currentData.nickname;
+
     const gamesArray = gamesInput.value.split(',').map(game => game.trim()).filter(game => game !== '');
+    
     const profileUpdates = {
-        nickname: newNickname,
+        // Nickname is excluded from user updates
         bio: bioInput.value.trim(),
         games: gamesArray,
         profileImageUrl: avatarUrlInput.value.trim() || DEFAULT_AVATAR
@@ -432,7 +457,10 @@ async function saveProfile(){
     try {
         await db.collection("users").doc(currentUser.uid).update(profileUpdates);
         alert("Profile updated successfully!");
-        document.getElementById("welcome").innerText = "Welcome, "+newNickname;
+        
+        // Update welcome message (since nickname wasn't changed)
+        document.getElementById("welcome").innerHTML = `Welcome, ${currentNickname}${getVerifiedBadge(currentUser.uid)}`;
+        
         loadSuggested();
         loadFriends();
     } catch(error) {
@@ -497,9 +525,10 @@ async function loadSuggested(){
         card.setAttribute('onclick', `viewProfile('${doc.id}')`);
         
         const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
+        const badgeHtml = getVerifiedBadge(u.uid);
 
         card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
-          <strong>${u.nickname}</strong>
+          <strong>${u.nickname}${badgeHtml}</strong>
           ${gamesPreview}
           <button class="neon-btn" onclick="event.stopPropagation(); sendRequest('${doc.id}')">Send Request</button>`;
         suggestedTab.appendChild(card);
@@ -545,11 +574,12 @@ async function loadRequests(){
         card.className = "card";
         card.setAttribute('onclick', `viewProfile('${data.senderId}')`);
 
-
         const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
+        const badgeHtml = getVerifiedBadge(u.uid);
+
 
         card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
-          <strong>${u.nickname}</strong>
+          <strong>${u.nickname}${badgeHtml}</strong>
           ${gamesPreview}
           <button class="neon-btn" onclick="event.stopPropagation(); acceptRequest('${data.requestId}','${data.senderId}')">Accept</button>
           <button class="neon-btn" onclick="event.stopPropagation(); rejectRequest('${data.requestId}')">Reject</button>`;
@@ -590,9 +620,11 @@ async function loadFriends(){
         const displayNickname = myNicknames[doc.id] || u.nickname;
 
         const gamesPreview = (u.games && u.games.length > 0) ? `<p style="font-size:0.8em; margin: 5px 0;">${u.games.slice(0, 1).join(', ')}...</p>` : '';
+        const badgeHtml = getVerifiedBadge(u.uid);
+
 
         card.innerHTML = `<img class="avatar" src="${u.profileImageUrl||DEFAULT_AVATAR}">
-          <strong>${displayNickname}</strong>
+          <strong>${displayNickname}${badgeHtml}</strong>
           ${gamesPreview}
           <button class="neon-btn" onclick="event.stopPropagation(); saveFriendNickname('${doc.id}', '${u.nickname}')">Edit Nickname</button>
           <button class="neon-btn remove" onclick="event.stopPropagation(); removeFriend('${doc.id}')">Remove</button>`;
