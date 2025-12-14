@@ -36,10 +36,13 @@
   .chat-panel{ background:#0D0D0D; border:2px solid #FF00FF; border-radius:16px; padding:15px; width:400px; max-height:400px; display:flex; flex-direction:column; gap:10px; overflow-y:auto; }
   .message{ display:flex; align-items:flex-end; gap:10px; }
   .message.outgoing{ flex-direction:row-reverse; }
-  .message-bubble{ padding:10px 15px; border-radius:12px; max-width:70%; font-family:'Orbitron',sans-serif; word-wrap: break-word; }
+  .message-bubble{ padding:10px 15px; border-radius:12px; max-width:70%; font-family:'Orbitron',sans-serif; word-wrap: break-word; position: relative; }
   .neon-incoming{ background:#1A1A1A; border:2px solid #00FFFF; box-shadow:0 0 5px #00FFFF,0 0 10px #00FFFF,0 0 20px #00FFFF; }
   .neon-outgoing{ background:#1A1A1A; border:2px solid #FF00FF; box-shadow:0 0 5px #FF00FF,0 0 10px #FF00FF,0 0 20px #FF00FF; }
   .avatar-small{ width:30px; height:30px; border-radius:50%; border:2px solid #00FFFF; }
+  .avatar-small-container{ position: relative; }
+  .premium-badge{ position: absolute; top:-5px; right:-5px; background:#FFD700; color:#0D0D0D; border-radius:50%; font-size:0.8em; font-weight:bold; width:16px; height:16px; display:flex; align-items:center; justify-content:center; box-shadow:0 0 5px #FFD700,0 0 10px #FFD700; }
+  .timestamp{ font-size:0.7em; color:#AAA; margin-top:4px; text-align:right; }
 
   .chat-input{ display:flex; gap:10px; }
   .chat-input input{ flex:1; padding:8px; border-radius:8px; border:2px solid #00FFFF; background:transparent; color:white; }
@@ -119,6 +122,7 @@
             username:username,
             status:"online",
             profileImageUrl:"https://i.pravatar.cc/60",
+            isPremium:false,
             createdAt:firebase.firestore.FieldValue.serverTimestamp()
           },{merge:true}).then(()=>{document.getElementById("username").innerText="Welcome, "+username;});
         }
@@ -136,7 +140,10 @@
           const card=document.createElement("div");
           card.className="card";
           card.innerHTML=`
-            <div class="avatar-container"><img src="${sender.profileImageUrl}" class="avatar-small"></div>
+            <div class="avatar-small-container">
+              <img src="${sender.profileImageUrl}" class="avatar-small">
+              ${sender.isPremium?'<span class="premium-badge">★</span>':''}
+            </div>
             <h3>${sender.username}</h3>
             <p>wants to duo in ${req.gameSlug}</p>
             <button class="neon-btn" onclick="acceptRequest('${doc.id}','${req.senderId}','${req.gameSlug}')">Accept</button>
@@ -156,7 +163,10 @@
           const card=document.createElement("div");
           card.className="card";
           card.innerHTML=`
-            <div class="avatar-container"><img src="${u.profileImageUrl}" class="avatar-small"></div>
+            <div class="avatar-small-container">
+              <img src="${u.profileImageUrl}" class="avatar-small">
+              ${u.isPremium?'<span class="premium-badge">★</span>':''}
+            </div>
             <h3>${u.username}</h3>
             <p>Suggested Duo</p>
             <button class="neon-btn" onclick="sendFriendRequest('${doc.id}')">Send Request</button>
@@ -175,7 +185,10 @@
           const card=document.createElement("div");
           card.className="card";
           card.innerHTML=`
-            <div class="avatar-container"><img src="${u.profileImageUrl}" class="avatar-small"></div>
+            <div class="avatar-small-container">
+              <img src="${u.profileImageUrl}" class="avatar-small">
+              ${u.isPremium?'<span class="premium-badge">★</span>':''}
+            </div>
             <h3>${u.username}</h3>
             <p>Online Now</p>
             <button class="neon-btn" onclick="openChat('${doc.id}')">Chat Now</button>
@@ -205,20 +218,34 @@
     chatPanel.innerHTML="";
     const chatId=[auth.currentUser.uid,otherUid].sort().join("_");
 
-    db.collection("messages").where("conversationId","==",chatId).orderBy("timestamp").onSnapshot(snapshot=>{
-      chatPanel.innerHTML="";
-      snapshot.docs.forEach(doc=>{
-        const msg=doc.data();
-        const bubble=document.createElement("div");
-        bubble.className="message";
-        bubble.innerHTML=`
-          <div class="avatar-small" style="background-image:url('')"></div>
-          <div class="message-bubble ${msg.senderId===auth.currentUser.uid?'neon-outgoing':'neon-incoming'}">${msg.content}</div>
-        `;
-        if(msg.senderId===auth.currentUser.uid) bubble.classList.add("outgoing");
-        chatPanel.appendChild(bubble);
+    let usersMap={};
+    db.collection("users").where(firebase.firestore.FieldPath.documentId(),"in",[auth.currentUser.uid,otherUid]).get()
+    .then(snapshot=>{
+      snapshot.docs.forEach(doc=>{ usersMap[doc.id]=doc.data(); });
+
+      db.collection("messages").where("conversationId","==",chatId).orderBy("timestamp")
+      .onSnapshot(snapshot=>{
+        chatPanel.innerHTML="";
+        snapshot.docs.forEach(doc=>{
+          const msg=doc.data();
+          const sender=usersMap[msg.senderId];
+          const time=msg.timestamp?new Date(msg.timestamp.seconds*1000).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'';
+          const bubble=document.createElement("div");
+          bubble.className="message";
+          if(msg.senderId===auth.currentUser.uid) bubble.classList.add("outgoing");
+          bubble.innerHTML=`
+            <div class="avatar-small-container">
+              <img src="${sender.profileImageUrl}" class="avatar-small">
+              ${sender.isPremium?'<span class="premium-badge">★</span>':''}
+            </div>
+            <div class="message-bubble ${msg.senderId===auth.currentUser.uid?'neon-outgoing':'neon-incoming'}">
+              ${msg.content}<div class="timestamp">${time}</div>
+            </div>
+          `;
+          chatPanel.appendChild(bubble);
+        });
+        chatPanel.scrollTop=chatPanel.scrollHeight;
       });
-      chatPanel.scrollTop=chatPanel.scrollHeight;
     });
     window.currentChatId=chatId;
   }
