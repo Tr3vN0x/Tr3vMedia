@@ -452,7 +452,8 @@ async function handleSaveProfile() {
     const user = auth.currentUser;
     if (!user) return alert("Please sign in to save your profile.");
 
-    // CRITICAL FIX: Reload user data immediately before checking/saving for synchronization.
+    // STEP 1: Reload user data immediately before saving for synchronization and accurate change check.
+    // This is crucial for matching the Firestore Security Rules.
     await loadUserData(user); 
 
     const newBio = profileBioInput.value.trim();
@@ -475,12 +476,16 @@ async function handleSaveProfile() {
             lastActive: Date.now() 
         });
 
-        // Update the globally stored data (the client's source of truth)
+        // STEP 2: Update the globally stored data (the client's source of truth)
         currentUserData.bio = newBio;
         currentUserData.profileImageUrl = newImageUrl;
         
+        // STEP 3: Re-render the editor to ensure all internal state and form values 
+        // are explicitly set to the new, SAVED values. This is the ultimate persistence fix.
+        loadProfileEditor();
+        
         saveProfileBtn.textContent = 'Saved!';
-        // Flash a success message
+        
         setTimeout(() => {
             saveProfileBtn.textContent = 'Save Profile';
             saveProfileBtn.disabled = false;
@@ -494,7 +499,7 @@ async function handleSaveProfile() {
             saveProfileBtn.textContent = 'Save Profile';
             saveProfileBtn.disabled = false;
         }, 3000);
-        alert("Failed to save profile. Ensure your Firestore Security Rules match the simplified structure.");
+        alert("Failed to save profile. Ensure your Firestore Security Rules match the required fields.");
     }
 }
 
