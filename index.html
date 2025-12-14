@@ -3,87 +3,225 @@
 <head>
 <meta charset="UTF-8">
 <title>DuoUp</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{margin:0;font-family:Arial;background:#050510;color:white}
-button{cursor:pointer}
-header{display:flex;justify-content:space-between;align-items:center;padding:10px;background:#141426}
+:root{
+    --bg:#050510;
+    --panel:#0f1224;
+    --primary:#00f6ff;
+    --accent:#8a5cff;
+    --cta:#ff5c5c;
+    --text:#eaf6ff;
+    --muted:#8b94b4;
+}
+
+*{box-sizing:border-box}
+body{
+    margin:0;
+    font-family:'Rajdhani',sans-serif;
+    background:radial-gradient(circle at top,#0b1030,#050510 60%);
+    color:var(--text);
+}
+
+button{
+    cursor:pointer;
+    border:none;
+    font-weight:600;
+    border-radius:6px;
+}
+
 .hidden{display:none}
-.container{padding:20px}
-input,textarea{width:100%;padding:8px;margin:5px 0}
-.duo-card{background:#1A1A2E;border-radius:8px;margin:10px 0;padding:10px}
-.avatar{width:40px;height:40px;border-radius:50%;background:#FF5733;display:flex;align-items:center;justify-content:center;font-weight:bold}
+
+/* HEADER */
+header{
+    position:fixed;
+    top:0;
+    width:100%;
+    height:60px;
+    background:rgba(15,18,36,.95);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 16px;
+    border-bottom:1px solid #1c2148;
+    z-index:10;
+}
+
+header h1{
+    margin:0;
+    font-size:1.6em;
+    color:var(--primary);
+    letter-spacing:1px;
+}
+
+header button{
+    background:var(--cta);
+    color:#050510;
+    padding:8px 14px;
+}
+
+/* AUTH */
+#auth{
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.auth-card{
+    background:var(--panel);
+    padding:28px;
+    width:100%;
+    max-width:380px;
+    border-radius:14px;
+    box-shadow:0 0 30px rgba(0,246,255,.08);
+}
+
+.auth-card h2{
+    margin-top:0;
+    text-align:center;
+    color:var(--primary);
+}
+
+input{
+    width:100%;
+    padding:12px;
+    margin:8px 0;
+    background:#0a0d22;
+    border:1px solid #1c2148;
+    border-radius:6px;
+    color:var(--text);
+}
+
+.auth-card button{
+    width:100%;
+    margin-top:10px;
+    padding:12px;
+    background:linear-gradient(90deg,var(--primary),var(--accent));
+    color:#050510;
+}
+
+/* APP */
+#app{
+    padding-top:70px;
+    max-width:1200px;
+    margin:auto;
+}
+
+h2{
+    margin:20px 16px;
+    color:var(--primary);
+}
+
+/* DUO CARDS */
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:18px;
+    padding:0 16px 30px;
+}
+
+.card{
+    background:linear-gradient(145deg,#0f1224,#151a3a);
+    border-radius:14px;
+    padding:16px;
+    border:1px solid #1c2148;
+    transition:.2s;
+}
+
+.card:hover{
+    transform:translateY(-4px);
+    box-shadow:0 0 20px rgba(138,92,255,.15);
+}
+
+.card-header{
+    display:flex;
+    align-items:center;
+    gap:12px;
+}
+
+.avatar{
+    width:46px;
+    height:46px;
+    border-radius:50%;
+    background:var(--accent);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:#050510;
+}
+
+.nickname{
+    font-size:1.1em;
+    font-weight:700;
+}
+
+.bio{
+    margin:12px 0;
+    font-size:.95em;
+    color:var(--muted);
+}
+
+.card button{
+    width:100%;
+    padding:10px;
+    background:var(--primary);
+    color:#050510;
+}
 </style>
 </head>
 
 <body>
 
-<header id="mainHeader" class="hidden">
-  <strong>DuoUp</strong>
-  <nav>
-    <button id="homeBtn">Home</button>
-    <button id="profileBtn">Profile</button>
-    <button id="logoutBtn">Logout</button>
-  </nav>
+<header id="header" class="hidden">
+    <h1>DUOUP</h1>
+    <button id="logout">Logout</button>
 </header>
 
-<div id="authSection" class="container">
-  <form id="signinForm">
-    <h3>Sign In</h3>
-    <input id="signinEmail" placeholder="Email" required>
-    <input id="signinPassword" type="password" placeholder="Password" required>
-    <button type="submit">Sign In</button>
-  </form>
+<!-- AUTH -->
+<div id="auth">
+    <div class="auth-card">
+        <h2>Welcome to DuoUp</h2>
 
-  <form id="signupForm">
-    <h3>Sign Up</h3>
-    <input id="signupNickname" placeholder="Nickname" required>
-    <input id="signupEmail" type="email" placeholder="Email" required>
-    <input id="signupPassword" type="password" placeholder="Password" required>
-    <button type="submit">Create Account</button>
-  </form>
+        <input id="email" placeholder="Email">
+        <input id="password" type="password" placeholder="Password">
+
+        <button id="signin">Sign In</button>
+        <button id="signup" style="background:var(--accent);margin-top:6px">Sign Up</button>
+    </div>
 </div>
 
-<div id="appSection" class="hidden">
-  <div id="homeSection" class="container">
+<!-- APP -->
+<div id="app" class="hidden">
     <h2>Duo Search</h2>
-    <div id="usersGrid"></div>
-  </div>
-
-  <div id="profileSection" class="container hidden">
-    <h2>Profile</h2>
-    <textarea id="profileBio" placeholder="Your bio"></textarea>
-    <input id="profileImageUrl" placeholder="Image URL">
-    <button id="saveProfileBtn">Save</button>
-    <div id="preview"></div>
-  </div>
+    <div class="grid" id="grid"></div>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
 import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    onAuthStateChanged,
+    signOut
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
 import {
-  getFirestore,
-  doc,
-  setDoc,
-  getDoc,
-  getDocs,
-  collection
+    getFirestore,
+    collection,
+    getDocs,
+    setDoc,
+    doc
 } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
-  authDomain:"duoup-cfae6.firebaseapp.com",
-  projectId:"duoup-cfae6"
+    apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
+    authDomain:"duoup-cfae6.firebaseapp.com",
+    projectId:"duoup-cfae6"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -91,102 +229,57 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 /* DOM */
-const authSection = document.getElementById("authSection");
-const appSection = document.getElementById("appSection");
-const mainHeader = document.getElementById("mainHeader");
+const authUI = document.getElementById("auth");
+const appUI = document.getElementById("app");
+const header = document.getElementById("header");
+const grid = document.getElementById("grid");
 
-const signinForm = document.getElementById("signinForm");
-const signupForm = document.getElementById("signupForm");
+const email = document.getElementById("email");
+const password = document.getElementById("password");
 
-const signinEmail = document.getElementById("signinEmail");
-const signinPassword = document.getElementById("signinPassword");
+document.getElementById("signin").onclick = () =>
+    signInWithEmailAndPassword(auth,email.value,password.value);
 
-const signupEmail = document.getElementById("signupEmail");
-const signupPassword = document.getElementById("signupPassword");
-const signupNickname = document.getElementById("signupNickname");
-
-const logoutBtn = document.getElementById("logoutBtn");
-
-const homeSection = document.getElementById("homeSection");
-const profileSection = document.getElementById("profileSection");
-const usersGrid = document.getElementById("usersGrid");
-
-const profileBio = document.getElementById("profileBio");
-const profileImageUrl = document.getElementById("profileImageUrl");
-const saveProfileBtn = document.getElementById("saveProfileBtn");
-const preview = document.getElementById("preview");
-
-let currentUserData = {};
-
-/* Auth */
-signinForm.onsubmit = async e => {
-  e.preventDefault();
-  await signInWithEmailAndPassword(auth, signinEmail.value, signinPassword.value);
+document.getElementById("signup").onclick = async () => {
+    const cred = await createUserWithEmailAndPassword(auth,email.value,password.value);
+    await setDoc(doc(db,"users",cred.user.uid),{
+        uid:cred.user.uid,
+        nickname:email.value.split("@")[0],
+        bio:"Looking for a duo 👀"
+    });
 };
 
-signupForm.onsubmit = async e => {
-  e.preventDefault();
-  const cred = await createUserWithEmailAndPassword(auth, signupEmail.value, signupPassword.value);
-  await setDoc(doc(db,"users",cred.user.uid),{
-    uid:cred.user.uid,
-    nickname:signupNickname.value,
-    bio:"",
-    profileImageUrl:"",
-    friends:[]
-  });
-};
+document.getElementById("logout").onclick = () => signOut(auth);
 
-logoutBtn.onclick = () => signOut(auth);
-
-/* State */
-onAuthStateChanged(auth, async user => {
-  if(user){
-    authSection.classList.add("hidden");
-    appSection.classList.remove("hidden");
-    mainHeader.classList.remove("hidden");
-    await loadUser(user);
-    loadUsers();
-  } else {
-    authSection.classList.remove("hidden");
-    appSection.classList.add("hidden");
-    mainHeader.classList.add("hidden");
-  }
+onAuthStateChanged(auth, async user=>{
+    if(user){
+        authUI.classList.add("hidden");
+        appUI.classList.remove("hidden");
+        header.classList.remove("hidden");
+        loadUsers();
+    }else{
+        authUI.classList.remove("hidden");
+        appUI.classList.add("hidden");
+        header.classList.add("hidden");
+    }
 });
 
-/* Data */
-async function loadUser(user){
-  const snap = await getDoc(doc(db,"users",user.uid));
-  currentUserData = snap.data();
-  profileBio.value = currentUserData.bio || "";
-  profileImageUrl.value = currentUserData.profileImageUrl || "";
-  renderPreview();
-}
-
 async function loadUsers(){
-  usersGrid.innerHTML="";
-  const snap = await getDocs(collection(db,"users"));
-  snap.forEach(d=>{
-    usersGrid.innerHTML += `<div class="duo-card">${d.data().nickname}</div>`;
-  });
+    grid.innerHTML="";
+    const snap = await getDocs(collection(db,"users"));
+    snap.forEach(d=>{
+        const u=d.data();
+        grid.innerHTML+=`
+        <div class="card">
+            <div class="card-header">
+                <div class="avatar">${u.nickname[0].toUpperCase()}</div>
+                <div class="nickname">${u.nickname}</div>
+            </div>
+            <div class="bio">${u.bio}</div>
+            <button>Send Duo Request</button>
+        </div>`;
+    });
 }
-
-/* Profile */
-function renderPreview(){
-  preview.innerHTML = `
-    <div class="duo-card">
-      <strong>${currentUserData.nickname}</strong>
-      <p>${profileBio.value}</p>
-    </div>`;
-}
-
-saveProfileBtn.onclick = async () => {
-  await setDoc(doc(db,"users",auth.currentUser.uid),{
-    bio:profileBio.value,
-    profileImageUrl:profileImageUrl.value,
-    friends:currentUserData.friends || []
-  },{merge:true});
-  renderPreview();
-};
 </script>
 
 </body>
