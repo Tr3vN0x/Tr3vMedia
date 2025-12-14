@@ -287,6 +287,7 @@ async function updateLastActiveStatus(uid) {
 
 /**
  * Ensures a user's profile document exists and loads the core data.
+ * This is the SOURCE OF TRUTH for initializing fields.
  */
 async function loadUserData(user) {
     const userDocRef = doc(db, "users", user.uid);
@@ -314,7 +315,6 @@ async function loadUserData(user) {
     currentUserData = userData; 
 
     // Initialize the profile form fields ONLY when loading data after login/signup
-    // This prevents overwriting unsaved user edits when switching tabs later.
     profileBioInput.value = userData.bio || '';
     profileImageUrlInput.value = userData.profileImageUrl || '';
     
@@ -451,6 +451,12 @@ async function handleSaveProfile() {
     const user = auth.currentUser;
     if (!user) return alert("Please sign in to save your profile.");
 
+    // CRITICAL FIX: Reload user data immediately before checking/saving.
+    // This synchronizes the client's 'currentUserData' object with Firestore 
+    // to ensure the 'no change' check is accurate and prevents stale data from 
+    // causing a security rule failure.
+    await loadUserData(user); 
+
     const newBio = profileBioInput.value.trim();
     const newImageUrl = profileImageUrlInput.value.trim();
 
@@ -468,7 +474,7 @@ async function handleSaveProfile() {
         await updateDoc(doc(db, "users", user.uid), {
             bio: newBio,
             profileImageUrl: newImageUrl,
-            lastActive: Date.now()
+            lastActive: Date.now() // This is necessary to keep the document active
         });
 
         // Update the globally stored data (the source of truth)
@@ -490,7 +496,7 @@ async function handleSaveProfile() {
             saveProfileBtn.textContent = 'Save Profile';
             saveProfileBtn.disabled = false;
         }, 3000);
-        alert("Failed to save profile. Check your network connection or the image URL.");
+        alert("Failed to save profile. Please ensure your Firestore Security Rules match the simplified structure or check the error logs.");
     }
 }
 
