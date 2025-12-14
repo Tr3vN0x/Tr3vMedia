@@ -10,45 +10,248 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <style>
 /* --- BASE STYLES --- */
-body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:white; }
-.container { width:90%; max-width:1000px; margin:auto; padding:20px; }
-.hidden { display:none; }
+body { 
+    margin:0; 
+    font-family:'Orbitron',sans-serif; 
+    background:#0b0b0b; 
+    color:white; 
+}
+.container { 
+    width:90%; 
+    max-width:1000px; 
+    margin:auto; 
+    padding:20px; 
+}
+.hidden { 
+    display:none !important; /* Use !important for reliable hiding */
+}
 
 /* --- HEADER & ICON --- */
-.header { background:#111; border-bottom:3px solid cyan; box-shadow:0 0 20px rgba(0,255,255,0.5); padding:10px 0; margin-bottom:20px; display:flex; align-items:center; justify-content:center; }
-.header h1 { font-size:2.5em; color:#fff; text-shadow:0 0 5px cyan,0 0 10px cyan,0 0 15px magenta; margin:0; }
-.icon-container { margin-right:15px; font-size:2.5em; color:cyan; text-shadow:0 0 5px cyan,0 0 10px magenta; }
+.header { 
+    background:#111; 
+    border-bottom:3px solid cyan; 
+    box-shadow:0 0 20px rgba(0,255,255,0.5); 
+    padding:10px 0; 
+    margin-bottom:20px; 
+    display:flex; 
+    align-items:center; 
+    justify-content:center; 
+}
+.header h1 { 
+    font-size:2.5em; 
+    color:#fff; 
+    text-shadow:0 0 5px cyan,0 0 10px cyan,0 0 15px magenta; 
+    margin:0; 
+}
+.icon-container { 
+    margin-right:15px; 
+    font-size:2.5em; 
+    color:cyan; 
+    text-shadow:0 0 5px cyan,0 0 10px magenta; 
+}
 
-/* --- BUTTONS --- */
-.neon-btn { border:2px solid cyan; background:transparent; color:white; padding:8px 14px; margin:5px; border-radius:6px; cursor:pointer; box-shadow:0 0 10px cyan; transition:all 0.2s ease-in-out; text-transform:uppercase; font-family:'Orbitron',sans-serif; }
-.neon-btn:hover { border-color:magenta; box-shadow:0 0 15px magenta; }
-.neon-btn.remove { border-color:red; box-shadow:0 0 10px red; }
-.neon-btn.remove:hover { border-color:orange; box-shadow:0 0 15px orange; }
+/* --- BUTTONS & INPUTS --- */
+.neon-btn { 
+    border:2px solid cyan; 
+    background:transparent; 
+    color:white; 
+    padding:8px 14px; 
+    margin:5px; 
+    border-radius:6px; 
+    cursor:pointer; 
+    box-shadow:0 0 10px cyan; 
+    transition:all 0.2s ease-in-out; 
+    text-transform:uppercase; 
+    font-family:'Orbitron',sans-serif; 
+}
+.neon-btn:hover { 
+    border-color:magenta; 
+    box-shadow:0 0 15px magenta; 
+}
+.neon-btn.remove { 
+    border-color:red; 
+    box-shadow:0 0 10px red; 
+}
+.neon-btn.remove:hover { 
+    border-color:orange; 
+    box-shadow:0 0 15px orange; 
+}
+#messageInput {
+    flex-grow:1; 
+    padding:10px; 
+    border:1px solid cyan; 
+    background:#181818; 
+    color:white; 
+    border-radius:6px; 
+    font-family:inherit;
+    outline: none;
+}
+#messageInput:focus {
+    border-color: magenta;
+    box-shadow: 0 0 8px magenta;
+}
 
 /* --- FILTER --- */
-.filter-box { margin-bottom:20px; padding:15px; border:1px solid magenta; border-radius:8px; background:#181818; display:grid; grid-template-columns:auto 1fr 1fr auto auto; gap:10px; align-items:center; }
-.filter-box label { font-weight:bold; color:cyan; white-space:nowrap; }
-.filter-box select { padding:8px; border:1px solid #444; background:#222; color:white; border-radius:4px; font-family:inherit; outline:none; min-height:40px; }
-#gameCategoryFilterContainer { display:flex; gap:5px; align-items:center; }
-#gameCategoryFilterContainer label { color:magenta; }
+.filter-box { 
+    margin-bottom:20px; 
+    padding:15px; 
+    border:1px solid magenta; 
+    border-radius:8px; 
+    background:#181818; 
+    display:grid; 
+    grid-template-columns:auto 1fr 1fr auto auto; 
+    gap:10px; 
+    align-items:center; 
+}
+.filter-box label { 
+    font-weight:bold; 
+    color:cyan; 
+    white-space:nowrap; 
+}
+.filter-box select { 
+    padding:8px; 
+    border:1px solid #444; 
+    background:#222; 
+    color:white; 
+    border-radius:4px; 
+    font-family:inherit; 
+    outline:none; 
+    min-height:40px; 
+}
+#gameCategoryFilterContainer { 
+    display:flex; 
+    gap:5px; 
+    align-items:center; 
+}
+#gameCategoryFilterContainer label { 
+    color:magenta; 
+}
 
 /* --- CARDS --- */
-.flex { display:flex; gap:15px; flex-wrap:wrap; }
-.card-container { display:flex; flex-wrap:wrap; gap:15px; }
-.card { width:250px; padding:15px; border:2px solid cyan; border-radius:12px; background:#111; box-shadow:0 0 10px cyan; display:flex; flex-direction:column; align-items:center; margin-bottom:15px; cursor:pointer; }
-.card-content { display:flex; flex-direction:column; align-items:center; width:100%; margin-bottom:10px; }
-.avatar { width:50px; height:50px; border-radius:50%; border:2px solid cyan; object-fit:cover; margin-bottom:10px; }
+.flex { 
+    display:flex; 
+    gap:15px; 
+    flex-wrap:wrap; 
+}
+.card-container { 
+    display:flex; 
+    flex-wrap:wrap; 
+    gap:15px; 
+}
+.card { 
+    width:250px; 
+    padding:15px; 
+    border:2px solid cyan; 
+    border-radius:12px; 
+    background:#111; 
+    box-shadow:0 0 10px cyan; 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    margin-bottom:15px; 
+}
+.card-content { 
+    display:flex; 
+    flex-direction:column; 
+    align-items:center; 
+    width:100%; 
+    margin-bottom:10px; 
+}
+.avatar { 
+    width:50px; 
+    height:50px; 
+    border-radius:50%; 
+    border:2px solid cyan; 
+    object-fit:cover; 
+    margin-bottom:10px; 
+}
 
 /* --- BADGES --- */
-.owner-badge-box { display:inline-block; padding:2px 6px; margin-left:8px; font-size:0.7em; font-weight:bold; letter-spacing:1px; border-radius:4px; text-transform:uppercase; background:#3a005c; color:#ffccff; border:1px solid #ff00ff; box-shadow:0 0 5px #ff00ff,0 0 10px #cc33ff, inset 0 0 5px #ff00ff; vertical-align:middle; }
-.skill-rating { color:gold; font-size:1.2em; margin-bottom:5px; }
-.status-indicator { font-size:0.8em; padding:3px 8px; border-radius:4px; font-weight:bold; margin-bottom:10px; }
-.status-online { background-color:#00cc00; color:#0b0b0b; box-shadow:0 0 5px #00ff00; }
-.status-ingame { background-color:#ffaa00; color:#0b0b0b; box-shadow:0 0 5px #ffaa00; }
-.status-lfd { background-color:#00aaff; color:#0b0b0b; box-shadow:0 0 5px #00aaff; }
+.owner-badge-box { 
+    display:inline-block; 
+    padding:2px 6px; 
+    margin-left:8px; 
+    font-size:0.7em; 
+    font-weight:bold; 
+    letter-spacing:1px; 
+    border-radius:4px; 
+    text-transform:uppercase; 
+    background:#3a005c; 
+    color:#ffccff; 
+    border:1px solid #ff00ff; 
+    box-shadow:0 0 5px #ff00ff,0 0 10px #cc33ff, inset 0 0 5px #ff00ff; 
+    vertical-align:middle; 
+}
+.skill-rating { 
+    color:gold; 
+    font-size:1.2em; 
+    margin-bottom:5px; 
+}
+.status-indicator { 
+    font-size:0.8em; 
+    padding:3px 8px; 
+    border-radius:4px; 
+    font-weight:bold; 
+    margin-bottom:10px; 
+}
+.status-online { 
+    background-color:#00cc00; 
+    color:#0b0b0b; 
+    box-shadow:0 0 5px #00ff00; 
+}
+.status-ingame { 
+    background-color:#ffaa00; 
+    color:#0b0b0b; 
+    box-shadow:0 0 5px #ffaa00; 
+}
+.status-lfd { 
+    background-color:#00aaff; 
+    color:#0b0b0b; 
+    box-shadow:0 0 5px #00aaff; 
+}
 
 /* --- UNREAD --- */
-.unread-badge { background-color:magenta; color:white; border-radius:50%; padding:2px 7px; margin-left:5px; font-size:0.7em; font-weight:bold; box-shadow:0 0 5px magenta; }
+.unread-badge { 
+    background-color:magenta; 
+    color:white; 
+    border-radius:50%; 
+    padding:2px 7px; 
+    margin-left:5px; 
+    font-size:0.7em; 
+    font-weight:bold; 
+    box-shadow:0 0 5px magenta; 
+}
+
+/* --- CHAT STYLES --- */
+.chat-item-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    margin-bottom: 8px;
+}
+.message-bubble {
+    display: inline-block;
+    padding: 8px 12px;
+    border-radius: 15px;
+    max-width: 70%;
+    font-family: Arial, sans-serif; /* Use readable font for chat */
+    word-wrap: break-word;
+    font-size: 0.9em;
+}
+.message-mine {
+    text-align: right;
+}
+.message-mine .message-bubble {
+    background: magenta;
+    color: white;
+}
+.message-other {
+    text-align: left;
+}
+.message-other .message-bubble {
+    background: cyan;
+    color: #0b0b0b;
+}
 </style>
 </head>
 <body>
@@ -56,164 +259,423 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 <div class="header"><div class="icon-container">⚡</div><h1>DUO UP</h1></div>
 
 <div id="loginPage" class="container">
-  <p style="text-align:center;">Find your perfect partner and dominate the cyber-arena.</p>
-  <div style="text-align:center;">
-    <button class="neon-btn" onclick="login()">Login with Google</button>
-  </div>
+  <p style="text-align:center;">Find your perfect partner and dominate the cyber-arena.</p>
+  <div style="text-align:center;">
+    <button class="neon-btn" onclick="login()">Login with Google</button>
+  </div>
 </div>
 
 <div id="dashboard" class="container hidden">
-  <h2 id="welcome"></h2>
-  <div style="margin-bottom:20px;">
-    <button class="neon-btn" onclick="showTab('suggested')">Suggested</button>
-    <button class="neon-btn" onclick="showTab('requests')">Requests</button>
-    <button id="friendsBtn" class="neon-btn" onclick="showTab('friends')">
-        Friends <span id="unreadBadge" class="unread-badge hidden">0</span>
-    </button>
-    <button class="neon-btn" onclick="showTab('profile')">Profile</button>
-    <button class="neon-btn" onclick="logout()">Logout</button>
-  </div>
+  <h2 id="welcome"></h2>
+  <div style="margin-bottom:20px;">
+    <button class="neon-btn" onclick="showTab('suggested')">Suggested</button>
+    <button class="neon-btn" onclick="showTab('requests')">Requests</button>
+    <button id="friendsBtn" class="neon-btn" onclick="showTab('friends')">
+        Friends <span id="unreadBadge" class="unread-badge hidden">0</span>
+    </button>
+    <button class="neon-btn" onclick="showTab('messaging')">Messaging</button>
+    <button class="neon-btn" onclick="showTab('profile')">Profile</button>
+    <button class="neon-btn" onclick="logout()">Logout</button>
+  </div>
 
-  <div id="suggestedTab" class="card-container"></div>
-  <div id="requestsTab" class="flex hidden"></div>
-  <div id="friendsTab" class="flex hidden"></div>
+  <div id="suggestedTab" class="card-container"></div>
+  <div id="requestsTab" class="flex hidden"></div>
+  <div id="friendsTab" class="flex hidden"></div>
 
-  <div id="profileTab" class="hidden"></div>
+    <div id="messagingTab" class="hidden" style="display:flex; height:600px; border:2px solid magenta; background:#111; border-radius:12px;">
+        <div id="chatList" style="width:30%; padding:10px; border-right:1px solid #333; overflow-y:auto;">
+      <h3>Active Duos</h3>
+      <div id="activeDuoList">No friends to chat with.</div>
+    </div>
+    
+        <div id="chatWindow" style="width:70%; display:flex; flex-direction:column; padding:10px;">
+      <h3 id="chatHeader" style="border-bottom:1px solid cyan; padding-bottom:5px;">Select a Duo</h3>
+      <div id="messageDisplay" style="flex-grow:1; overflow-y:auto; padding:10px; background:#0b0b0b; border-radius:6px; margin-bottom:10px;">
+              </div>
+      <div id="messageInputArea" class="hidden" style="display:flex; gap:10px;">
+        <input type="text" id="messageInput" placeholder="Type your message...">
+        <button class="neon-btn" id="sendMessageBtn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="profileTab" class="hidden"></div>
 </div>
 
 <script>
+// -------------------- GAME CONFIG (Placeholder) --------------------
+const GAME_CONFIG = {
+    "Valorant": {}, "League of Legends": {}, "Minecraft": {}, 
+};
+
 // -------------------- FIREBASE INIT --------------------
+// NOTE: Use your actual Firebase config here. The one below is a placeholder/example.
 const firebaseConfig = {
-  apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
-  authDomain: "duoup-cfae6.firebaseapp.com",
-  projectId: "duoup-cfae6",
-  storageBucket: "duoup-cfae6.appspot.com",
-  messagingSenderId: "812263060524",
-  appId: "1:812263060524:web:ac09c3ae610db1cd110d89"
+  apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
+  authDomain: "duoup-cfae6.firebaseapp.com",
+  projectId: "duoup-cfae6",
+  storageBucket: "duoup-cfae6.appspot.com",
+  messagingSenderId: "812263060524",
+  appId: "1:812263060524:web:ac09c3ae610db1cd110d89"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQKql9HQ2"; 
+const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQKql9HQ2"; 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 let currentUser = null;
+let currentChatUid = null; 
+let unsubscribeMessages = null; 
+
+// Helper to get consistent chat ID (sorted UIDs)
+function getChatId(uid1, uid2) {
+    return [uid1, uid2].sort().join('_');
+}
 
 // ---------------- AUTH ----------------
 function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message)); }
-function logout(){ auth.signOut(); }
-
-auth.onAuthStateChanged(async user=>{
-  if(!user){ loginPage.classList.remove("hidden"); dashboard.classList.add("hidden"); return; }
-  loginPage.classList.add("hidden"); dashboard.classList.remove("hidden"); currentUser = user;
-
-  const userRef = db.collection("users").doc(user.uid);
-  const doc = await userRef.get();
-  if(!doc.exists){
-    await userRef.set({
-      uid:user.uid,
-      nickname:user.displayName||"Player",
-      bio:"",
-      games:[],
-      gameDetails:{},
-      friends:[],
-      profileImageUrl:user.photoURL||DEFAULT_AVATAR,
-      skillRating:3,
-      status:"Online"
-    });
-  }
-
-  const data = (await userRef.get()).data();
-  document.getElementById("welcome").innerHTML = `Welcome, ${data.nickname}${data.uid===OWNER_UID?'<span class="owner-badge-box">OWNER</span>':''}`;
-  loadSuggested();
-  loadRequests();
-  loadFriends();
-});
-
-// ---------------- SUGGESTED ----------------
-async function loadSuggested(){
-  const container = document.getElementById("suggestedTab");
-  container.innerHTML = '';
-  const snapshot = await db.collection("users").get();
-  snapshot.docs.forEach(doc=>{
-    const d = doc.data();
-    if(d.uid===currentUser.uid) return;
-    const card = document.createElement("div"); card.className='card';
-    card.innerHTML = `
-      <div class="card-content">
-        <img src="${d.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
-        <h3>${d.nickname}${d.uid===OWNER_UID?'<span class="owner-badge-box">OWNER</span>':''}</h3>
-        <div class="skill-rating">${'⭐'.repeat(d.skillRating)+'☆'.repeat(5-d.skillRating)}</div>
-        <div class="status-indicator ${d.status==='Online'?'status-online':d.status==='In Game'?'status-ingame':'status-lfd'}">${d.status}</div>
-      </div>
-      <button class="neon-btn" onclick="sendFriendRequest('${d.uid}')">Send Friend Request</button>
-    `;
-    container.appendChild(card);
-  });
+function logout(){ 
+    if(unsubscribeMessages) unsubscribeMessages();
+    auth.signOut(); 
 }
 
-// ---------------- FRIEND REQUESTS ----------------
+auth.onAuthStateChanged(async user=>{
+  if(!user){ 
+    loginPage.classList.remove("hidden"); 
+    dashboard.classList.add("hidden"); 
+    return; 
+}
+  loginPage.classList.add("hidden"); 
+  dashboard.classList.remove("hidden"); 
+  currentUser = user;
+
+  const userRef = db.collection("users").doc(user.uid);
+  const doc = await userRef.get();
+  if(!doc.exists){
+    await userRef.set({
+      uid:user.uid,
+      nickname:user.displayName||"Player",
+      bio:"",
+      games:[],
+      gameDetails:{},
+      friends:[],
+      profileImageUrl:user.photoURL||DEFAULT_AVATAR,
+      skillRating:3,
+      status:"Online"
+    });
+  }
+
+  const data = (await userRef.get()).data();
+  document.getElementById("welcome").innerHTML = `Welcome, ${data.nickname}${data.uid===OWNER_UID?'<span class="owner-badge-box">OWNER</span>':''}`;
+  
+  // Load initial data
+  loadSuggested();
+  loadRequests();
+  loadFriends(); 
+});
+
+// ---------------- HELPER FUNCTIONS ----------------
+function getOwnerBadge(uid){ return uid===OWNER_UID?'<span class="owner-badge-box">OWNER</span>':''; }
+function renderSkillRating(r){r=parseInt(r)||0; return `<div class="skill-rating">${'⭐'.repeat(r)}${'☆'.repeat(5-r)}</div>`;}
+function renderStatus(s){ const c=s==='Online'?'status-online':s==='In Game'?'status-ingame':'status-lfd'; return `<div class="status-indicator ${c}">${s}</div>`; }
+
+
+// ---------------- CARD RENDERING (FIXED DOM MANIPULATION) ----------------
+
+/**
+ * Creates the static HTML string for a user card's content.
+ */
+function createCardContentHtml(d) {
+    const isOwner = d.uid === OWNER_UID;
+    return `
+        <div class="card-content">
+            <img src="${d.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
+            <h3>${d.nickname}${isOwner ? getOwnerBadge(d.uid) : ''}</h3>
+            ${d.skillRating ? renderSkillRating(d.skillRating) : ''}
+            ${d.status ? renderStatus(d.status) : ''}
+        </div>
+    `;
+}
+
+/**
+ * Renders a card and attaches the correct event listeners using DOM manipulation.
+ */
+function renderCard(d, buttonType, reqId = null) {
+    const card = document.createElement("div");
+    card.className = 'card';
+    card.innerHTML = createCardContentHtml(d); // Set static content first
+
+    let buttons = [];
+
+    if (buttonType === 'suggest') {
+        const btn = document.createElement('button');
+        btn.className = 'neon-btn';
+        btn.textContent = 'Send Request';
+        btn.onclick = () => sendFriendRequest(d.uid);
+        buttons.push(btn);
+    } else if (buttonType === 'request') {
+        const acceptBtn = document.createElement('button');
+        acceptBtn.className = 'neon-btn';
+        acceptBtn.textContent = 'Accept';
+        acceptBtn.onclick = () => acceptFriend(reqId, d.uid);
+        buttons.push(acceptBtn);
+
+        const declineBtn = document.createElement('button');
+        declineBtn.className = 'neon-btn remove';
+        declineBtn.textContent = 'Decline';
+        declineBtn.onclick = () => declineFriend(reqId);
+        buttons.push(declineBtn);
+    } else if (buttonType === 'friend') {
+        const chatBtn = document.createElement('button');
+        chatBtn.className = 'neon-btn';
+        chatBtn.textContent = 'Chat';
+        chatBtn.onclick = () => startChat(d.uid, d.nickname);
+        buttons.push(chatBtn);
+    }
+
+    // Append the dynamic buttons
+    buttons.forEach(btn => card.appendChild(btn));
+
+    return card;
+}
+
+
+// ---------------- SUGGESTED (FIXED) ----------------
+async function loadSuggested(){
+  const container = document.getElementById("suggestedTab");
+  container.innerHTML = '';
+  const snapshot = await db.collection("users").get();
+  
+  // Quick-fetch current user's friend/request lists for filtering
+  const myDoc = (await db.collection("users").doc(currentUser.uid).get()).data();
+  const myFriends = new Set(myDoc.friends || []);
+  
+  // Get all requests I have sent
+  const myRequestsSent = (await db.collection("friendRequests").where("from", "==", currentUser.uid).get()).docs.map(doc => doc.data().to);
+  const pendingRequests = new Set(myRequestsSent);
+    
+  snapshot.docs.forEach(doc=>{
+    const d = doc.data();
+    // Skip self, existing friends, and users who already have a request from me
+    if(d.uid===currentUser.uid || myFriends.has(d.uid) || pendingRequests.has(d.uid)) return;
+    
+    const card = renderCard(d, 'suggest');
+    container.appendChild(card);
+  });
+  if (container.childElementCount === 0) {
+    container.innerHTML = '<p>No new suggested partners found.</p>';
+  }
+}
+
+// ---------------- FRIEND REQUESTS (FIXED) ----------------
 async function sendFriendRequest(toUid){
-  const reqId = `${currentUser.uid}_${toUid}`;
-  const reqRef = db.collection("friendRequests").doc(reqId);
-  if((await reqRef.get()).exists){ alert("Request already sent!"); return; }
-  await reqRef.set({from:currentUser.uid, to:toUid, status:"pending", timestamp:firebase.firestore.FieldValue.serverTimestamp()});
-  alert("Friend request sent!");
-  loadRequests();
+  const reqId = getChatId(currentUser.uid, toUid); // Using a unique ID based on UIDs for the request document
+  const reqRef = db.collection("friendRequests").doc(reqId);
+  
+  // Check for existing request
+  if((await reqRef.get()).exists){ alert("Request already sent!"); return; }
+  
+  // Check if already friends
+  const myDoc = (await db.collection("users").doc(currentUser.uid).get()).data();
+  if((myDoc.friends || []).includes(toUid)){ alert("You are already friends with this player!"); return; }
+
+  await reqRef.set({
+    from:currentUser.uid, 
+    to:toUid, 
+    status:"pending", 
+    createdAt:firebase.firestore.FieldValue.serverTimestamp()
+});
+  alert("Friend request sent!");
+  loadSuggested(); // Refresh suggested list
 }
 
 async function loadRequests(){
-  const container = document.getElementById("requestsTab"); container.innerHTML='';
-  const snapshot = await db.collection("friendRequests").where("to","==",currentUser.uid).where("status","==","pending").get();
-  if(snapshot.empty){ container.innerHTML='<p>No friend requests.</p>'; return; }
-  snapshot.docs.forEach(async doc=>{
-    const data = doc.data();
-    const fromUser = (await db.collection("users").doc(data.from).get()).data();
-    const card = document.createElement("div"); card.className='card';
-    card.innerHTML = `
-      <div class="card-content">
-        <img src="${fromUser.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
-        <h3>${fromUser.nickname}${fromUser.uid===OWNER_UID?'<span class="owner-badge-box">OWNER</span>':''}</h3>
-      </div>
-      <button class="neon-btn" onclick="acceptFriend('${doc.id}','${fromUser.uid}')">Accept</button>
-      <button class="neon-btn remove" onclick="declineFriend('${doc.id}')">Decline</button>
-    `;
-    container.appendChild(card);
-  });
+  const container = document.getElementById("requestsTab"); container.innerHTML='';
+  // Only query pending requests sent to me
+  const snapshot = await db.collection("friendRequests").where("to","==",currentUser.uid).where("status","==","pending").get();
+  
+  if(snapshot.empty){ container.innerHTML='<p>No friend requests.</p>'; return; }
+  
+  // Use Promise.all to fetch user data for all requests concurrently
+  const userPromises = snapshot.docs.map(doc => db.collection("users").doc(doc.data().from).get());
+  const userDocs = await Promise.all(userPromises);
+
+  snapshot.docs.forEach((doc, index)=>{
+    const fromUser = userDocs[index].data();
+    if (!fromUser) return;
+    
+    const card = renderCard(fromUser, 'request', doc.id);
+    container.appendChild(card);
+  });
 }
 
 async function acceptFriend(reqId, friendUid){
-  await db.collection("friendRequests").doc(reqId).update({status:"accepted"});
-  await db.collection("users").doc(currentUser.uid).update({friends:firebase.firestore.FieldValue.arrayUnion(friendUid)});
-  await db.collection("users").doc(friendUid).update({friends:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
-  loadRequests(); loadFriends();
+  // 1. Remove the request document (cleaner than updating status)
+  await db.collection("friendRequests").doc(reqId).delete();
+  // 2. Update both users' friends array
+  await db.collection("users").doc(currentUser.uid).update({friends:firebase.firestore.FieldValue.arrayUnion(friendUid)});
+  await db.collection("users").doc(friendUid).update({friends:firebase.firestore.FieldValue.arrayUnion(currentUser.uid)});
+  
+  // 3. Refresh UI
+  loadRequests(); 
+  loadFriends();
+  loadSuggested();
 }
 
-async function declineFriend(reqId){ await db.collection("friendRequests").doc(reqId).delete(); loadRequests(); }
+async function declineFriend(reqId){ 
+  await db.collection("friendRequests").doc(reqId).delete(); 
+  loadRequests(); 
+  loadSuggested(); 
+}
 
-// ---------------- FRIENDS ----------------
+// ---------------- FRIENDS (FIXED) ----------------
 async function loadFriends(){
-  const container = document.getElementById("friendsTab"); container.innerHTML='';
-  const userDoc = (await db.collection("users").doc(currentUser.uid).get()).data();
-  if(!userDoc.friends || userDoc.friends.length===0){ container.innerHTML='<p>No friends yet.</p>'; return; }
-  userDoc.friends.forEach(async fuid=>{
-    const fdata = (await db.collection("users").doc(fuid).get()).data();
-    const card = document.createElement("div"); card.className='card';
-    card.innerHTML = `
-      <div class="card-content">
-        <img src="${fdata.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
-        <h3>${fdata.nickname}${fdata.uid===OWNER_UID?'<span class="owner-badge-box">OWNER</span>':''}</h3>
-        <div class="skill-rating">${'⭐'.repeat(fdata.skillRating)+'☆'.repeat(5-fdata.skillRating)}</div>
-        <div class="status-indicator ${fdata.status==='Online'?'status-online':fdata.status==='In Game'?'status-ingame':'status-lfd'}">${fdata.status}</div>
-      </div>
-    `;
-    container.appendChild(card);
-  });
+  const container = document.getElementById("friendsTab"); container.innerHTML='';
+  
+  const userDoc = (await db.collection("users").doc(currentUser.uid).get()).data();
+  const friendUids = userDoc.friends || [];
+
+  if(friendUids.length===0){ 
+    container.innerHTML='<p>No friends yet. Find your duo in Suggested!</p>';
+    document.getElementById("activeDuoList").innerHTML = 'No friends to chat with.';
+    return; 
+}
+  
+  // Fetch friend data concurrently
+  const friendPromises = friendUids.map(fuid => db.collection("users").doc(fuid).get());
+  const friendDocs = await Promise.all(friendPromises);
+
+  // Clear chat list for refresh
+  const chatList = document.getElementById("activeDuoList");
+  chatList.innerHTML = '';
+  
+  friendDocs.forEach(fDoc=>{
+    const fdata = fDoc.data();
+    if (!fdata) return;
+    
+    // Render card on Friends tab
+    const card = renderCard(fdata, 'friend');
+    container.appendChild(card);
+    
+    // Render chat item on Messaging tab
+    const chatItem = document.createElement('button');
+    chatItem.className = 'neon-btn chat-item-btn';
+    chatItem.textContent = fdata.nickname;
+    chatItem.onclick = () => startChat(fdata.uid, fdata.nickname);
+    chatList.appendChild(chatItem);
+  });
+}
+
+// ---------------- MESSAGING ----------------
+
+/**
+ * Sets up the UI and listeners for a chat session.
+ */
+function startChat(friendUid, nickname) {
+    showTab('messaging');
+    
+    // Stop any previous listener
+    if (unsubscribeMessages) unsubscribeMessages();
+    
+    currentChatUid = friendUid;
+    const chatId = getChatId(currentUser.uid, friendUid);
+    const header = document.getElementById('chatHeader');
+    const messageDisplay = document.getElementById('messageDisplay');
+    const inputArea = document.getElementById('messageInputArea');
+    const messageInput = document.getElementById('messageInput');
+    const sendMessageBtn = document.getElementById('sendMessageBtn');
+
+    header.textContent = `Chat with ${nickname}`;
+    messageDisplay.innerHTML = '<p style="text-align:center; color:#555;">Connecting...</p>';
+    inputArea.classList.remove('hidden'); // Show input area
+    
+    // Reset and attach send button listener
+    sendMessageBtn.onclick = () => sendMessage(chatId, messageInput.value);
+    // Allow 'Enter' key to send message
+    messageInput.onkeydown = (e) => {
+        if (e.key === 'Enter') {
+            sendMessage(chatId, messageInput.value);
+        }
+    };
+
+
+    // Start listening for new messages in real-time
+    unsubscribeMessages = db.collection('chats').doc(chatId).collection('messages')
+        .orderBy('createdAt', 'asc')
+        .onSnapshot(snapshot => {
+            messageDisplay.innerHTML = ''; // Clear display
+            if (snapshot.empty) {
+                messageDisplay.innerHTML = '<p style="text-align:center; color:#555;">No messages yet. Say hello!</p>';
+            }
+            
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const isMine = data.senderId === currentUser.uid;
+                
+                const messageEl = document.createElement('div');
+                messageEl.className = isMine ? 'message-mine' : 'message-other';
+                
+                const bubble = document.createElement('span');
+                bubble.className = 'message-bubble';
+                bubble.textContent = data.content;
+                
+                messageEl.appendChild(bubble);
+                messageDisplay.appendChild(messageEl);
+            });
+            
+            // Scroll to the bottom of the chat window
+            messageDisplay.scrollTop = messageDisplay.scrollHeight;
+        }, error => {
+            console.error("Messaging listener error:", error);
+            messageDisplay.innerHTML = '<p style="text-align:center; color:red;">Error loading chat.</p>';
+        });
+}
+
+/**
+ * Sends a new message to the current chat.
+ */
+async function sendMessage(chatId, content) {
+    const messageInput = document.getElementById('messageInput');
+    content = content.trim();
+
+    if (!content) return;
+
+    try {
+        await db.collection('chats').doc(chatId).collection('messages').add({
+            senderId: currentUser.uid,
+            content: content,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        messageInput.value = ''; // Clear input field
+        messageInput.focus(); // Keep focus on input
+    } catch (error) {
+        console.error("Error sending message:", error);
+        alert("Failed to send message: Check Firestore rules.");
+    }
 }
 
 // ---------------- TABS ----------------
-function hideAllTabs(){ ["suggestedTab","requestsTab","friendsTab","profileTab"].forEach(t=>document.getElementById(t).classList.add("hidden")); }
-function showTab(tab){ hideAllTabs(); document.getElementById(tab+"Tab").classList.remove("hidden"); if(tab==='suggested') loadSuggested(); else if(tab==='requests') loadRequests(); else if(tab==='friends') loadFriends(); }
+function hideAllTabs(){ 
+    ["suggestedTab","requestsTab","friendsTab","profileTab","messagingTab"].forEach(t=>document.getElementById(t).classList.add("hidden")); 
+}
+
+function showTab(tab){ 
+    hideAllTabs(); 
+    const element = document.getElementById(tab+"Tab");
+    if(element) element.classList.remove("hidden"); 
+    
+    // Special handling for tabs that need content loaded
+    if(tab==='suggested') loadSuggested(); 
+    else if(tab==='requests') loadRequests(); 
+    else if(tab==='friends') loadFriends(); 
+    // If navigating away from messaging, stop the listener
+    else if(tab!=='messaging' && unsubscribeMessages) {
+        unsubscribeMessages();
+        unsubscribeMessages = null;
+    }
+}
 </script>
 </body>
 </html>
