@@ -49,7 +49,7 @@ input,textarea,button{padding:10px;margin:5px;border-radius:5px;border:none;}
         <h2>Your Profile</h2>
         <input id="profileImageUrl" placeholder="Profile Image URL">
         <textarea id="bio" placeholder="Your bio here"></textarea>
-        <button onclick="saveProfile()">Save</button>
+        <button id="saveProfileBtn">Save</button>
         <p id="profileMsg"></p>
     </section>
 
@@ -90,7 +90,6 @@ document.getElementById("signin").onclick = async () => {
 document.getElementById("signup").onclick = async () => {
   try {
     const cred = await createUserWithEmailAndPassword(auth, email.value, password.value);
-
     const userDocRef = doc(db, "users", cred.user.uid);
     await setDoc(userDocRef, {
       uid: cred.user.uid,
@@ -101,7 +100,6 @@ document.getElementById("signup").onclick = async () => {
       fcmToken: "",
       createdAt: serverTimestamp()
     });
-
     msg.textContent = "User created!";
   } catch(e) { msg.textContent = e.message; }
 };
@@ -121,19 +119,23 @@ onAuthStateChanged(auth, async user => {
     appUI.classList.remove("hidden");
     header.classList.remove("hidden");
     showTab("home");
-    try {
-      const docSnap = await getDoc(doc(db, "users", currentUser.uid));
-      if(docSnap.exists()){
-        document.getElementById("bio").value = docSnap.data().bio || "";
-        document.getElementById("profileImageUrl").value = docSnap.data().profileImageUrl || "";
-      }
-    } catch(e) { console.error("Failed to load profile:", e); }
+    await loadProfile();  // load bio and profileImageUrl safely
   } else {
     authUI.classList.remove("hidden");
     appUI.classList.add("hidden");
     header.classList.add("hidden");
   }
 });
+
+async function loadProfile() {
+  try {
+    const docSnap = await getDoc(doc(db, "users", currentUser.uid));
+    if(docSnap.exists()){
+      document.getElementById("bio").value = docSnap.data().bio || "";
+      document.getElementById("profileImageUrl").value = docSnap.data().profileImageUrl || "";
+    }
+  } catch(e){ console.error("Failed to load profile:", e); }
+}
 
 async function loadUsers(){
   const grid = document.getElementById("grid");
@@ -156,7 +158,7 @@ async function loadUsers(){
   } catch(e){ console.error("Failed to load users:", e); }
 }
 
-window.saveProfile = async () => {
+document.getElementById("saveProfileBtn").onclick = async () => {
   try {
     await updateDoc(doc(db, "users", currentUser.uid), {
       bio: document.getElementById("bio").value,
