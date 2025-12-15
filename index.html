@@ -19,6 +19,7 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 .icon-container { margin-right:15px; font-size:2.5em; color:cyan; text-shadow:0 0 5px cyan,0 0 10px magenta; }
 .neon-btn { border:2px solid cyan; background:transparent; color:white; padding:8px 14px; margin:5px; border-radius:6px; cursor:pointer; box-shadow:0 0 10px cyan; transition:all 0.2s ease-in-out; text-transform:uppercase; font-family:'Orbitron',sans-serif; white-space: nowrap; }
 .neon-btn:hover { border-color:magenta; box-shadow:0 0 15px magenta; }
+.neon-btn:disabled { border-color: #555; box-shadow: none; color: #555; cursor: not-allowed; }
 .neon-btn.remove { border-color:red; box-shadow:0 0 10px red; }
 .neon-btn.remove:hover { border-color:orange; box-shadow:0 0 15px orange; }
 #messageInput, #profileBio, #profileSkillRating, #profileStatus, #searchInput, #statusFilter, #skillFilter, #profileNickname, #newUsernameInput { flex-grow:1; padding:10px; border:1px solid cyan; background:#181818; color:white; border-radius:6px; font-family:inherit; outline:none; }
@@ -233,13 +234,13 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 // ---------- FIREBASE INIT ----------
 // *** REPLACE WITH YOUR ACTUAL CONFIG ***
 const firebaseConfig = {
-    apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",    
-    authDomain: "duoup-cfae6.firebaseapp.com",
-    projectId: "duoup-cfae6",
-    storageBucket: "duoup-cfae6.firebasestorage.app",
-    messagingSenderId: "812263060524",
-    appId: "1:812263060524:web:ac09c3ae610db1cd110d89",
-    measurementId: "G-46B67F90FK"
+    apiKey: "YOUR_API_KEY",    
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT_ID.firebasestorage.app",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID",
+    measurementId: "YOUR_MEASUREMENT_ID"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -270,12 +271,16 @@ auth.onAuthStateChanged(async user=>{
     const userDoc = await userRef.get();
 
     if(!userDoc.exists){
-        const defaultUsername = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase() + Math.floor(Math.random() * 1000);
+        // --- FIX: Create a robust default username and ensure flag is present ---
+        const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
+        // Use a 4-digit random number to minimize initial collision chance
+        const defaultUsername = baseName.substring(0, 16) + Math.floor(1000 + Math.random() * 9000); 
+        
         // New user setup
         await userRef.set({
             uid: user.uid,
             username: defaultUsername,    
-            usernameChanged: false,
+            usernameChanged: false, // CRITICAL: Must be explicitly false for first-time use
             bio: "New Cyber Warrior seeking a Duo partner!",
             skillRating: 3, 
             status: "Online",
@@ -323,36 +328,39 @@ async function loadRelationshipStatus() {
 
 async function loadUserProfile() {
     const userDoc = await db.collection("users").doc(currentUser.uid).get();
-    currentProfileData = userDoc.data();
+    currentProfileData = userDoc.data() || {}; // Use empty object fallback
 
     profileAvatar.src = currentProfileData.profileImageUrl || DEFAULT_AVATAR;
     
-    const currentDisplayIdentifier = currentProfileData.username ?    
-                                     `@${currentProfileData.username}` :    
-                                     (currentUser.displayName || "Unknown");
+    const currentDisplayUsername = currentProfileData.username || 'Loading...';
 
-    profileNickname.value = currentDisplayIdentifier;
+    // Set the placeholder for the nickname/identifier
+    profileNickname.value = currentProfileData.nickname || currentUser.displayName || "Unknown User";
     
     profileBio.value = currentProfileData.bio || "";
     profileSkillRating.value = currentProfileData.skillRating || "1";
     profileStatus.value = currentProfileData.status || "Online";
 
-    document.getElementById("usernameDisplay").textContent = `@${currentProfileData.username || 'n/a'}`;
+    // --- FIX: Ensure display shows the current username or a loading state ---
+    document.getElementById("usernameDisplay").textContent = `@${currentDisplayUsername}`;
     
     const changeBtn = document.getElementById("changeUsernameBtn");
     const input = document.getElementById("newUsernameInput");
     const messageElement = document.getElementById("usernameMessage");
 
-    if (currentProfileData.usernameChanged) {
+    // CRITICAL: Check for existence of username and usernameChanged flag
+    const hasChanged = currentProfileData.usernameChanged === true;
+    
+    if (hasChanged) {
         changeBtn.textContent = "Changed Once (Locked)";
         changeBtn.disabled = true;
         input.disabled = true;
-        messageElement.textContent = "Your unique username can only be changed once.";
+        messageElement.textContent = "Your unique username has been permanently set.";
     } else {
         changeBtn.textContent = "Set/Change Username";
         changeBtn.disabled = false;
         input.disabled = false;
-        messageElement.textContent = "You have one change remaining.";
+        messageElement.textContent = "You have one change remaining to set your unique @handle.";
     }
     
     renderGamerCards(); // Render gamer cards on profile load
@@ -736,9 +744,8 @@ function initMessaging() {
         const btn = document.createElement('button');
         btn.className = 'neon-btn chat-item-btn';
         btn.textContent = display;
-        // The following function definition is incomplete in the original code, but we keep the structure
-        // btn.onclick = () => openChat(uid, display); 
-        btn.onclick = () => alert('Chat logic not fully implemented yet!'); 
+        // Placeholder: Full chat logic needs to be implemented next
+        btn.onclick = () => alert(`Chat with ${display} is coming soon!`); 
         btn.setAttribute('data-uid', uid); 
         activeDuoList.appendChild(btn);
     });
@@ -823,7 +830,7 @@ async function saveProfile() {
 }
 
 
-// ---------- UNIQUE USERNAME LOGIC ----------
+// ---------- UNIQUE USERNAME LOGIC (FIXED) ----------
 
 function isValidUsername(username) {
     if (!username || username.length < 3 || username.length > 20) {
@@ -878,8 +885,8 @@ async function attemptUsernameChange() {
                 throw new Error(`Username @${newUsername} is already taken.`);
             }
 
-            // 2. Delete the old username index entry (if one exists)
-            if (oldUsername) {
+            // --- FIX: Only attempt to delete the old index if a valid one exists ---
+            if (oldUsername && oldUsername !== 'Loading...') { 
                 const oldUsernameDocRef = db.collection("usernames").doc(oldUsername);
                 t.delete(oldUsernameDocRef);
             }
@@ -894,7 +901,7 @@ async function attemptUsernameChange() {
             const userRef = db.collection("users").doc(currentUser.uid);
             t.update(userRef, {
                 username: newUsername,
-                usernameChanged: true 
+                usernameChanged: true // Permanently lock the username change
             });
         });
 
