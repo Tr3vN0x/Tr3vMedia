@@ -232,7 +232,7 @@ textarea { resize: vertical; }
 <div id="chatWindow">
 <h3 id="chatHeader">Select a Duo to start messaging</h3>
 <div id="messageDisplay"></div>
-<div id="messageInputArea" class.hidden">
+<div id="messageInputArea" class="hidden">
 <input type="text" id="messageInput" placeholder="Type your message..." onkeyup="if(event.key==='Enter') sendMessage()">
 <button class="neon-btn" id="sendMessageBtn" onclick="sendMessage()">Send</button>
 </div>
@@ -330,12 +330,12 @@ let allUsersCache = [];
 let requestCache = {};
 let currentChatId = null;
 let chatListener = null;
-let currentChatPartnerId = null; // New state variable
+let currentChatPartnerId = null; 
 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
 // ---------------------------
-// Firebase Configuration (REPLACE THESE WITH YOUR ACTUAL CONFIG)
+// Firebase Configuration (<<-- REPLACE THIS WITH YOUR ACTUAL CONFIG -->>)
 // ---------------------------
 const firebaseConfig = {
     apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
@@ -347,6 +347,7 @@ const firebaseConfig = {
 };
 
 const CO_FOUNDER_UIDS = [
+    // Add UID for co-founder badges
     "GmH4xJp92vY8sbwIWgJWjFw9MOQ2",
 ];
 
@@ -358,7 +359,7 @@ function getCoFounderBadge(uid) {
 }
 
 // ----------------------------------------------------
-// 1. INITIALIZATION & AUTHENTICATION ENTRY POINT (FIXED)
+// 1. INITIALIZATION & AUTHENTICATION ENTRY POINT
 // ----------------------------------------------------
 function initFirebase() {
     if (!firebase.apps.length) {
@@ -397,6 +398,7 @@ async function checkAndCreateUserProfile() {
     const userDoc = await userDocRef.get();
 
     if (!userDoc.exists) {
+        // Create default profile for new user
         await userDocRef.set({
             nickname: currentUser.displayName || 'New Cyber Warrior',
             profileImageUrl: currentUser.photoURL || DEFAULT_AVATAR,
@@ -471,12 +473,12 @@ async function loadAllUsers(){
     container.innerHTML="<h3>Loading Suggested Players...</h3>";
     
     try{
-        // 1. Load ALL users (requires 'allow read: if isSignedIn()' in rules)
+        // 1. Load ALL users 
         const snapshot=await db.collection('users').get();
         allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
         
         // 2. Load all friend requests involving the current user (FIXED QUERY)
-        // This query now uses the 'participants' array field.
+        // Uses the 'participants' array field which is enforced by security rules.
         const requestsSnap = await db.collection('friendRequests')
             .where('participants', 'array-contains', currentUser.uid) 
             .get();
@@ -509,8 +511,7 @@ async function loadAllUsers(){
             ACCESS DENIED [UID: ${currentUser?.uid || 'NONE'}] - 
             Error loading users: ${e.message}</p>
             <p style="width:100%; text-align:center; color:yellow;">
-            **CRITICAL:** This usually means the **Firestore Security Rules** are not deployed correctly,
-            or the 'participants' field is missing from your 'friendRequests' documents.
+            **CRITICAL:** This usually means the **Firestore Security Rules** are not deployed correctly.
             </p>`; 
     }
 }
@@ -519,7 +520,6 @@ async function loadAllUsers(){
 // User Rendering Functions
 // ---------------------------
 function renderUserCard(uid, data, requestInfo){
-    // ... (This function is largely unchanged from your last submission, and it's fine)
     if(!data) return null;
     const card=document.createElement('div');
     card.className='card';
@@ -545,6 +545,7 @@ function renderUserCard(uid, data, requestInfo){
         } else if (requestInfo.status === 'accepted') {
             cardButtons = `<button class="neon-btn" style="border-color:lime; color:lime;" onclick="event.stopPropagation(); showTab('messaging'); selectChat('${requestInfo.id}', '${uid}')">Duo Active</button>`;
         } else {
+            // Rejected or other state, allow new request
             cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
         }
     } else {
@@ -605,7 +606,7 @@ function renderDuoCard(uid, data) {
 
 
 // ---------------------------
-// Duos/Requests Logic (Implemented)
+// Duos/Requests Logic 
 // ---------------------------
 
 async function loadFriends() {
@@ -626,7 +627,7 @@ async function loadFriends() {
         const req = requestCache[otherUid];
         const partner = findUserInCache(otherUid);
 
-        if (!partner) continue; // Skip if user data isn't loaded
+        if (!partner) continue; 
 
         if (req.status === 'pending' && req.receiverId === currentUser.uid) {
             // Incoming pending request
@@ -659,7 +660,7 @@ async function loadFriends() {
 }
 
 // ---------------------------
-// Friend Request Actions (Implemented)
+// Friend Request Actions
 // ---------------------------
 
 async function sendFriendRequest(otherUid) {
@@ -720,7 +721,7 @@ async function rejectFriendRequest(requestId) {
 }
 
 // ---------------------------
-// Messaging Functions (Stubbed for now)
+// Messaging Functions
 // ---------------------------
 
 async function loadChatList() {
@@ -832,7 +833,7 @@ async function sendMessage() {
 
 
 // ---------------------------
-// Profile/Search Stubs (Functionality is stubbed but structure is there)
+// Profile/Search Logic
 // ---------------------------
 
 function toggleLfdCategory() {
