@@ -273,7 +273,12 @@ function renderCard(d,type,reqId=null){
 
 async function loadSuggested(){
   const container=document.getElementById('suggestedTab'); container.innerHTML='';
-  const snapshot=await db.collection('users').get();
+  // NOTE: With public rules, this read will always work if the app is configured correctly.
+  const snapshot=await db.collection('users').get(); 
+  
+  // Check if currentUser is set (must be logged in)
+  if(!currentUser) return; 
+
   const myDoc=(await db.collection('users').doc(currentUser.uid).get()).data();
   const myFriends=new Set(myDoc.friends||[]);
   const myRequestsSent=new Set((await db.collection('friendRequests').where('senderId','==',currentUser.uid).get()).docs.map(d=>d.data().receiverId));
@@ -283,7 +288,8 @@ async function loadSuggested(){
 
 // Client-side function for sending request
 async function sendFriendRequest(toUid){
-  if(toUid===currentUser.uid) return;
+  if(!currentUser) { alert("You must be logged in to send a request."); return; }
+  if(toUid===currentUser.uid) { alert("Cannot send request to yourself!"); return; }
   
   // Unique, sortable ID using both UIDs
   const reqId=[currentUser.uid,toUid].sort().join('_');
@@ -294,44 +300,40 @@ async function sendFriendRequest(toUid){
     const myDoc=(await db.collection('users').doc(currentUser.uid).get()).data();
     if((myDoc.friends||[]).includes(toUid)){ alert("Already friends!"); return; }
 
-    // ===================================================================
-    // CRITICAL DEBUGGING CODE: CHECK THE CONSOLE (F12) AFTER HITTING SEND
-    // ===================================================================
-    console.log("--- DEBUGGING FRIEND REQUEST DATA ---");
-    console.log("Logged in UID (request.auth.uid):", currentUser.uid);
-    console.log("Sender ID being sent (request.resource.data.senderId):", currentUser.uid);
-    console.log("Receiver ID being sent (request.resource.data.receiverId):", toUid);
-    console.log("-------------------------------------");
-    // ===================================================================
+    console.log("--- DEBUG: ATTEMPTING WRITE WITH PUBLIC RULES ---");
+    console.log("CurrentUser UID:", currentUser.uid);
+    console.log("Receiver UID:", toUid);
+    console.log("-----------------------------------------------");
     
-    // Line ~308: The database write operation that is failing
+    // THIS LINE WILL SUCCEED IF AUTHENTICATION TOKEN IS PRESENT
     await reqRef.set({
       senderId:currentUser.uid, 
       receiverId:toUid, 
       createdAt:firebase.firestore.FieldValue.serverTimestamp() 
     });
     
-    alert("Friend request sent!"); 
+    alert("Friend request sent! (Success)"); 
     loadSuggested(); 
     loadRequests();
   } catch (e) {
     console.error("Failed to send friend request:", e);
-    alert("ERROR: Failed to send request. Check console output for debug data and ensure Firestore rules are published.");
+    alert("FATAL ERROR: Failed to send request even with public rules. Authentication has failed.");
   }
 }
 
 async function loadRequests(){
-  const container=document.getElementById('requestsTab'); container.innerHTML='';
+  // This query will now work with public rules if currentUser is set.
   const snapshot=await db.collection('friendRequests').where('receiverId','==',currentUser.uid).get();
+  const container=document.getElementById('requestsTab'); container.innerHTML='';
   if(snapshot.empty){ container.innerHTML='<p>No friend requests.</p>'; return; }
   const userDocs=await Promise.all(snapshot.docs.map(doc=>db.collection('users').doc(doc.data().senderId).get()));
   snapshot.docs.forEach((doc,i)=>{ const fromUser=userDocs[i].data(); if(!fromUser)return; container.appendChild(renderCard(fromUser,'request',doc.id)); });
 }
 
-// Calls the Cloud Function for acceptance (Requires functions/index.js deployment)
+// NOTE: This uses the Cloud Function 'acceptFriendRequest' which must be deployed separately.
 async function acceptFriend(reqId, friendUid){
   try {
-    const acceptFunction = functions.httpsCallable('acceptFriendRequest');
+    const acceptFunction = functions.https.callable('acceptFriendRequest');
     await acceptFunction({ reqId: reqId, friendUid: friendUid });
 
     alert("Duo accepted!");
@@ -351,6 +353,8 @@ async function declineFriend(reqId){
 
 async function loadFriends(){
   const container=document.getElementById('friendsTab'); container.innerHTML='';
+  if(!currentUser) return;
+
   const userDocSnapshot=await db.collection('users').doc(currentUser.uid).get();
   const userDoc=userDocSnapshot.data();
   const friendUids=userDoc.friends||[];
