@@ -89,6 +89,52 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 .message-other { text-align:left; }
 .message-other .message-bubble { background: cyan; color:#0b0b0b; }
 
+/* --- GAMER CARD STYLES (NEW) --- */
+.gamer-card-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 15px;
+}
+.gamer-card {
+    position: relative;
+    width: 150px; 
+    height: 150px;
+    border: 2px solid cyan;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+    background: #181818;
+    transition: all 0.2s;
+}
+.gamer-card:hover {
+    box-shadow: 0 0 15px magenta;
+    transform: scale(1.02);
+}
+.gamer-card img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Style for the Upload Slot */
+.gamer-card-slot {
+    width: 150px;
+    height: 150px;
+    border: 2px dashed magenta;
+    border-radius: 8px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    cursor: pointer;
+    background: #0d0d0d;
+}
+.gamer-card-slot span {
+    font-size: 3em;
+    color: magenta;
+}
 
 /* ======================================= */
 /* MEDIA QUERIES (MOBILE FIXES) */
@@ -365,10 +411,11 @@ async function loadGamerCards() {
         cardCount++;
         const data = doc.data();
         const cardDiv = document.createElement('div');
-        cardDiv.style.position = 'relative';
+        cardDiv.className = 'gamer-card'; 
         cardDiv.innerHTML = `
-            <img src="${data.imageUrl}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 3px;">
-            <button onclick="deleteGamerCard('${doc.id}', '${data.imageUrl}')" style="position: absolute; top: -5px; right: -5px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; line-height: 1; padding: 0; cursor: pointer;">X</button>
+            <img src="${data.imageUrl}">
+            <button onclick="deleteGamerCard('${doc.id}', '${data.imageUrl}')" 
+                style="position: absolute; top: -5px; right: -5px; background: red; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; line-height: 1; padding: 0; cursor: pointer; z-index: 10;">X</button>
         `;
         listEl.appendChild(cardDiv);
     });
@@ -377,17 +424,10 @@ async function loadGamerCards() {
     const maxCards = 8;
     for (let i = cardCount; i < maxCards; i++) {
         const slotDiv = document.createElement('div');
-        slotDiv.style.width = '100px';
-        slotDiv.style.height = '100px';
-        slotDiv.style.border = '2px dashed magenta';
-        slotDiv.style.borderRadius = '3px';
-        slotDiv.style.display = 'flex';
-        slotDiv.style.justifyContent = 'center';
-        slotDiv.style.alignItems = 'center';
-        slotDiv.style.position = 'relative';
+        slotDiv.className = 'gamer-card-slot'; 
         slotDiv.innerHTML = `
-            <input type="file" onchange="uploadGamerCard(this.files[0])" accept="image/*" style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer;">
-            <span style="color:magenta;">+</span>
+            <input type="file" onchange="uploadGamerCard(this.files[0])" accept="image/*" style="position: absolute; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 5;">
+            <span>+</span>
         `;
         listEl.appendChild(slotDiv);
     }
@@ -456,7 +496,6 @@ function renderCard(d, type, reqId = null) {
     card.className = 'card';
     card.innerHTML = createCardContentHtml(d);
     
-    // Make the entire card clickable to view the profile
     card.style.cursor = 'pointer'; 
     card.onclick = () => viewProfile(d.uid); 
 
@@ -481,13 +520,14 @@ function renderCard(d, type, reqId = null) {
     return card;
 }
 
-// NEW: Function to render a detailed profile view
+// FIX: Added logic to clear previous content and handle not found
 async function viewProfile(targetUid) {
     showTab('viewProfile');
     const container = document.getElementById('viewProfileContent');
-    container.innerHTML = '<h2>Loading Profile...</h2>';
+    container.innerHTML = '<h2>Loading Profile...</h2>'; // Display loading immediately
 
     const doc = await db.collection('users').doc(targetUid).get();
+    
     if (!doc.exists) {
         container.innerHTML = `<h2>Error: User profile not found.</h2>`;
         return;
@@ -515,16 +555,14 @@ async function viewProfile(targetUid) {
         }
     }
     
-    // Admin Ban Button
     let adminButtonHTML = '';
     if (currentUser.uid === OWNER_UID && !isOwner) {
         adminButtonHTML = `<button class="neon-btn remove" onclick="toggleBan('${targetUid}', ${data.isBanned || false})">${data.isBanned ? 'UNBAN USER' : 'BAN USER'}</button>`;
     }
 
-
-    // Render Image Cards (Gamer Cards)
+    // Render Image Cards (Gamer Cards) using the new styles
     const cardSnapshot = await db.collection('gamerCards').where('uid', '==', targetUid).get();
-    let imageCardsHTML = '<h3 style="color:cyan;">Gamer Cards</h3><div style="display:flex; flex-wrap:wrap; gap:10px;">';
+    let imageCardsHTML = '<h3 style="color:cyan;">Gamer Cards</h3><div class="gamer-card-container">';
     
     if (cardSnapshot.empty) {
         imageCardsHTML += '<p>No custom cards uploaded.</p>';
@@ -532,15 +570,15 @@ async function viewProfile(targetUid) {
         cardSnapshot.docs.forEach(cardDoc => {
             const cardData = cardDoc.data();
             imageCardsHTML += `
-                <div style="border: 1px solid magenta; padding: 5px; border-radius: 5px;">
-                    <img src="${cardData.imageUrl}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 3px;">
+                <div class="gamer-card">
+                    <img src="${cardData.imageUrl}">
                 </div>
             `;
         });
     }
     imageCardsHTML += '</div>';
 
-    // Final HTML Injection
+    // Final HTML Injection (This replaces the "Loading Profile..." message)
     container.innerHTML = `
         <div style="text-align:center; border-bottom: 2px solid cyan; padding-bottom: 15px;">
             <img src="${data.profileImageUrl || DEFAULT_AVATAR}" class="avatar" style="width: 100px; height: 100px; border-color: magenta;">
@@ -759,6 +797,7 @@ async function sendMessage(chatId,content,recipientUid){
   msgInput.focus();
 }
 
+// FIX: Added "viewProfileTab" to the list of tabs to hide
 function hideAllTabs(){ 
   ["suggestedTab","requestsTab","friendsTab","profileTab","messagingTab", "viewProfileTab"].forEach(t=>document.getElementById(t).classList.add('hidden')); 
 }
