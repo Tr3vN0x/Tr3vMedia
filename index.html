@@ -405,6 +405,7 @@ async function loadAllUsers(){
     const container=document.getElementById('allUsersTab');
     container.innerHTML="<h3>Loading Suggested Players...</h3>";
     try{
+        // This is the query that requires 'allow list' on the /users collection
         const snapshot=await db.collection('users').get();
         allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
         
@@ -452,7 +453,7 @@ function renderUserCard(uid, data, requestInfo){
 
     let cardButtons;
     
-    // Logic to determine the correct button based on request status (omitted for brevity)
+    // Logic to determine the correct button based on request status
     if (requestInfo) {
         if (requestInfo.status === 'pending') {
             if (requestInfo.senderId === currentUser.uid) {
@@ -463,6 +464,7 @@ function renderUserCard(uid, data, requestInfo){
         } else if (requestInfo.status === 'accepted') {
             cardButtons = `<button class="neon-btn" style="border-color:lime; color:lime;">Duo</button>`;
         } else {
+            // Should not happen if request is in cache, but handles deleted/rejected states
             cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
         }
     } else {
@@ -586,9 +588,11 @@ async function loadFriends() {
     pendingListEl.innerHTML = 'Loading Requests...';
     friendListEl.innerHTML = 'Loading Duos...';
     
+    // Ensure all users are loaded and cached first
     await loadAllUsers(); 
 
     try {
+        // Filter the cache to find requests where the current user is the receiver and status is pending
         const pendingRequests = Object.values(requestCache).filter(req => 
             req.status === 'pending' && req.receiverId === currentUser.uid
         );
@@ -613,6 +617,7 @@ async function loadFriends() {
     }
     
     try {
+        // Filter the cache to find accepted duos
         const acceptedDuos = Object.values(requestCache).filter(req => req.status === 'accepted');
             
         if (acceptedDuos.length === 0) {
@@ -652,17 +657,17 @@ async function handleRequest(requestId, newStatus) {
             const [id1, id2] = requestId.split('_');
             const participants = [id1, id2].sort(); 
 
+            // 1. Update the request status
             transaction.update(docRef, {
                 status: newStatus,
-                ...(newStatus === 'accepted' && { participants: participants }), 
                 handledAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             
+            // 2. Create the chat document if accepted (critical for security rules)
             if (newStatus === 'accepted') {
                 const chatRef = db.collection('chats').doc(requestId);
                 const chatDoc = await transaction.get(chatRef);
                 if (!chatDoc.exists) {
-                    // Create the initial chat document for security rules to work
                     transaction.set(chatRef, {
                         participants: participants,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -684,12 +689,16 @@ async function removeDuo(otherUid) {
     if (!currentUser) return;
     const requestId = getChatId(otherUid);
 
-    if (!confirm(`Are you sure you want to remove this Duo? This will end your connection.`)) {
+    if (!confirm(`Are you sure you want to remove this Duo? This will delete the request document.`)) {
         return;
     }
 
     try {
+        // Delete the request document, which immediately revokes chat/message permissions
         await db.collection('requests').doc(requestId).delete();
+        
+        // Optionally delete the chat document, though rules prevent access anyway
+        await db.collection('chats').doc(requestId).delete();
         
         alert("Duo successfully removed.");
         loadFriends(); 
@@ -751,7 +760,7 @@ async function loadChatList() {
     duoListEl.innerHTML = 'Loading Duos for chat...';
 
     try {
-        // Query only requests where the status is 'accepted'
+        // Use a query on the requests collection to find accepted duos
         const acceptedSnapshot = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .where('status', '==', 'accepted')
@@ -771,7 +780,7 @@ async function loadChatList() {
             const chatEntry = document.createElement('div');
             chatEntry.className = 'chat-entry';
             
-            // Fetch the other user's nickname
+            // Fetch the other user's nickname (requires 'allow get' on /users)
             duoPromises.push(db.collection('users').doc(otherUid).get().then(userDoc => {
                 const nickname = userDoc.data()?.nickname || 'Unknown Duo';
                 chatEntry.textContent = nickname;
@@ -802,6 +811,7 @@ function openChat(otherUid, otherNickname) {
     document.getElementById('messageDisplay').innerHTML = 'Loading messages...';
     document.getElementById('messageInputArea').classList.remove('hidden');
 
+    // Use the messages subcollection inside the chat document
     const messagesRef = db.collection('chats').doc(currentChatId).collection('messages').orderBy('timestamp', 'asc');
 
     chatListener = messagesRef.onSnapshot(snapshot => {
@@ -838,26 +848,19 @@ async function sendMessage() {
     const chatRef = db.collection('chats').doc(currentChatId);
     try {
         await db.runTransaction(async (transaction) => {
-            const chatDoc = await transaction.get(chatRef);
-            const [id1, id2] = currentChatId.split('_');
-            const participants = [id1, id2].sort();
+            
+            // We don't need to check chatDoc.exists here because the security rules
+            // already enforce that the base chat document exists and has 'accepted' status
+            // for the user to be able to WRITE to the messages subcollection.
 
-            if (!chatDoc.exists) {
-                // This block creates the base chat document if it's missing (needed for security rules)
-                transaction.set(chatRef, {
-                    participants: participants,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                });
-            }
-
-            // Write the new message
+            // 1. Write the new message
             transaction.set(chatRef.collection('messages').doc(), {
                 text: text,
                 senderId: currentUser.uid,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });
 
-            // Update the chat document
+            // 2. Update the chat document (for 'lastMessageAt' sorting/display later)
             transaction.update(chatRef, {
                 lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -867,7 +870,7 @@ async function sendMessage() {
 
     } catch(e) {
         console.error("Message send failed:", e);
-        alert("Failed to send message. Error: Missing or insufficient permissions.");
+        alert("Failed to send message. Error: Missing or insufficient permissions. Details: "+e.message);
     }
 }
 
@@ -876,6 +879,7 @@ async function sendMessage() {
 // Search Filter Logic
 // ---------------------------
 function filterSearchResults() { 
+    // This function relies on allUsersCache being pre-populated by loadAllUsers()
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
     const gameCategoryFilter = document.getElementById('gameCategoryFilter').value; 
@@ -929,7 +933,7 @@ function viewProfile(uid, data) {
     const gameRole = data.gameRole || 'Generalist';
     const lfdCategory = data.lfdCategory || null; 
 
-    // Logic for the profile viewing buttons (omitted for brevity)
+    // Logic for the profile viewing buttons
     if (requestInfo && requestInfo.status === 'accepted') {
         profileButton = `<button class="neon-btn" style="margin-top:10px;" onclick="openChat('${uid}', '${data.nickname}')">Start Chat</button>
                          <button class="neon-btn remove" style="margin-top:10px;" onclick="removeDuo('${uid}')">Remove Duo</button>`;
@@ -1090,6 +1094,7 @@ async function saveProfile() {
 
     // --- 3. Update Firestore Document ---
     try {
+        // This update requires 'allow update' on /users/{userId} if request.auth.uid == userId
         await db.collection('users').doc(currentUser.uid).update(updates);
         
         currentProfileData = {...currentProfileData, ...updates};
@@ -1108,7 +1113,6 @@ async function saveProfile() {
         setTimeout(() => messageEl.textContent = '', 3000);
     } catch(e) {
         console.error("Profile update failed:", e);
-        // This is where security rule errors for profile updates would appear
         messageEl.textContent = `Error: Missing or insufficient permissions. Check Firestore Rules. ${e.message}`;
         messageEl.style.color = 'red';
     }
@@ -1131,6 +1135,7 @@ auth.onAuthStateChanged(async user=>{
     const uDoc=await uRef.get();
 
     if(!uDoc.exists){
+        // Initial user creation - requires 'allow create' on /users/{userId}
         await uRef.set({
             nickname:user.displayName,
             profileImageUrl:user.photoURL,
