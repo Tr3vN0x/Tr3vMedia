@@ -26,10 +26,10 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 #messageInput:focus, #profileBio:focus, #profileSkillRating:focus, #profileStatus:focus, #newUsernameInput:focus { border-color: magenta; box-shadow: 0 0 8px magenta; }
 #profileBio { resize: vertical; }
 #profileSkillRating, #profileStatus { width: 100%; max-width: 200px; }
-.flex { display:flex; gap:15px; flex-wrap:wrap; }
+.flex { display:flex; gap:15px; flex-wrap:wrap; justify-content:center; }
 .card-container { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; }
 
-/* --- USER CARD (New Styles for Gamer Card preview) --- */
+/* --- USER CARD --- */
 .card { 
     width: 100%; 
     max-width:300px; 
@@ -249,6 +249,7 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
             </div>
         </div>
         <h3 style="color:cyan; margin-top: 25px;">Gamer Card Manager (Max 8)</h3>
+        <p style="font-size: 0.9em; color: gray;">Click the "+" slot to upload a new card (Max 2MB per image).</p>
         <div id="gamerCardList" class="gamer-card-container" style="border: 1px dashed cyan; padding: 10px; border-radius: 6px; margin-bottom: 15px;"></div>
         <button class="neon-btn" style="border-color: #00ff00; box-shadow: 0 0 10px #00ff00;" onclick="saveProfile()">Save Profile</button>
         <p id="saveMessage" style="color: #00ff00; margin-top: 10px;"></p>
@@ -256,8 +257,7 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 </div>
 
 <script>
-// ---------- FIREBASE INIT ----------
-// *** USING YOUR ACTUAL CONFIG ***
+// ---------- FIREBASE INIT (USE YOUR OWN CONFIG HERE) ----------
 const firebaseConfig = {
     apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",    
     authDomain: "duoup-cfae6.firebaseapp.com",
@@ -300,27 +300,23 @@ auth.onAuthStateChanged(async user=>{
     const userDoc = await userRef.get();
 
     if(!userDoc.exists){
-        // --- FIX: Create a robust default username and ensure flag is present ---
         const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
-        // Use a 4-digit random number to minimize initial collision chance
         const defaultUsername = baseName.substring(0, 16) + Math.floor(1000 + Math.random() * 9000); 
         
-        // New user setup
         await userRef.set({
             uid: user.uid,
             username: defaultUsername,    
-            usernameChanged: false, // CRITICAL: Must be explicitly false for first-time use
+            usernameChanged: false, 
             bio: "New Cyber Warrior seeking a Duo partner!",
             skillRating: 3, 
             status: "Online",
             friends: [],
-            duoSince: {}, // NEW: Initialize the map for established dates
+            duoSince: {}, 
             unreadMessages: 0,
             profileImageUrl: user.photoURL || DEFAULT_AVATAR,
             nickname: user.displayName, 
             gamerCards: []
         });
-        // Create the initial unique username index document
         await db.collection("usernames").doc(defaultUsername).set({
             uid: user.uid,
             username: defaultUsername
@@ -407,11 +403,11 @@ function showTab(tab){
       case "friends": friendsTab.classList.remove("hidden"); loadFriends(); break; 
       case "messaging": messagingTab.classList.remove("hidden"); break;
       case "profile": profileTab.classList.remove("hidden"); loadUserProfile(); break; 
-      case "viewProfile": viewProfileTab.classList.remove("hidden"); break; // Handled in viewUserProfile
+      case "viewProfile": viewProfileTab.classList.remove("hidden"); break; 
     }
 }
 
-// ---------- CORE USER CARD RENDERING (UPDATED) ----------
+// ---------- CORE USER CARD RENDERING ----------
 
 function renderUserCard(d, data) {
     const nickname = data.nickname || "Unknown Player";
@@ -426,7 +422,6 @@ function renderUserCard(d, data) {
     card.className = "card";
     card.onclick = () => viewUserProfile(d.id); 
     
-    // Updated Card Inner HTML to include the Gamer Card Preview
     let cardContentHTML = `<div class="card-content">
         <img src="${profileImageUrl}" class="avatar">
         <strong>${username}</strong> ${d.id === OWNER_UID ? '<span class="owner-badge-box">OWNER</span>' : ''}
@@ -595,38 +590,44 @@ async function sendFriendRequest(toUid){
     loadFriendRequests();
 }
 
+/**
+ * Executes a transaction to finalize the Duo establishment.
+ * 1. Reads the request document to get sender/receiver UIDs.
+ * 2. Updates both user documents to add the other to the 'friends' array and 'duoSince' map.
+ * 3. Deletes the 'friendRequests' document.
+ */
 async function acceptFriend(reqId){
     const reqRef=db.collection("friendRequests").doc(reqId);
     
-    // NEW: Get the server timestamp once for the transaction
+    // Server Timestamp used for consistency across both documents
     const establishedAtTimestamp = firebase.firestore.FieldValue.serverTimestamp(); 
     
     try {
         await db.runTransaction(async t=>{
             const doc=await t.get(reqRef);
-            if(!doc.exists) throw new Error("Request gone!");
+            if(!doc.exists) throw new Error("Request gone! It may have been accepted or declined already.");
             
             const {senderId, receiverId} = doc.data(); 
             
             const senderRef = db.collection("users").doc(senderId);
             const receiverRef = db.collection("users").doc(receiverId);
             
-            // Data to be written to the 'duoSince' map
+            // Map data for atomic update to the 'duoSince' map field
             const senderDuoData = {};
             senderDuoData[receiverId] = establishedAtTimestamp;
 
             const receiverDuoData = {};
             receiverDuoData[senderId] = establishedAtTimestamp;
             
-            // 1. Add Receiver to Sender's friends list & record timestamp
+            // 1. Update Sender's document
             t.update(senderRef, {
                 friends: firebase.firestore.FieldValue.arrayUnion(receiverId),
-                duoSince: senderDuoData // Writes the map { 'friendUID': timestamp }
+                duoSince: senderDuoData 
             });
-            // 2. Add Sender to Receiver's friends list & record timestamp
+            // 2. Update Receiver's document (Current User)
             t.update(receiverRef, {
                 friends: firebase.firestore.FieldValue.arrayUnion(senderId),
-                duoSince: receiverDuoData // Writes the map { 'friendUID': timestamp }
+                duoSince: receiverDuoData 
             });
             
             // 3. Delete the request document
@@ -638,6 +639,7 @@ async function acceptFriend(reqId){
         console.error("Accept friend transaction failed:", e);
     }
     
+    // Refresh all lists after the transaction
     await loadRelationshipStatus(); 
     loadFriendRequests();
     loadFriends();
@@ -647,6 +649,7 @@ async function acceptFriend(reqId){
 
 async function declineFriend(reqId){    
     try {
+        // Simple deletion of the request document is sufficient for decline
         await db.collection("friendRequests").doc(reqId).delete();   
         alert("Request declined.");
     } catch(e) {
@@ -671,20 +674,17 @@ async function removeFriend(friendUid) {
     
     try {
         await db.runTransaction(async (t) => {
-            // 1. Remove friendUid from the current user's friends array
+            // Remove friendUid from the current user's friends array
             t.update(userRef, {
                 friends: firebase.firestore.FieldValue.arrayRemove(friendUid),
-                // Optionally remove the duoSince timestamp entry (requires field value delete, which is not supported in client transactions for map fields)
             });
 
-            // 2. Remove currentUser.uid from the friend's friends array
+            // Remove currentUser.uid from the friend's friends array
             t.update(friendRef, {
                 friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
-                // Optionally remove the duoSince timestamp entry
             });
             
-            // 3. Delete the chat document 
-            // Note: This does NOT delete the subcollection messages. This is a client limitation.
+            // Delete the chat document 
             t.delete(chatRef);    
         });
         alert(`Successfully removed Duo.`);
@@ -824,11 +824,6 @@ function initMessaging() {
 }
 
 
-/**
- * Sets up the real-time listener for messages in the selected chat.
- * @param {string} friendUid The UID of the friend to chat with.
- * @param {string} friendDisplay The username/nickname of the friend.
- */
 function openChat(friendUid, friendDisplay) {
     if (unsubscribeMessages) unsubscribeMessages(); 
 
@@ -857,7 +852,6 @@ function openChat(friendUid, friendDisplay) {
         
         messageDisplay.scrollTop = messageDisplay.scrollHeight;
         
-        // IMPORTANT: Reset unread counter for *this* chat when it's opened
         db.collection("users").doc(currentUser.uid).update({
             unreadMessages: 0
         }).catch(e => console.warn("Failed to reset unread count:", e));
@@ -868,10 +862,6 @@ function openChat(friendUid, friendDisplay) {
     });
 }
 
-/**
- * Renders a single message bubble to the display.
- * @param {object} messageData The message object from Firestore.
- */
 function renderMessage(messageData) {
     const messageDisplay = document.getElementById('messageDisplay');
     const isMine = messageData.senderId === currentUser.uid;
@@ -888,9 +878,6 @@ function renderMessage(messageData) {
 }
 
 
-/**
- * Sends the message currently in the input field.
- */
 async function sendMessage() {
     const input = document.getElementById('messageInput');
     const text = input.value.trim();
@@ -929,9 +916,6 @@ async function sendMessage() {
     }
 }
 
-/**
- * Monitors the current user's unreadMessages counter in real-time.
- */
 function monitorUnreadMessages() {
     if (unsubscribeUnread) unsubscribeUnread();
     
@@ -959,12 +943,8 @@ function monitorUnreadMessages() {
 }
 
 
-// ---------- PROFILE VIEWING FUNCTIONS (NEW) ----------
+// ---------- PROFILE VIEWING FUNCTIONS ----------
 
-/**
- * Loads and displays the full profile of a target user.
- * @param {string} targetUid The UID of the user to view.
- */
 async function viewUserProfile(targetUid) {
     if (!currentUser || targetUid === currentUser.uid) {
         showTab('profile'); 
@@ -986,7 +966,6 @@ async function viewUserProfile(targetUid) {
         const data = userDoc.data();
         const isFriend = currentProfileData.friends && currentProfileData.friends.includes(targetUid);
         
-        // NEW: Date processing for established date
         let establishedDate = null;
         if (isFriend && currentProfileData.duoSince && currentProfileData.duoSince[targetUid]) {
              const timestamp = currentProfileData.duoSince[targetUid];
@@ -995,7 +974,6 @@ async function viewUserProfile(targetUid) {
              }
         }
 
-        // Determine the current relationship status for the button
         let actionButtonHTML = '';
         
         if (isFriend) {
@@ -1012,7 +990,6 @@ async function viewUserProfile(targetUid) {
             actionButtonHTML = `<button class="neon-btn" onclick="sendFriendRequest('${targetUid}')">Send Duo Request</button>`;
         }
 
-        // Generate Gamer Card HTML
         const gamerCards = data.gamerCards || [];
         const gamerCardHTML = gamerCards.map((url, index) => `
             <div class="gamer-card" style="cursor:zoom-in;" onclick="window.open('${url}', '_blank')">
@@ -1020,7 +997,6 @@ async function viewUserProfile(targetUid) {
             </div>
         `).join('');
 
-        // Build the full profile view structure
         viewProfileContent.innerHTML = `
             <div style="display: flex; flex-direction: column; align-items: center; text-align: center; margin-bottom: 30px;">
                 <img src="${data.profileImageUrl || DEFAULT_AVATAR}" class="avatar" style="width: 120px; height: 120px; border-color: magenta; margin-bottom: 15px;">
@@ -1053,9 +1029,6 @@ async function viewUserProfile(targetUid) {
     }
 }
 
-/**
- * Helper function to switch to the messaging tab and open the chat with the specified friend.
- */
 function showChatFromProfile(targetUid) {
     const friendData = friendUsers[targetUid];
     if (friendData) {
@@ -1148,7 +1121,7 @@ async function saveProfile() {
 }
 
 
-// ---------- UNIQUE USERNAME LOGIC (ROBUST) ----------
+// ---------- UNIQUE USERNAME LOGIC ----------
 
 function isValidUsername(username) {
     if (!username || username.length < 3 || username.length > 20) {
@@ -1193,7 +1166,6 @@ async function attemptUsernameChange() {
     
     try {
         await db.runTransaction(async t => {
-            // 1. Check if the new username is already taken
             const usernameDocRef = db.collection("usernames").doc(newUsername);
             const usernameDoc = await t.get(usernameDocRef);
 
@@ -1203,7 +1175,6 @@ async function attemptUsernameChange() {
                 }
             }
 
-            // 2. Clean up the old username index entry 
             if (oldUsername && oldUsername.length > 0) { 
                 const oldUsernameDocRef = db.collection("usernames").doc(oldUsername);
                 const oldUsernameIndexDoc = await t.get(oldUsernameDocRef);
@@ -1213,13 +1184,11 @@ async function attemptUsernameChange() {
                 }
             }
 
-            // 3. Create the new username index entry
             t.set(usernameDocRef, {
                 uid: currentUser.uid,
                 username: newUsername
             });
 
-            // 4. Update the user's main profile document
             const userRef = db.collection("users").doc(currentUser.uid);
             t.update(userRef, {
                 username: newUsername,
@@ -1272,6 +1241,7 @@ function renderGamerCards() {
         fileInput.type = 'file';
         fileInput.accept = 'image/*';
         fileInput.style.display = 'none';
+        // Pass the file input reference to the handler function
         fileInput.onchange = (e) => handleCardUpload(e.target.files[0]);
 
         slot.onclick = () => fileInput.click();
@@ -1284,32 +1254,37 @@ function renderGamerCards() {
 async function handleCardUpload(file) {
     if (!file) return;
 
-    if (!confirm("Are you sure you want to upload this image as a Gamer Card?")) {
-        return;
-    }
-
     if (file.size > 2 * 1024 * 1024) { 
         return alert("Image file size must be less than 2MB.");
+    }
+    
+    if (!confirm(`Are you sure you want to upload this ${file.name} as a new Gamer Card?`)) {
+        return;
     }
 
     const saveMessage = document.getElementById('saveMessage');
     saveMessage.textContent = "Uploading Gamer Card...";
 
     const storageRef = storage.ref();
+    // Use a unique name to prevent collisions
     const fileName = `${new Date().getTime()}_${file.name}`;
+    // Create a path specific to the user
     const cardRef = storageRef.child(`gamer_cards/${currentUser.uid}/${fileName}`);
 
     try {
+        // 1. Upload the image to Firebase Storage
         const snapshot = await cardRef.put(file);
         const downloadURL = await snapshot.ref.getDownloadURL();
         
+        // 2. Save the URL to the user's Firestore document
         const userRef = db.collection("users").doc(currentUser.uid);
         await userRef.update({
+            // Use arrayUnion to add the URL to the array atomically
             gamerCards: firebase.firestore.FieldValue.arrayUnion(downloadURL)
         });
 
         saveMessage.textContent = "Gamer Card uploaded and added successfully!";
-        await loadUserProfile(); 
+        await loadUserProfile(); // Re-render the profile and cards
         setTimeout(() => saveMessage.textContent = "", 3000);
 
     } catch (e) {
@@ -1329,6 +1304,7 @@ async function removeGamerCard(cardUrl) {
     const userRef = db.collection("users").doc(currentUser.uid);
     
     try {
+        // Use arrayRemove to delete the URL from the array atomically
         await userRef.update({
             gamerCards: firebase.firestore.FieldValue.arrayRemove(cardUrl)
         });
