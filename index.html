@@ -68,6 +68,7 @@ textarea { resize: vertical; }
 .message.received { background:#333333; align-self:flex-start; border-bottom-left-radius:5px; }
 #messageInputArea { padding:10px; border-top:2px solid magenta; background:#0b0b0b; display:flex; gap:10px; }
 /* Profile view */
+#viewProfileTab { display:none; }
 #viewProfileContent { padding:30px; border:3px solid magenta; border-radius:12px; background:#1a1a1a; margin-top:20px; display:flex; flex-direction:column; align-items:center; }
 .profile-stat { width:100%; max-width:400px; display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #333; margin-bottom:5px; }
 .profile-stat span:first-child { color: cyan; font-weight:bold; }
@@ -180,7 +181,7 @@ textarea { resize: vertical; }
 <script>
 // ---------------------------
 // Firebase Init
-// NOTE: REPLACE THESE WITH YOUR ACTUAL CONFIG
+// NOTE: 🛑🛑 REPLACE THESE WITH YOUR ACTUAL CONFIG 🛑🛑
 const firebaseConfig = {
     apiKey:"AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
     authDomain:"duoup-cfae6.firebaseapp.com",
@@ -205,12 +206,10 @@ let chatListener=null;
 // ---------------------------
 // Utility Functions
 function getChatId(otherUid) {
-    // Ensures a consistent chat ID regardless of who starts the chat
     return [currentUser.uid, otherUid].sort().join('_');
 }
 
 function findUserInCache(uid) {
-    // Finds a user profile in the local cache by ID
     return allUsersCache.find(user => user.id === uid);
 }
 
@@ -253,7 +252,7 @@ async function loadAllUsers(){
     try{
         const snapshot=await db.collection('users').get();
         allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
-        container.innerHTML=""; // Clear loading message
+        container.innerHTML=""; 
 
         allUsersCache.forEach(user=>{
             if(user.id===currentUser.uid) return;
@@ -263,21 +262,14 @@ async function loadAllUsers(){
     }catch(e){ container.innerHTML+=`<p style="color:red;">Error loading users: ${e.message}</p>`; }
 }
 
-function renderUserCard(uid,data, isRequestCard = false){
+function renderUserCard(uid,data){
     if(!data) return null;
     const card=document.createElement('div');
-    card.className=`card ${isRequestCard ? 'request-card' : ''}`;
-    if (!isRequestCard) {
-        card.onclick=()=>viewProfile(uid, data);
-    }
+    card.className='card';
+    card.onclick=()=>viewProfile(uid, data);
     const statusClass=(data.status||'Online').replace(/\s/g,'').toLowerCase();
 
-    let cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
-
-    if (isRequestCard) {
-        // This is handled by renderRequestCard, but keeping the logic clean
-        return null;
-    }
+    const cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
 
     card.innerHTML=`
         <div class="card-content-box">
@@ -290,69 +282,6 @@ function renderUserCard(uid,data, isRequestCard = false){
         ${cardButtons}
     `;
     return card;
-}
-
-// ---------------------------
-// Friends / Duos / Requests
-async function loadFriends() {
-    const pendingListEl = document.getElementById('pendingRequestsList');
-    const friendListEl = document.getElementById('friendList');
-    pendingListEl.innerHTML = 'Loading Requests...';
-    friendListEl.innerHTML = 'Loading Duos...';
-    
-    await loadAllUsers(); // Ensure all user data is loaded for nicknames/avatars
-
-    try {
-        // 1. PENDING REQUESTS: Query where current user is the receiver
-        const pendingSnapshot = await db.collection('requests')
-            .where('receiverId', '==', currentUser.uid)
-            .where('status', '==', 'pending')
-            .get();
-
-        if (pendingSnapshot.empty) {
-            pendingListEl.innerHTML = '<p style="width:100%; text-align:center;">No pending requests at this time.</p>';
-        } else {
-            pendingListEl.innerHTML = '';
-            pendingSnapshot.forEach(doc => {
-                const request = doc.data();
-                const senderProfile = findUserInCache(request.senderId);
-                
-                if (senderProfile) {
-                    const card = renderRequestCard(request.senderId, senderProfile, doc.id);
-                    if (card) pendingListEl.appendChild(card);
-                }
-            });
-        }
-        
-        // 2. ACCEPTED DUOS: Query where current user is a participant and status is 'accepted'
-        const acceptedSnapshot = await db.collection('requests')
-            .where('participants', 'array-contains', currentUser.uid)
-            .where('status', '==', 'accepted')
-            .get();
-            
-        if (acceptedSnapshot.empty) {
-            friendListEl.innerHTML = '<p style="width:100%; text-align:center;">You have no accepted Duos yet.</p>';
-        } else {
-            friendListEl.innerHTML = '';
-            acceptedSnapshot.forEach(doc => {
-                const request = doc.data();
-                const otherUid = request.senderId === currentUser.uid ? request.receiverId : request.senderId;
-                const otherProfile = findUserInCache(otherUid);
-
-                if (otherProfile) {
-                    // Use a slightly different card for accepted duos for consistency
-                    const card = renderDuoCard(otherUid, otherProfile); 
-                    if (card) friendListEl.appendChild(card);
-                }
-            });
-        }
-        
-    } catch (e) {
-        console.error("Error loading friends/requests:", e);
-        // This usually means the Security Rules are not configured for these queries.
-        pendingListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR: Missing permissions or index. Deploy the latest Security Rules and check Firestore Index settings.</p>`;
-        friendListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">${e.message}</p>`;
-    }
 }
 
 // Render Card for an Accepted Duo
@@ -401,6 +330,75 @@ function renderRequestCard(senderUid, data, requestId){
     return card;
 }
 
+
+// ---------------------------
+// Friends / Duos / Requests (FINAL FIXED LOGIC)
+async function loadFriends() {
+    const pendingListEl = document.getElementById('pendingRequestsList');
+    const friendListEl = document.getElementById('friendList');
+    pendingListEl.innerHTML = 'Loading Requests...';
+    friendListEl.innerHTML = 'Loading Duos...';
+    
+    await loadAllUsers(); 
+
+    // 1. PENDING REQUESTS: Query where current user is the receiver
+    try {
+        const pendingSnapshot = await db.collection('requests')
+            .where('receiverId', '==', currentUser.uid)
+            .where('status', '==', 'pending')
+            .get();
+
+        if (pendingSnapshot.empty) {
+            pendingListEl.innerHTML = '<p style="width:100%; text-align:center;">No pending requests at this time.</p>';
+        } else {
+            pendingListEl.innerHTML = '';
+            pendingSnapshot.forEach(doc => {
+                const request = doc.data();
+                const senderProfile = findUserInCache(request.senderId);
+                
+                if (senderProfile) {
+                    const card = renderRequestCard(request.senderId, senderProfile, doc.id);
+                    if (card) pendingListEl.appendChild(card);
+                }
+            });
+        }
+    } catch (e) {
+        console.error("Error loading Pending Requests:", e);
+        // Custom error message for clear diagnosis
+        pendingListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Pending Requests: ${e.message}. Check Security Rules and Index 1 (receiverId + status).</p>`;
+    }
+    
+    // 2. ACCEPTED DUOS: Query where current user is a participant and status is 'accepted'
+    try {
+        const acceptedSnapshot = await db.collection('requests')
+            .where('participants', 'array-contains', currentUser.uid)
+            .where('status', '==', 'accepted')
+            .get();
+            
+        if (acceptedSnapshot.empty) {
+            friendListEl.innerHTML = '<p style="width:100%; text-align:center;">You have no accepted Duos yet.</p>';
+        } else {
+            friendListEl.innerHTML = '';
+            acceptedSnapshot.forEach(doc => {
+                const request = doc.data();
+                const otherUid = request.senderId === currentUser.uid ? request.receiverId : request.senderId;
+                const otherProfile = findUserInCache(otherUid);
+
+                if (otherProfile) {
+                    const card = renderDuoCard(otherUid, otherProfile); 
+                    if (card) friendListEl.appendChild(card);
+                }
+            });
+        }
+        
+    } catch (e) {
+        console.error("Error loading Accepted Duos:", e);
+        // Custom error message for clear diagnosis
+        friendListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Accepted Duos: ${e.message}. Check Security Rules and Index 2 (participants + status).</p>`;
+    }
+}
+
+
 // Handle Request Logic (Accept/Reject)
 async function handleRequest(requestId, newStatus) {
     if (!currentUser) return;
@@ -408,7 +406,6 @@ async function handleRequest(requestId, newStatus) {
     try {
         const docRef = db.collection('requests').doc(requestId);
         
-        // This transaction ensures the update is secure and atomic
         await db.runTransaction(async (transaction) => {
             const doc = await transaction.get(docRef);
             if (!doc.exists || doc.data().status !== 'pending') {
@@ -416,13 +413,11 @@ async function handleRequest(requestId, newStatus) {
             }
 
             const [id1, id2] = requestId.split('_');
+            const participants = [id1, id2].sort();
 
             transaction.update(docRef, {
                 status: newStatus,
-                // Only include participants if accepting. This is necessary for the Security Rule.
-                ...(newStatus === 'accepted' && { 
-                    participants: [id1, id2] 
-                }),
+                ...(newStatus === 'accepted' && { participants: participants }),
                 handledAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         });
@@ -444,24 +439,15 @@ async function sendFriendRequest(uid){
 
     try{
         const requestRef = db.collection('requests').doc(id);
-        const requestDoc = await requestRef.get(); // Check for existing request
+        const requestDoc = await requestRef.get(); 
 
         if (requestDoc.exists) {
             const status = requestDoc.data().status;
-            let message = "Request failed.";
-
-            if (status === 'pending') {
-                message = "Your friend request to this player is already PENDING.";
-            } else if (status === 'accepted') {
-                message = "You are already DUOS with this player!";
-            } else {
-                 message = "A previous request exists, status: " + status;
-            }
+            let message = status === 'pending' ? "Your request is PENDING." : "You are already DUOS with this player!";
             alert(message);
             return;
         }
 
-        // Proceed with creation
         await requestRef.set({
             senderId: currentUser.uid,
             receiverId: uid,
@@ -484,7 +470,6 @@ async function loadChatList() {
     duoListEl.innerHTML = 'Loading Duos for chat...';
 
     try {
-        // Query accepted requests to determine who the duos are
         const acceptedSnapshot = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .where('status', '==', 'accepted')
@@ -536,7 +521,6 @@ function openChat(otherUid, otherNickname) {
 
     const messagesRef = db.collection('chats').doc(currentChatId).collection('messages').orderBy('timestamp', 'asc');
 
-    // Use onSnapshot for real-time messaging
     chatListener = messagesRef.onSnapshot(snapshot => {
         const messageDisplay = document.getElementById('messageDisplay');
         messageDisplay.innerHTML = '';
@@ -569,7 +553,6 @@ async function sendMessage() {
             const chatDoc = await transaction.get(chatRef);
             const [id1, id2] = currentChatId.split('_');
 
-            // 1. Create chat document if it doesn't exist (relies on Security Rule)
             if (!chatDoc.exists) {
                 transaction.set(chatRef, {
                     participants: [id1, id2],
@@ -577,7 +560,6 @@ async function sendMessage() {
                 });
             }
 
-            // 2. Add the message to the subcollection (relies on Security Rule)
             transaction.set(chatRef.collection('messages').doc(), {
                 text: text,
                 senderId: currentUser.uid,
@@ -594,13 +576,53 @@ async function sendMessage() {
 }
 
 // ---------------------------
-// Profile and Other Features (omitted for brevity, assume they are included)
-// ---------------------------
-function filterSearchResults() { /* implementation here */ }
-function viewProfile(uid, data) { /* implementation here */ }
-async function loadUserProfile() { /* implementation here */ }
-async function saveProfile() { /* implementation here */ }
+// Profile and Search Placeholders
+function filterSearchResults() { document.getElementById('searchResults').innerHTML = '<p>Search functionality pending...</p>'; }
+function viewProfile(uid, data) {
+    document.getElementById('viewProfileContent').innerHTML = `
+        <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar" style="width:120px; height:120px; border-color:cyan;">
+        <h2 style="margin:10px 0;">${data.nickname}</h2>
+        <div class="profile-stat"><span>Status:</span><span class="status-indicator status-${(data.status||'Online').replace(/\s/g,'').toLowerCase()}">${data.status||'Online'}</span></div>
+        <div class="profile-stat"><span>Skill Rating:</span><span>${'⭐'.repeat(data.skillRating||3)}</span></div>
+        <p style="margin-top:20px; color:magenta; font-weight:bold;">Bio:</p>
+        <p style="text-align:center; max-width:400px;">${data.bio||'No bio provided.'}</p>
+        <button class="neon-btn add" style="margin-top:20px;" onclick="sendFriendRequest('${uid}')">Send Request</button>
+        <button class="neon-btn" style="margin-top:10px;" onclick="openChat('${uid}', '${data.nickname}')">Start Chat</button>
+    `;
+    showTab('viewProfile');
+}
+async function loadUserProfile() {
+    if(!currentUser) return;
+    const data = currentProfileData;
+    document.getElementById('profileNickname').value = data.nickname || currentUser.displayName;
+    document.getElementById('profileBio').value = data.bio || '';
+    document.getElementById('profileSkillRating').value = data.skillRating || 3;
+    document.getElementById('profileStatus').value = data.status || 'Online';
+    document.getElementById('profileAvatar').src = data.profileImageUrl || currentUser.photoURL || DEFAULT_AVATAR;
+}
+async function saveProfile() {
+    if(!currentUser) return;
+    const messageEl = document.getElementById('saveMessage');
+    messageEl.textContent = 'Saving...';
 
+    const updates = {
+        nickname: document.getElementById('profileNickname').value,
+        bio: document.getElementById('profileBio').value,
+        skillRating: parseInt(document.getElementById('profileSkillRating').value),
+        status: document.getElementById('profileStatus').value,
+    };
+
+    try {
+        await db.collection('users').doc(currentUser.uid).update(updates);
+        currentProfileData = {...currentProfileData, ...updates};
+        document.getElementById('welcome').textContent=`Welcome, ${currentProfileData.nickname||currentUser.displayName}`;
+        messageEl.textContent = 'Profile Saved!';
+        setTimeout(() => messageEl.textContent = '', 3000);
+    } catch(e) {
+        console.error("Save failed:", e);
+        messageEl.textContent = `Error: ${e.message}`;
+    }
+}
 // ---------------------------
 // Auth listener
 auth.onAuthStateChanged(async user=>{
@@ -616,7 +638,6 @@ auth.onAuthStateChanged(async user=>{
     const uRef=db.collection('users').doc(user.uid);
     const uDoc=await uRef.get();
 
-    // Create profile if it doesn't exist
     if(!uDoc.exists){
         await uRef.set({
             nickname:user.displayName,
