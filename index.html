@@ -265,7 +265,7 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQql9HQ2"; 
+const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQKql9HQ2"; 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
 const GAMES_LIST = [
@@ -290,7 +290,7 @@ let currentUser = null,
 let currentProfileData = {}; 
 let allUsersCache = [];    
 let friendProfiles = {}; 
-let blockedUsers = {}; // We keep this variable, but we won't use it for filtering right now.
+let blockedUsers = {}; 
 
 
 // ------------------------------------------------
@@ -347,8 +347,6 @@ async function loadUserProfile() {
         messageElement.textContent = "You have one change remaining to set your unique @handle.";
         messageElement.style.color = 'yellow';
     }
-    
-    // NOTE: The call to renderGameSlots() is intentionally omitted here to prevent ReferenceError.
 }
 
 // --- PROFILE SAVE FUNCTION ---
@@ -460,7 +458,6 @@ async function attemptUsernameChange() {
 
 // --- FRIENDSHIP, SEARCH, AND BLOCK LOADING ---
 async function loadBlocks() {
-    // We are deliberately keeping this function so we can easily add it back later.
     if (!currentUser) return;
     blockedUsers = {};
     
@@ -475,7 +472,6 @@ async function loadBlocks() {
             blockedUsers[blockedUid] = docId;
         });
     } catch (e) {
-        // Suppress warning during testing phase
         // console.warn("Could not load blocks list. Check security rules for /blocks.", e); 
     }
 }
@@ -484,13 +480,12 @@ async function loadAllUsers(){
     const allUsersTab = document.getElementById('allUsersTab');
     allUsersTab.innerHTML = "<h3>Suggested Players</h3>";
     try {
-        // FIX: Removed .limit() to fetch ALL users in the collection.
         const snapshot = await db.collection("users").get(); 
         
         allUsersCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
         allUsersCache.forEach(user => {
-            // CRITICAL CHANGE: Only filter out the current user. Blocked filter removed entirely.
+            // Only filter out the current user. Blocked filter removed entirely.
             if (user.id !== currentUser.uid) { 
                 allUsersTab.appendChild(renderUserCard({ uid: user.id }, user));
             }
@@ -514,7 +509,7 @@ function filterSearchResults() {
     searchResultsDiv.innerHTML = ""; 
 
     const filteredUsers = allUsersCache.filter(user => {
-        // CRITICAL CHANGE: Only filter out self. Blocked filter removed entirely.
+        // Only filter out self. Blocked filter removed entirely.
         if (user.id === currentUser.uid) {
             return false;
         }
@@ -557,17 +552,59 @@ function filterSearchResults() {
 }
 
 
+// --- FRIEND/REQUEST LOADING ---
 async function loadFriends() {
     const friendsTab = document.getElementById('friendsTab');
-    const friendUids = Array.isArray(currentProfileData.friends) ? currentProfileData.friends : [];
-    friendsTab.innerHTML = "<h3>Your Duo Partners</h3>";
+    friendsTab.innerHTML = ""; // Clear the tab
     friendProfiles = {}; 
+    const friendUids = Array.isArray(currentProfileData.friends) ? currentProfileData.friends : [];
+    
+    let incomingRequests = [];
+    
+    try {
+        // 1. Fetch Incoming Requests
+        const requestsSnapshot = await db.collection("requests")
+            .where("receiverId", "==", currentUser.uid)
+            .where("status", "==", "pending")
+            .get();
+            
+        incomingRequests = requestsSnapshot.docs.map(doc => ({ 
+            requestId: doc.id, 
+            senderId: doc.data().senderId 
+        }));
+        
+    } catch(e) {
+        console.error("Error loading incoming requests:", e);
+    }
+    
+    // --- 2. Display Incoming Requests ---
+    if (incomingRequests.length > 0) {
+        friendsTab.innerHTML += `<h3>Pending Requests (${incomingRequests.length})</h3><div class="card-container"></div>`;
+        const requestContainer = friendsTab.querySelector('.card-container:last-of-type');
+        
+        // Fetch the profile data for all senders
+        const senderPromises = incomingRequests.map(req => db.collection("users").doc(req.senderId).get());
+        const senderDocs = await Promise.all(senderPromises);
 
-    if (friendUids.length === 0) {
+        senderDocs.forEach((doc, index) => {
+            if (!doc.exists) return;
+            const senderData = doc.data();
+            const senderUid = doc.id;
+            const requestId = incomingRequests[index].requestId;
+            
+            requestContainer.appendChild(renderRequestCard({ uid: senderUid }, senderData, requestId));
+        });
+    }
+
+    // --- 3. Display Established Friends (Duos) ---
+    friendsTab.innerHTML += "<h3>Established Duos</h3><div class='card-container'></div>";
+    const duoContainer = friendsTab.querySelector('.card-container:last-of-type');
+
+    if (friendUids.length === 0 && incomingRequests.length === 0) {
         friendsTab.innerHTML += "<p>You have no Duo Partners yet. Find someone in Suggested or Search!</p>";
         return;
     }
-
+    
     const friendPromises = friendUids.map(uid => db.collection("users").doc(uid).get());
     const friendDocs = await Promise.all(friendPromises);
 
@@ -575,7 +612,7 @@ async function loadFriends() {
         if (!doc.exists) return;
         const friendData = doc.data();
         friendProfiles[doc.id] = friendData;
-        friendsTab.appendChild(renderUserCard(doc, friendData));
+        duoContainer.appendChild(renderUserCard(doc, friendData));
     });
     
     if (!document.getElementById('messagingTab').classList.contains('hidden')) {
@@ -584,25 +621,55 @@ async function loadFriends() {
 }
 
 
+// --- RENDERING A REQUEST CARD ---
+function renderRequestCard(d, data, requestId) {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.borderColor = 'yellow';
+    card.style.boxShadow = '0 0 15px rgba(255, 255, 0, 0.6), inset 0 0 5px rgba(255, 255, 0, 0.4)';
+    
+    const statusClass = (data.status || 'Online').replace(/\s/g, '').toLowerCase();
+    
+    let primaryName = data.nickname || (data.email ? data.email.split('@')[0] : 'Unknown User');
+    const displayName = data.username ? `@${data.username}` : primaryName;
+
+    card.innerHTML = `
+        <div class="card-content-box" style="border-bottom: 2px solid yellow;">
+            <p style="color:yellow; font-weight:bold; margin: 0 0 10px 0;">INCOMING REQUEST</p>
+            <img src="${data.profileImageUrl || DEFAULT_AVATAR}" class="avatar" style="border-color: yellow;">
+            <h3 style="margin:0; font-size:1.2em;">${displayName}</h3>
+            <div class="status-indicator status-${statusClass}">${data.status || 'Online'}</div>
+            <p style="margin:5px 0; font-size:0.9em; text-align:center; color:#ccc;">${data.bio || 'No bio provided.'}</p>
+        </div>
+        <div style="margin-top: 10px;">
+            <button class="neon-btn add" style="border-color:lime; box-shadow:0 0 10px lime;" onclick="event.stopPropagation(); acceptFriendRequest('${d.uid}', '${requestId}')">Accept Duo</button>
+            <button class="neon-btn remove" style="border-color:red; box-shadow:0 0 10px red;" onclick="event.stopPropagation(); declineFriendRequest('${requestId}')">Decline</button>
+        </div>
+    `;
+
+    return card;
+}
+
+
 // --- RENDERING AND CORE LOGIC ---
 function renderUserCard(d, data) {
     const card = document.createElement('div');
     card.className = 'card';
-    // card.onclick = () => viewUserProfile(d.uid); 
-
+    
+    // --- 1. DETERMINE STATUS AND BUTTON ACTION ---
     let actionButton = '';
     const isFriend = Array.isArray(currentProfileData.friends) && currentProfileData.friends.includes(d.uid);
     const isSelf = d.uid === currentUser.uid;
 
-    if (!isSelf) {
-        if (isFriend) {
-            actionButton = `<button class="neon-btn remove" onclick="event.stopPropagation(); removeFriend('${d.uid}')">Remove Duo</button>`;
-        } else {
-            actionButton = `<button class="neon-btn add" onclick="event.stopPropagation(); addFriend('${d.uid}')">Add Duo</button>`;
-        }
-    } else {
+    if (isSelf) {
         actionButton = `<span class="owner-badge-box">You</span>`;
+    } else if (isFriend) {
+        actionButton = `<button class="neon-btn remove" onclick="event.stopPropagation(); removeFriend('${d.uid}')">Remove Duo</button>`;
+    } else {
+        // Default action is to send a request (This replaces the old instant 'addFriend')
+        actionButton = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${d.uid}')">Send Request</button>`;
     }
+    // --- END 1. DETERMINE STATUS AND BUTTON ACTION ---
 
     let gameBadges = '';
     (data.featuredGames || []).slice(0, 3).forEach(g => {
@@ -614,7 +681,9 @@ function renderUserCard(d, data) {
 
     const statusClass = (data.status || 'Online').replace(/\s/g, '').toLowerCase();
     
-    const displayName = data.username ? `@${data.username}` : (data.nickname || 'Unknown User');
+    // Enhanced Display Name Check: Prefer username, then nickname, then email start
+    let primaryName = data.nickname || (data.email ? data.email.split('@')[0] : 'Unknown User');
+    const displayName = data.username ? `@${data.username}` : primaryName;
 
     card.innerHTML = `
         <div class="card-content-box">
@@ -634,35 +703,94 @@ function renderUserCard(d, data) {
 
 // --- FRIENDSHIP FUNCTIONS ---
 
-async function addFriend(targetUid) {
+async function sendFriendRequest(targetUid) {
     if (!currentUser) return;
-    
-    // --- Defensive Check (Fix for persistent permission error) ---
-    // This ensures the 'friends' field is an array before attempting arrayUnion
-    if (!currentProfileData.friends || !Array.isArray(currentProfileData.friends)) {
-        await db.collection("users").doc(currentUser.uid).set({
-            friends: []
-        }, { merge: true });
-        // Update local state immediately for the next step to succeed
-        currentProfileData.friends = []; 
-    }
-    // --- End Defensive Check ---
 
     try {
-        // This is the arrayUnion that was previously failing
-        await db.collection("users").doc(currentUser.uid).update({
-            friends: firebase.firestore.FieldValue.arrayUnion(targetUid)
-        });
+        const requestId = `${currentUser.uid}_${targetUid}`;
+        const reverseRequestId = `${targetUid}_${currentUser.uid}`;
+        const requestRef = db.collection("requests").doc(requestId);
         
-        alert(`Successfully added ${targetUid.substring(0, 8)}... as a Duo.`);
-        // Reload all necessary UI components
+        // 1. Check for request from this user (A->B)
+        const requestDoc = await requestRef.get();
+        if (requestDoc.exists) {
+            alert("A request has already been sent to this user.");
+            return;
+        }
+
+        // 2. Check for reverse request (B->A)
+        const reverseRequestDoc = await db.collection("requests").doc(reverseRequestId).get();
+
+        if (reverseRequestDoc.exists) {
+            // If they requested us first, auto-accept
+            await acceptFriendRequest(targetUid, reverseRequestId);
+            alert("Request was found! Automatically accepted and added as Duo.");
+            return;
+        }
+
+        // 3. Send the new request
+        await requestRef.set({
+            senderId: currentUser.uid,
+            receiverId: targetUid,
+            status: 'pending',
+            sentAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        alert(`Duo request sent to ${targetUid.substring(0, 8)}...`);
+        loadAllUsers(); 
+        filterSearchResults();
+
+    } catch (e) {
+        console.error("Send Request Error:", e);
+        alert("Failed to send request: " + (e.message || "Check Security Rules."));
+    }
+}
+
+async function acceptFriendRequest(targetUid, requestId) {
+    if (!currentUser) return;
+    
+    try {
+        const batch = db.batch();
+        const userRef = db.collection("users").doc(currentUser.uid);
+        const targetRef = db.collection("users").doc(targetUid);
+        const requestRef = db.collection("requests").doc(requestId);
+
+        // 1. Add both UIDs to each other's 'friends' arrays (Atomic Update)
+        batch.update(userRef, { friends: firebase.firestore.FieldValue.arrayUnion(targetUid) });
+        batch.update(targetRef, { friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
+
+        // 2. Delete the request document
+        batch.delete(requestRef);
+
+        await batch.commit();
+
+        alert(`Successfully added ${targetUid.substring(0, 8)}... as a Duo partner!`);
+        // Refresh UI
         await loadUserProfile(); 
         await loadFriends();
         loadAllUsers(); 
-        filterSearchResults(); 
+        filterSearchResults();
+
     } catch (e) {
-        console.error("Add Friend Error:", e);
-        alert("Add Duo Failed: " + (e.message || "Check Security Rules."));
+        console.error("Accept Request Error:", e);
+        alert("Failed to accept request: " + (e.message || "Check Security Rules."));
+    }
+}
+
+// --- DECLINE REQUEST FUNCTION ---
+async function declineFriendRequest(requestId) {
+    if (!currentUser) return;
+    
+    try {
+        await db.collection("requests").doc(requestId).delete();
+        
+        alert("Duo request declined.");
+        // Refresh UI
+        await loadFriends(); 
+
+    } catch (e) {
+        console.error("Decline Request Error:", e);
+        alert("Failed to decline request: " + (e.message || "Check Security Rules."));
     }
 }
 
@@ -717,6 +845,67 @@ function addGameSlot() {
 }
 
 
+// --- USER DATA REPAIR FUNCTION ---
+async function ensureUserProfileDefaults(user) {
+    const userRef = db.collection("users").doc(user.uid);
+    const userDoc = await userRef.get();
+    
+    // Default values to ensure the profile card renders correctly
+    const defaults = {
+        nickname: user.displayName || user.email.split('@')[0], // Use current Google Display Name
+        bio: "New Cyber Warrior seeking a Duo partner!",
+        skillRating: 3,
+        status: "Online",
+        profileImageUrl: user.photoURL || DEFAULT_AVATAR,
+        friends: [],
+        gamerCards: [],
+        featuredGames: [],
+        usernameChanged: false,
+    };
+    
+    const existingData = userDoc.data() || {};
+    let updateData = {};
+    let needsUpdate = false;
+
+    for (const key in defaults) {
+        // If the key is missing OR if the type is corrupted, apply the default value
+        if (existingData[key] === undefined || existingData[key] === null || 
+            (key === 'friends' && !Array.isArray(existingData[key])) ||
+            (key === 'gamerCards' && !Array.isArray(existingData[key])) ||
+            (key === 'featuredGames' && !Array.isArray(existingData[key])) ||
+            (key === 'skillRating' && typeof existingData[key] !== 'number')) 
+        {
+            updateData[key] = defaults[key];
+            needsUpdate = true;
+        }
+    }
+    
+    // Special handling for the unique username field (if it's missing)
+    if (existingData.username === undefined || existingData.username === null || existingData.username === "") {
+        const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
+        const defaultUsername = baseName.substring(0, 16).replace(/[^a-z0-9]/g, '').slice(0, 16 - 4) + Math.floor(1000 + Math.random() * 9000); 
+        
+        updateData.username = defaultUsername;
+        needsUpdate = true;
+        
+        // Also ensure the reservation is created in the /usernames collection
+        try {
+             await db.collection("usernames").doc(defaultUsername).set({
+                uid: user.uid,
+                username: defaultUsername
+            }, { merge: true }); 
+        } catch(e) {
+            console.warn("Could not set username reservation during repair:", e);
+        }
+    }
+
+    if (needsUpdate) {
+        console.log("Repairing missing user profile fields for:", user.uid, updateData);
+        await userRef.set(updateData, { merge: true });
+    }
+}
+
+
 // ------------------------------------------------
 // 4. MAIN EXECUTION BLOCK (Finalized New User Setup)
 // ------------------------------------------------
@@ -735,57 +924,44 @@ auth.onAuthStateChanged(async user=>{
     const userRef=db.collection("users").doc(user.uid);
     const userDoc = await userRef.get();
 
-    // 1. User Setup and Initialization
+    // 1. Initial User Setup or Data Repair
     if(!userDoc.exists){
-        // --- Generate Default Username ---
+        // --- If document does not exist, set the full default profile ---
         const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
         const defaultUsername = baseName.substring(0, 16).replace(/[^a-z0-9]/g, '').slice(0, 16 - 4) + Math.floor(1000 + Math.random() * 9000); 
         
-        // --- The DEFINITIVE User Document Structure ---
         const profileUpdate = {
             uid: user.uid,
             username: defaultUsername,
-            usernameChanged: false, // Boolean
-            bio: "New Cyber Warrior seeking a Duo partner!", // String
-            skillRating: 3, // Number
-            status: "Online", // String
-            friends: [], // Array
-            profileImageUrl: user.photoURL || DEFAULT_AVATAR, // String
-            nickname: user.displayName, // String
-            gamerCards: [], // Array
-            featuredGames: [], // Array
+            usernameChanged: false, 
+            bio: "New Cyber Warrior seeking a Duo partner!", 
+            skillRating: 3, 
+            status: "Online", 
+            friends: [], 
+            profileImageUrl: user.photoURL || DEFAULT_AVATAR, 
+            nickname: user.displayName, 
+            gamerCards: [], 
+            featuredGames: [], 
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         
-        // Create the profile document
         await userRef.set(profileUpdate);
-
-        // Reserve the username
         await db.collection("usernames").doc(defaultUsername).set({
             uid: user.uid,
             username: defaultUsername
         });
         
     } else {
-        // If document exists, merge default properties if they are missing (crucial cleanup)
-        const existingData = userDoc.data();
-        await userRef.set({
-             usernameChanged: existingData.usernameChanged === undefined ? false : existingData.usernameChanged,
-             // Crucial cleanup: ensure these are correct types if missing or corrupted
-             friends: Array.isArray(existingData.friends) ? existingData.friends : [],
-             skillRating: existingData.skillRating === undefined ? 3 : existingData.skillRating,
-             status: existingData.status === undefined ? 'Online' : existingData.status,
-             gamerCards: Array.isArray(existingData.gamerCards) ? existingData.gamerCards : [],
-             featuredGames: Array.isArray(existingData.featuredGames) ? existingData.featuredGames : [],
-        }, { merge: true }); 
+        // --- If document exists, run the repair function to fill any missing/corrupted fields ---
+        await ensureUserProfileDefaults(user);
     }
     
     // 2. Load Core Data
     await loadUserProfile(); 
-    await loadBlocks(); // This still runs, but the result is not used for display.
+    await loadBlocks(); 
 
     // 3. Load UI Data
-    document.getElementById("welcome").textContent=`Welcome, ${currentUser.displayName || currentUser.email}`;
+    document.getElementById("welcome").textContent=`Welcome, ${currentProfileData.nickname || currentUser.displayName || currentUser.email}`;
     await loadAllUsers(); 
     await loadFriends();
     showTab('allUsers'); 
