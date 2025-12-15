@@ -394,8 +394,9 @@ async function loadFriends() {
         }
         
     } catch (e) {
+        // This is the error we have been fighting. If it appears, the Index or Security Rule fix is still needed.
         console.error("ERROR loading Accepted Duos:", e);
-        friendListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Accepted Duos: ${e.message}.</p>`;
+        friendListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Accepted Duos: ${e.message}. Check Security Rules and Index 2 (participants + status).</p>`;
     }
 }
 
