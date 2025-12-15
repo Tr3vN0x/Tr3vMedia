@@ -62,15 +62,22 @@ textarea { resize: vertical; }
 .card-content-box { display:flex; flex-direction:column; align-items:center; width:100%; margin-bottom:15px; padding-bottom:15px; border-bottom:1px dashed #333; }
 .avatar { width:80px; height:80px; border-radius:50%; border:4px solid magenta; object-fit:cover; margin-bottom:15px; }
 .skill-rating { color:gold; font-size:1.4em; margin-bottom:10px; }
-.discipline { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; color:#0b0b0b; }
+/* Discipline styling */
+.discipline { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; color:#0b0b0b; }
 .discipline-offensive { background-color:red; }
 .discipline-defensive { background-color:lime; }
 .discipline-research { background-color:cyan; }
 
+/* Looking For Category styling */
+.lfd-category { font-size:0.8em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; background-color:#ff00ff; color:white; border:1px solid white;}
+
+
 .status-indicator { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; }
 .status-online { background-color:#00cc00; color:#0b0b0b; box-shadow:0 0 5px #00ff00; }
 .status-ingame { background-color:#ffaa00; color:#0b0b0b; box-shadow:0 0 5px #ffaa00; }
+/* LFD status now uses a unique indicator color */
 .status-lfd { background-color:#ff00ff; color:white; box-shadow:0 0 5px #ff00ff; border:1px solid #ff00ff; }
+
 /* Co-Founder Badge Style */
 .nickname-group { display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
 .co-founder-badge { 
@@ -115,27 +122,11 @@ textarea { resize: vertical; }
 #messageInputArea { padding:10px; border-top:2px solid magenta; background:#0b0b0b; display:flex; gap:10px; }
 /* Profile view */
 #viewProfileTab { display:none; }
+/* Refined Profile Content Style */
 #viewProfileContent { padding:30px; border:3px solid magenta; border-radius:12px; background:#1a1a1a; margin-top:20px; display:flex; flex-direction:column; align-items:center; }
 .profile-stat { width:100%; max-width:400px; display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #333; margin-bottom:5px; }
 .profile-stat span:first-child { color: cyan; font-weight:bold; }
 .profile-stat span:last-child { text-align:right; }
-
-/* New Feature Style: Random Cyber Fact Box */
-.fact-box {
-    margin-top: 20px;
-    padding: 15px;
-    border: 2px dashed yellow;
-    background: #33330030;
-    border-radius: 8px;
-    text-align: center;
-    max-width: 400px;
-    width: 100%;
-}
-.fact-box h4 {
-    color: yellow;
-    margin-top: 0;
-    text-shadow: 0 0 5px yellow;
-}
 </style>
 </head>
 <body>
@@ -178,6 +169,14 @@ textarea { resize: vertical; }
 <option value="Offensive">Offensive (Red Team)</option>
 <option value="Defensive">Defensive (Blue Team)</option>
 <option value="Research">Research/Exploit Dev</option>
+</select>
+<label style="color:cyan; margin-left:15px;">Looking For:</label>
+<select id="lfdCategoryFilter" onchange="filterSearchResults()">
+<option value="">Any Category</option>
+<option value="Duo">Duo (2-person team)</option>
+<option value="Squad">Squad (3+ person team)</option>
+<option value="Team">Full Team (Permanent)</option>
+<option value="Mentor">Mentor/Mentee</option>
 </select>
 </div>
 <div id="searchResults" class="card-container"></div>
@@ -251,20 +250,24 @@ textarea { resize: vertical; }
 <div style="display:flex; align-items:center; margin-bottom:20px; gap:20px;">
     <div>
         <label style="color: cyan; display:block; margin-bottom:5px;">Current Status:</label>
-        <select id="profileStatus">
+        <select id="profileStatus" onchange="toggleLfdCategory()">
             <option value="Online">Online</option>
             <option value="In Game">In Game</option>
             <option value="LFD">Looking For Duo (LFD)</option>
         </select>
     </div>
+    <div id="lfdCategoryGroup" class="hidden">
+        <label style="color: cyan; display:block; margin-bottom:5px;">LFD Category:</label>
+        <select id="profileLfdCategory">
+            <option value="Duo">Duo (2-person team)</option>
+            <option value="Squad">Squad (3+ person team)</option>
+            <option value="Team">Full Team (Permanent)</option>
+            <option value="Mentor">Mentor/Mentee</option>
+        </select>
+    </div>
 </div>
 <button class="neon-btn" style="border-color:#00ff00; box-shadow:0 0 10px #00ff00;" onclick="saveProfile()">Save Profile</button>
 <p id="saveMessage" style="color:#00ff00; margin-top:10px;"></p>
-</div>
-<div class="fact-box">
-    <h4>Random Cyber Fact</h4>
-    <p id="randomFact">Click 'Get New Fact' to learn something cool!</p>
-    <button class="neon-btn" onclick="displayRandomFact()">Get New Fact</button>
 </div>
 </div>
 
@@ -293,27 +296,6 @@ let allUsersCache=[];
 let requestCache = {}; 
 let currentChatId=null;
 let chatListener=null;
-
-// ----------------------------------------------------
-// 🌟 NEW FEATURE: RANDOM CYBER FACTS
-// ----------------------------------------------------
-const CYBER_FACTS = [
-    "The first computer virus was called 'Creeper' in 1971, and the program 'Reaper' was created to delete it.",
-    "A single bitcoin transaction consumes as much energy as a typical American household uses in over a week.",
-    "The term 'bug' for a computer error originated in 1947 when a moth got stuck in a relay of the Harvard Mark II computer.",
-    "Over 300,000 new pieces of malware are created and analyzed daily.",
-    "95% of cyber security breaches are due to human error.",
-    "The most commonly used password in the world is still '123456'.",
-    "The dark web accounts for about 5% of the total internet.",
-    "DDoS stands for Distributed Denial of Service, which overwhelms a server with traffic.",
-    "A honeypot is a decoy computer system set up to attract and study cyber attackers."
-];
-
-function displayRandomFact() {
-    const factEl = document.getElementById('randomFact');
-    const randomIndex = Math.floor(Math.random() * CYBER_FACTS.length);
-    factEl.textContent = CYBER_FACTS[randomIndex];
-}
 
 // ----------------------------------------------------
 // 🌟 CO-FOUNDER / BADGE LOGIC 
@@ -348,6 +330,18 @@ function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); 
 function logout(){ if(chatListener) chatListener(); auth.signOut(); }
 
 // ---------------------------
+// Profile Editor Helper
+function toggleLfdCategory() {
+    const status = document.getElementById('profileStatus').value;
+    const group = document.getElementById('lfdCategoryGroup');
+    if (status === 'LFD') {
+        group.classList.remove('hidden');
+    } else {
+        group.classList.add('hidden');
+    }
+}
+
+// ---------------------------
 // Tab switching
 function showTab(tab){
     document.querySelectorAll('#allUsersTab,#searchTab,#friendsTab,#messagingTab,#profileTab,#viewProfileTab').forEach(e=>e.classList.add('hidden'));
@@ -366,7 +360,7 @@ function showTab(tab){
         case 'search': filterSearchResults(); break;
         case 'friends': loadFriends(); break;
         case 'messaging': loadChatList(); break;
-        case 'profile': loadUserProfile(); displayRandomFact(); break; // Display fact on profile tab load
+        case 'profile': loadUserProfile(); toggleLfdCategory(); break; // Initialize LFD selector visibility
         default: break;
     }
     document.getElementById(tab+'Tab')?.classList.remove('hidden');
@@ -419,6 +413,7 @@ function renderUserCard(uid, data, requestInfo){
     const badge = getCoFounderBadge(uid);
     const discipline = data.discipline || 'None';
     const disciplineClass = `discipline-${discipline.toLowerCase()}`;
+    const lfdCategory = data.lfdCategory || null; // NEW
 
     let cardButtons;
     
@@ -442,6 +437,12 @@ function renderUserCard(uid, data, requestInfo){
         // No request exists, allow sending a new one
         cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
     }
+    
+    // Optional LFD Category Display
+    let lfdCategoryDisplay = '';
+    if (data.status === 'LFD' && lfdCategory) {
+        lfdCategoryDisplay = `<div class="lfd-category">${lfdCategory}</div>`;
+    }
 
     card.innerHTML=`
         <div class="card-content-box">
@@ -451,6 +452,7 @@ function renderUserCard(uid, data, requestInfo){
             ${badge}
         </div>
         <div class="discipline ${disciplineClass}">${discipline}</div>
+        ${lfdCategoryDisplay} 
         <div class="skill-rating">${'⭐'.repeat(data.skillRating||3)}</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
         <p style="margin:5px 0; font-size:0.9em; text-align:center; color:#ccc;">${data.bio||'No bio provided.'}</p>
@@ -461,6 +463,7 @@ function renderUserCard(uid, data, requestInfo){
 }
 
 function renderDuoCard(uid, data){
+    if(!data) return null;
     const card=document.createElement('div');
     card.className='card';
     card.onclick=()=>viewProfile(uid, data);
@@ -468,6 +471,13 @@ function renderDuoCard(uid, data){
     const badge = getCoFounderBadge(uid);
     const discipline = data.discipline || 'None';
     const disciplineClass = `discipline-${discipline.toLowerCase()}`;
+    const lfdCategory = data.lfdCategory || null; // NEW
+
+    // Optional LFD Category Display
+    let lfdCategoryDisplay = '';
+    if (data.status === 'LFD' && lfdCategory) {
+        lfdCategoryDisplay = `<div class="lfd-category">${lfdCategory}</div>`;
+    }
 
     card.innerHTML=`
         <div class="card-content-box">
@@ -477,6 +487,7 @@ function renderDuoCard(uid, data){
             ${badge}
         </div>
         <div class="discipline ${disciplineClass}">${discipline}</div>
+        ${lfdCategoryDisplay}
         <div style="color:lime; margin:5px 0;">ACCEPTED DUO</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
         </div>
@@ -497,6 +508,7 @@ function renderRequestCard(senderUid, data, requestId){
     const badge = getCoFounderBadge(senderUid);
     const discipline = data.discipline || 'None';
     const disciplineClass = `discipline-${discipline.toLowerCase()}`;
+    const lfdCategory = data.lfdCategory || null; // NEW
 
     const cardButtons = `
         <div style="display:flex; gap:10px;">
@@ -504,6 +516,12 @@ function renderRequestCard(senderUid, data, requestId){
             <button class="neon-btn remove" onclick="event.stopPropagation(); handleRequest('${requestId}', 'rejected')">Reject</button>
         </div>
     `;
+    
+    // Optional LFD Category Display
+    let lfdCategoryDisplay = '';
+    if (data.status === 'LFD' && lfdCategory) {
+        lfdCategoryDisplay = `<div class="lfd-category">${lfdCategory}</div>`;
+    }
 
     card.innerHTML=`
         <div class="card-content-box">
@@ -513,6 +531,7 @@ function renderRequestCard(senderUid, data, requestId){
             ${badge}
         </div>
         <div class="discipline ${disciplineClass}">${discipline}</div>
+        ${lfdCategoryDisplay}
         <div style="color:yellow; margin:5px 0;">Incoming Request</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
         </div>
@@ -817,11 +836,12 @@ async function sendMessage() {
 }
 
 // ---------------------------
-// Search Filter Logic (now includes Discipline)
+// Search Filter Logic (now includes Discipline and LFD Category)
 function filterSearchResults() { 
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
-    const disciplineFilter = document.getElementById('disciplineFilter').value; // NEW
+    const disciplineFilter = document.getElementById('disciplineFilter').value;
+    const lfdCategoryFilter = document.getElementById('lfdCategoryFilter').value; // NEW
 
     const searchResultsEl = document.getElementById('searchResults');
     searchResultsEl.innerHTML = '';
@@ -832,9 +852,21 @@ function filterSearchResults() {
         const nicknameMatch = (user.nickname || '').toLowerCase().includes(searchInput);
         const bioMatch = (user.bio || '').toLowerCase().includes(searchInput);
         const statusMatch = statusFilter ? (user.status === statusFilter) : true;
-        const disciplineMatch = disciplineFilter ? (user.discipline === disciplineFilter) : true; // NEW
+        const disciplineMatch = disciplineFilter ? (user.discipline === disciplineFilter) : true;
+        
+        // NEW: LFD Category match logic
+        let lfdMatch = true;
+        if (lfdCategoryFilter) {
+            // Only consider the LFD category if the user's status is LFD
+            if (user.status === 'LFD') {
+                lfdMatch = (user.lfdCategory === lfdCategoryFilter);
+            } else {
+                // If filtering by category, only show users with LFD status
+                lfdMatch = false; 
+            }
+        }
 
-        return (nicknameMatch || bioMatch) && statusMatch && disciplineMatch;
+        return (nicknameMatch || bioMatch) && statusMatch && disciplineMatch && lfdMatch;
     });
 
     if (filteredUsers.length === 0) {
@@ -854,6 +886,7 @@ function viewProfile(uid, data) {
     const badge = getCoFounderBadge(uid);
     const discipline = data.discipline || 'None';
     const disciplineClass = `discipline-${discipline.toLowerCase()}`;
+    const lfdCategory = data.lfdCategory || null; // NEW
 
     // Logic for the profile viewing buttons
     if (requestInfo && requestInfo.status === 'accepted') {
@@ -875,6 +908,13 @@ function viewProfile(uid, data) {
     } else {
         profileButton = `<button class="neon-btn add" style="margin-top:20px;" onclick="sendFriendRequest('${uid}')">Send Request</button>`;
     }
+    
+    // Conditional LFD Category display for the profile view
+    let lfdDisplayHtml = '';
+    if (data.status === 'LFD' && lfdCategory) {
+        lfdDisplayHtml = `<div class="profile-stat"><span>Looking For:</span><span class="lfd-category" style="margin:0;">${lfdCategory}</span></div>`;
+    }
+
 
     document.getElementById('viewProfileContent').innerHTML = `
         <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar" style="width:120px; height:120px; border-color:cyan;">
@@ -884,7 +924,7 @@ function viewProfile(uid, data) {
         </div>
         <div class="profile-stat"><span>Discipline:</span><span class="discipline ${disciplineClass}" style="margin:0;">${discipline}</span></div>
         <div class="profile-stat"><span>Status:</span><span class="status-indicator status-${(data.status||'Online').replace(/\s/g,'').toLowerCase()}" style="margin:0;">${data.status||'Online'}</span></div>
-        <div class="profile-stat"><span>Skill Rating:</span><span>${'⭐'.repeat(data.skillRating||3)}</span></div>
+        ${lfdDisplayHtml} <div class="profile-stat"><span>Skill Rating:</span><span>${'⭐'.repeat(data.skillRating||3)}</span></div>
         <p style="margin-top:20px; color:magenta; font-weight:bold;">Bio:</p>
         <p style="text-align:center; max-width:400px;">${data.bio||'No bio provided.'}</p>
         ${profileButton}
@@ -931,7 +971,8 @@ async function loadUserProfile() {
     document.getElementById('profileBio').value = data.bio || '';
     document.getElementById('profileSkillRating').value = data.skillRating || 3;
     document.getElementById('profileStatus').value = data.status || 'Online';
-    document.getElementById('profileDiscipline').value = data.discipline || 'Offensive'; // NEW: Load discipline
+    document.getElementById('profileDiscipline').value = data.discipline || 'Offensive';
+    document.getElementById('profileLfdCategory').value = data.lfdCategory || 'Duo'; // NEW: Load LFD Category
     document.getElementById('profileAvatar').src = data.profileImageUrl || currentUser.photoURL || DEFAULT_AVATAR;
 
     document.getElementById('avatarFile').value = ''; 
@@ -952,6 +993,7 @@ async function saveProfile() {
     const messageEl = document.getElementById('saveMessage');
     const nicknameInput = document.getElementById('profileNickname');
     const avatarFile = document.getElementById('avatarFile').files[0];
+    const status = document.getElementById('profileStatus').value;
 
     messageEl.textContent = 'Saving...';
     messageEl.style.color = 'yellow';
@@ -962,9 +1004,13 @@ async function saveProfile() {
     const updates = {
         bio: document.getElementById('profileBio').value,
         skillRating: parseInt(document.getElementById('profileSkillRating').value),
-        status: document.getElementById('profileStatus').value,
-        discipline: document.getElementById('profileDiscipline').value, // NEW: Save discipline
+        status: status,
+        discipline: document.getElementById('profileDiscipline').value,
     };
+    
+    // NEW: Only save lfdCategory if status is LFD
+    updates.lfdCategory = status === 'LFD' ? document.getElementById('profileLfdCategory').value : null;
+
 
     // --- 1. Handle Nickname Change ---
     if (!nicknameInput.disabled && newNickname !== oldNickname) {
@@ -1007,6 +1053,7 @@ async function saveProfile() {
         messageEl.style.color = '#00ff00';
         
         loadUserProfile(); 
+        toggleLfdCategory();
         
         if (updates.profileImageUrl) {
             document.getElementById('profileAvatar').src = updates.profileImageUrl;
@@ -1044,7 +1091,8 @@ auth.onAuthStateChanged(async user=>{
             bio:'New Cyber Warrior!',
             skillRating:3,
             status:'Online',
-            discipline:'Offensive', // NEW: Default discipline
+            discipline:'Offensive', 
+            lfdCategory: null, // Initialize LFD Category
             nicknameChangeCount: 0 
         });
     }
