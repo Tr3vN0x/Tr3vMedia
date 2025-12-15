@@ -203,7 +203,7 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 
         <h3 style="color:cyan; margin-top: 25px;">Unique Username (@)</h3>
         <p id="usernameDisplay">@Loading...</p>
-        <div id="usernameEditor" style="margin-bottom: 20px;">
+        <div id="usernameEditor" style="margin-bottom: 20px; display:flex; gap:10px;">
             <input type="text" id="newUsernameInput" placeholder="Enter new username (a-z, 0-9, 3-20 chars)" style="flex-grow: 1;">
             <button class="neon-btn" id="changeUsernameBtn" onclick="attemptUsernameChange()">Set/Change Username</button>
         </div>
@@ -294,15 +294,13 @@ let blockedUsers = {};
 
 
 // ------------------------------------------------
-// 3. CORE HELPER FUNCTIONS (DEFINED FIRST for execution safety)
+// 3. CORE HELPER FUNCTIONS
 // ------------------------------------------------
 
-// --- TAB MANAGEMENT (Fixes initial showTab ReferenceError) ---
+// --- TAB MANAGEMENT ---
 function showTab(tab){
-    // Hide ALL tab containers first
     document.querySelectorAll('#allUsersTab, #searchTab, #friendsTab, #messagingTab, #profileTab, #viewProfileTab').forEach(el => el.classList.add('hidden'));
     
-    // Then show the specific one and trigger necessary loading functions
     switch(tab){
       case "allUsers": document.getElementById('allUsersTab').classList.remove("hidden"); loadAllUsers(); break; 
       case "search": document.getElementById('searchTab').classList.remove("hidden"); filterSearchResults(); break; 
@@ -313,7 +311,7 @@ function showTab(tab){
     }
 }
 
-// --- PROFILE LOADING (Fixes loadUserProfile ReferenceError) ---
+// --- PROFILE LOADING ---
 async function loadUserProfile() {
     if (!currentUser) return;
     const userDoc = await db.collection("users").doc(currentUser.uid).get();
@@ -325,6 +323,7 @@ async function loadUserProfile() {
     document.getElementById("profileAvatar").src = currentProfileData.profileImageUrl || DEFAULT_AVATAR;
     document.getElementById("profileNickname").value = currentProfileData.nickname || currentUser.displayName || "Unknown User";
     document.getElementById("profileBio").value = currentProfileData.bio || "";
+    // Ensure the select dropdown is set using its string value
     document.getElementById("profileSkillRating").value = String(currentProfileData.skillRating || "3");
     document.getElementById("profileStatus").value = currentProfileData.status || "Online";
     document.getElementById("usernameDisplay").textContent = `@${currentDisplayUsername}`;
@@ -339,16 +338,125 @@ async function loadUserProfile() {
         changeBtn.textContent = "Changed Once (Locked)";
         changeBtn.disabled = true;
         input.disabled = true;
-        messageElement.textContent = "Your unique username has been permanently set.";
+        messageElement.textContent = `Your unique username (@${currentProfileData.username}) has been permanently set.`;
+        messageElement.style.color = 'lime';
     } else {
         changeBtn.textContent = "Set/Change Username";
         changeBtn.disabled = false;
         input.disabled = false;
         messageElement.textContent = "You have one change remaining to set your unique @handle.";
+        messageElement.style.color = 'yellow';
     }
     
-    renderGameSlots(); // Render featured games in profile editor
+    renderGameSlots(); 
 }
+
+// --- PROFILE SAVE FUNCTION (NEW) ---
+async function saveProfile() {
+    if (!currentUser) return;
+
+    const bio = document.getElementById("profileBio").value.trim();
+    // Skill rating must be saved as a NUMBER, not a string, for correct filtering.
+    const skillRating = parseInt(document.getElementById("profileSkillRating").value);
+    const status = document.getElementById("profileStatus").value;
+    
+    const saveMessageElement = document.getElementById("saveMessage");
+    saveMessageElement.textContent = "Saving profile...";
+    saveMessageElement.style.color = 'yellow';
+
+    try {
+        await db.collection("users").doc(currentUser.uid).update({
+            bio: bio,
+            skillRating: skillRating,
+            status: status
+        });
+
+        saveMessageElement.textContent = "Profile Saved Successfully! Reloading...";
+        saveMessageElement.style.color = '#00ff00';
+        
+        // Update local state and refresh the UI
+        await loadUserProfile(); 
+        await loadAllUsers(); // Refresh suggested cards
+        setTimeout(() => {
+            saveMessageElement.textContent = "";
+        }, 3000);
+
+    } catch (e) {
+        console.error("Profile Save Error:", e);
+        saveMessageElement.textContent = `Save Failed: ${e.message}. Check your rules!`;
+        saveMessageElement.style.color = 'red';
+    }
+}
+
+
+// --- USERNAME CHANGE FUNCTION (NEW) ---
+async function attemptUsernameChange() {
+    if (!currentUser || currentProfileData.usernameChanged) return;
+
+    const input = document.getElementById("newUsernameInput");
+    const newUsername = input.value.trim().toLowerCase();
+    const messageElement = document.getElementById("usernameMessage");
+    
+    // 1. Basic Validation
+    if (newUsername.length < 3 || newUsername.length > 20) {
+        messageElement.textContent = "Username must be between 3 and 20 characters.";
+        messageElement.style.color = 'red';
+        return;
+    }
+    if (!/^[a-z0-9]+$/.test(newUsername)) {
+        messageElement.textContent = "Username can only contain lowercase letters (a-z) and numbers (0-9).";
+        messageElement.style.color = 'red';
+        return;
+    }
+
+    messageElement.textContent = "Checking availability...";
+    messageElement.style.color = 'yellow';
+
+    try {
+        // 2. Check Uniqueness in the /usernames collection
+        const usernameDoc = await db.collection("usernames").doc(newUsername).get();
+
+        if (usernameDoc.exists) {
+            messageElement.textContent = `@${newUsername} is already taken. Try another.`;
+            messageElement.style.color = 'red';
+            return;
+        }
+
+        // 3. Perform the Atomic Write Transaction
+        await db.runTransaction(async (transaction) => {
+            const userRef = db.collection("users").doc(currentUser.uid);
+            
+            // a. Update the main user document
+            transaction.update(userRef, {
+                username: newUsername,
+                usernameChanged: true // CRITICAL: This locks the change
+            });
+
+            // b. Create the reservation in the /usernames collection
+            transaction.set(db.collection("usernames").doc(newUsername), {
+                uid: currentUser.uid,
+                username: newUsername
+            });
+            
+            // c. Delete the OLD username document (optional but good practice)
+            const oldUsername = currentProfileData.username;
+            if (oldUsername && oldUsername !== newUsername) {
+                const oldUsernameRef = db.collection("usernames").doc(oldUsername);
+                transaction.delete(oldUsernameRef);
+            }
+        });
+
+        messageElement.textContent = `Success! Your unique handle is now @${newUsername}.`;
+        messageElement.style.color = 'lime';
+        await loadUserProfile(); // Reload UI to show locked status and new name
+
+    } catch (e) {
+        console.error("Username Change Error:", e);
+        messageElement.textContent = `Error changing username: ${e.message}`;
+        messageElement.style.color = 'red';
+    }
+}
+
 
 // --- FRIENDSHIP, SEARCH, AND BLOCK LOADING ---
 async function loadBlocks() {
@@ -382,7 +490,7 @@ async function loadAllUsers(){
                 allUsersTab.appendChild(renderUserCard({ uid: user.id }, user));
             }
         });
-        if (allUsersTab.children.length <= 1) { // Only the H3 is present
+        if (allUsersTab.children.length <= 1) { 
              allUsersTab.innerHTML += "<p>No other users found or all are blocked.</p>";
         }
 
@@ -392,9 +500,61 @@ async function loadAllUsers(){
     }
 }
 
+// --- SEARCH AND FILTERING FUNCTION (NEW) ---
+function filterSearchResults() {
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const skillFilter = parseInt(document.getElementById('skillFilter').value); 
+    const searchResultsDiv = document.getElementById('searchResults');
+    searchResultsDiv.innerHTML = ""; 
+
+    const filteredUsers = allUsersCache.filter(user => {
+        // 1. Filter out self and blocked users
+        if (user.id === currentUser.uid || blockedUsers[user.id]) {
+            return false;
+        }
+
+        // 2. Text Search Filter (Nickname/Username OR Bio)
+        const userNickname = (user.nickname || "").toLowerCase();
+        const userUsername = (user.username || "").toLowerCase();
+        const userBio = (user.bio || "").toLowerCase();
+        
+        const textMatch = userNickname.includes(searchInput) || 
+                          userUsername.includes(searchInput) ||
+                          userBio.includes(searchInput);
+        
+        if (!textMatch) {
+            return false;
+        }
+
+        // 3. Status Filter
+        if (statusFilter && user.status !== statusFilter) {
+            return false;
+        }
+
+        // 4. Skill Rating Filter (Must be greater than or equal to the filter value)
+        const userSkill = user.skillRating || 0; 
+        if (userSkill < skillFilter) {
+            return false;
+        }
+
+        return true;
+    });
+
+    if (filteredUsers.length === 0) {
+        searchResultsDiv.innerHTML = "<p>No players matched your current filter criteria.</p>";
+        return;
+    }
+
+    filteredUsers.forEach(user => {
+        searchResultsDiv.appendChild(renderUserCard({ uid: user.id }, user));
+    });
+}
+
+
 async function loadFriends() {
     const friendsTab = document.getElementById('friendsTab');
-    const friendUids = currentProfileData.friends || [];
+    const friendUids = Array.isArray(currentProfileData.friends) ? currentProfileData.friends : [];
     friendsTab.innerHTML = "<h3>Your Duo Partners</h3>";
     friendProfiles = {}; 
 
@@ -413,7 +573,6 @@ async function loadFriends() {
         friendsTab.appendChild(renderUserCard(doc, friendData));
     });
     
-    // Refresh chat list if messaging tab is active
     if (!document.getElementById('messagingTab').classList.contains('hidden')) {
         loadChatList();
     }
@@ -426,9 +585,8 @@ function renderUserCard(d, data) {
     card.className = 'card';
     card.onclick = () => viewUserProfile(d.uid);
 
-    // ... (Action Button, Game Badges, Status Class logic unchanged) ...
     let actionButton = '';
-    const isFriend = currentProfileData.friends && currentProfileData.friends.includes(d.uid);
+    const isFriend = Array.isArray(currentProfileData.friends) && currentProfileData.friends.includes(d.uid);
     const isSelf = d.uid === currentUser.uid;
 
     if (!isSelf) {
@@ -447,12 +605,13 @@ function renderUserCard(d, data) {
     });
 
     const statusClass = (data.status || 'Online').replace(/\s/g, '').toLowerCase();
-
+    
+    const displayName = data.username ? `@${data.username}` : (data.nickname || 'Unknown User');
 
     card.innerHTML = `
         <div class="card-content-box">
             <img src="${data.profileImageUrl || DEFAULT_AVATAR}" class="avatar">
-            <h3 style="margin:0; font-size:1.2em;">@${data.username || data.nickname}</h3>
+            <h3 style="margin:0; font-size:1.2em;">${displayName}</h3>
             <div class="status-indicator status-${statusClass}">${data.status || 'Online'}</div>
             <div class="skill-rating">${'⭐'.repeat(data.skillRating || 3)}</div>
             <p style="margin:5px 0; font-size:0.9em; text-align:center; color:#ccc;">${data.bio || 'No bio provided.'}</p>
@@ -463,12 +622,8 @@ function renderUserCard(d, data) {
 
     return card;
 }
-function filterSearchResults() {
-    // ... (Placeholder logic) ...
-    document.getElementById('searchResults').innerHTML = "Filtering placeholder...";
-}
 function renderGameSlots() { 
-    // ... (Placeholder logic) ...
+    // Placeholder logic
 }
 
 
@@ -481,9 +636,10 @@ async function addFriend(targetUid) {
             friends: firebase.firestore.FieldValue.arrayUnion(targetUid)
         });
         alert(`Successfully added ${targetUid.substring(0, 8)}... as a Duo.`);
-        await loadUserProfile(); // Important: updates the friends list array
+        await loadUserProfile(); 
         await loadFriends();
         loadAllUsers(); 
+        filterSearchResults(); // Also refresh search if active
     } catch (e) {
         console.error("Add Friend Error:", e);
         alert("Add Duo Failed: " + (e.message || "Check Security Rules."));
@@ -497,9 +653,10 @@ async function removeFriend(friendId) {
             friends: firebase.firestore.FieldValue.arrayRemove(friendId)
         });
         alert(`Successfully removed ${friendId.substring(0, 8)}... from Duos.`);
-        await loadUserProfile(); // Important: updates the friends list array
+        await loadUserProfile(); 
         await loadFriends();
         loadAllUsers(); 
+        filterSearchResults(); // Also refresh search if active
     } catch (e) {
         console.error("Remove Friend Error:", e);
         alert("Remove Duo Failed: " + (e.message || "Check Security Rules."));
@@ -517,7 +674,7 @@ function getCanonicalChatId(uid1, uid2) {
 function loadChatList() {
     const duoList = document.getElementById('activeDuoList');
     duoList.innerHTML = '';
-    const friendUids = currentProfileData.friends || [];
+    const friendUids = Array.isArray(currentProfileData.friends) ? currentProfileData.friends : [];
 
     if (friendUids.length === 0) {
         duoList.innerHTML = "<p>No Duos to chat with. Add friends first!</p>";
@@ -530,8 +687,11 @@ function loadChatList() {
         
         const entry = document.createElement('div');
         entry.className = 'chat-entry';
+        
+        const chatDisplayName = profile.username ? `@${profile.username}` : (profile.nickname || 'Unknown User');
+        
         entry.innerHTML = `
-            <div>${profile.nickname || `@${profile.username}`}</div>
+            <div>${chatDisplayName}</div>
             <div class="last-message-snippet" id="snippet_${uid}">Click to start chatting...</div>
         `;
         entry.onclick = () => startChat(uid, profile);
@@ -547,7 +707,8 @@ async function startChat(targetUid, targetProfile) {
     currentChatUid = targetUid;
     const chatId = getCanonicalChatId(currentUser.uid, targetUid);
     
-    document.getElementById('chatHeader').textContent = `Chatting with: @${targetProfile.username}`;
+    const headerDisplayName = targetProfile.username ? `@${targetProfile.username}` : (targetProfile.nickname || 'Unknown User');
+    document.getElementById('chatHeader').textContent = `Chatting with: ${headerDisplayName}`;
     document.getElementById('messageInputArea').classList.remove('hidden');
     document.getElementById('messageDisplay').innerHTML = '';
 
@@ -603,7 +764,7 @@ async function sendMessage() {
 }
 
 
-// --- AUTHENTICATION FUNCTIONS (Called by HTML and init) ---
+// --- AUTHENTICATION FUNCTIONS ---
 function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message)); }
 function logout(){ 
     if(unsubscribeMessages) unsubscribeMessages(); 
@@ -613,15 +774,8 @@ function logout(){
 
 
 // --- OTHER PLACEHOLDERS ---
-
-function saveProfile() {
-    alert("Profile Save function placeholder called.");
-}
 function viewUserProfile(uid) {
     alert(`Viewing profile of ${uid}`);
-}
-function attemptUsernameChange() {
-    alert("Username change placeholder called.");
 }
 function previewAvatar(input) {
     alert("Avatar preview placeholder called.");
@@ -631,7 +785,7 @@ function addGameSlot() {
 }
 
 // ------------------------------------------------
-// 4. MAIN EXECUTION BLOCK (CALLED LAST!)
+// 4. MAIN EXECUTION BLOCK
 // ------------------------------------------------
 
 auth.onAuthStateChanged(async user=>{
@@ -649,36 +803,43 @@ auth.onAuthStateChanged(async user=>{
     const userDoc = await userRef.get();
 
     // 1. New User Setup
-    if(!userDoc.exists || !userDoc.data().featuredGames){
+    if(!userDoc.exists){
         const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
-        const defaultUsername = baseName.substring(0, 16).slice(0, 16 - 4) + Math.floor(1000 + Math.random() * 9000); 
-        
-        const existingData = userDoc.exists ? userDoc.data() : {};
+        // Generates a random unique handle for the first time
+        const defaultUsername = baseName.substring(0, 16).replace(/[^a-z0-9]/g, '').slice(0, 16 - 4) + Math.floor(1000 + Math.random() * 9000); 
         
         const profileUpdate = {
             uid: user.uid,
-            username: existingData.username || defaultUsername,
-            usernameChanged: existingData.usernameChanged || false,
-            bio: existingData.bio || "New Cyber Warrior seeking a Duo partner!",
-            // IMPORTANT: skillRating must be a Number, not a String
-            skillRating: existingData.skillRating || 3, 
-            status: existingData.status || "Online",
-            friends: existingData.friends || [], 
+            username: defaultUsername,
+            usernameChanged: false,
+            bio: "New Cyber Warrior seeking a Duo partner!",
+            skillRating: 3, 
+            status: "Online",
+            friends: [], 
             profileImageUrl: user.photoURL || DEFAULT_AVATAR,
             nickname: user.displayName, 
-            gamerCards: existingData.gamerCards || [],
-            featuredGames: existingData.featuredGames || [], 
+            gamerCards: [],
+            featuredGames: [], 
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
         };
         
         await userRef.set(profileUpdate, { merge: true });
 
-        // Setup username in the separate collection for uniqueness tracking
-        if (!userDoc.exists) {
-            await db.collection("usernames").doc(defaultUsername).set({
-                uid: user.uid,
-                username: defaultUsername
-            });
-        }
+        // Reserve the username in the separate collection
+        await db.collection("usernames").doc(defaultUsername).set({
+            uid: user.uid,
+            username: defaultUsername
+        });
+    } else {
+        // If document exists, merge default properties if they are missing (for legacy or cleaned profiles)
+        const existingData = userDoc.data();
+        await userRef.set({
+             usernameChanged: existingData.usernameChanged === undefined ? false : existingData.usernameChanged,
+             friends: Array.isArray(existingData.friends) ? existingData.friends : [],
+             skillRating: existingData.skillRating === undefined ? 3 : existingData.skillRating,
+             status: existingData.status === undefined ? 'Online' : existingData.status,
+             // ensures other fields don't accidentally get wiped if they were not explicitly set
+        }, { merge: true }); 
     }
     
     // 2. Load Core Data
