@@ -205,6 +205,7 @@ let chatListener=null;
 // ---------------------------
 // Utility Functions
 function getChatId(otherUid) {
+    // Generates a consistent chat ID by sorting UIDs
     return [currentUser.uid, otherUid].sort().join('_');
 }
 
@@ -222,6 +223,7 @@ function logout(){ if(chatListener) chatListener(); auth.signOut(); }
 function showTab(tab){
     document.querySelectorAll('#allUsersTab,#searchTab,#friendsTab,#messagingTab,#profileTab,#viewProfileTab').forEach(e=>e.classList.add('hidden'));
 
+    // Cleanup chat listener when leaving messaging tab
     if(tab!=='messaging' && chatListener){
         chatListener();
         chatListener=null;
@@ -249,6 +251,7 @@ async function loadAllUsers(){
     const container=document.getElementById('allUsersTab');
     container.innerHTML="<h3>Loading Suggested Players...</h3>";
     try{
+        // Cache all users for quick lookup
         const snapshot=await db.collection('users').get();
         allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
         container.innerHTML=""; 
@@ -338,6 +341,7 @@ async function loadFriends() {
     pendingListEl.innerHTML = 'Loading Requests...';
     friendListEl.innerHTML = 'Loading Duos...';
     
+    // Ensure user data is cached for rendering
     await loadAllUsers(); 
 
     // 1. PENDING REQUESTS: Query where current user is the receiver
@@ -363,7 +367,7 @@ async function loadFriends() {
         }
     } catch (e) {
         console.error("Error loading Pending Requests:", e);
-        pendingListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Pending Requests: ${e.message}. Check Security Rules and Index 1 (receiverId + status).</p>`;
+        pendingListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Pending Requests: ${e.message}.</p>`;
     }
     
     // 2. ACCEPTED DUOS: Query where current user is a participant and status is 'accepted'
@@ -390,13 +394,13 @@ async function loadFriends() {
         }
         
     } catch (e) {
-        console.error("Error loading Accepted Duos:", e);
-        friendListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Accepted Duos: ${e.message}. Check Security Rules and Index 2 (participants + status).</p>`;
+        console.error("ERROR loading Accepted Duos:", e);
+        friendListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Accepted Duos: ${e.message}.</p>`;
     }
 }
 
 
-// Handle Request Logic (Accept/Reject) - **CRITICAL FIX FOR PARTICIPANTS ARRAY**
+// Handle Request Logic (Accept/Reject)
 async function handleRequest(requestId, newStatus) {
     if (!currentUser) return;
     
@@ -414,7 +418,8 @@ async function handleRequest(requestId, newStatus) {
 
             transaction.update(docRef, {
                 status: newStatus,
-                ...(newStatus === 'accepted' && { participants: participants }),
+                // Only add participants field if accepted
+                ...(newStatus === 'accepted' && { participants: participants }), 
                 handledAt: firebase.firestore.FieldValue.serverTimestamp()
             });
             
@@ -479,6 +484,7 @@ async function loadChatList() {
     duoListEl.innerHTML = 'Loading Duos for chat...';
 
     try {
+        // Use the same accepted duos query to find active chat partners
         const acceptedSnapshot = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .where('status', '==', 'accepted')
@@ -513,7 +519,7 @@ async function loadChatList() {
         await Promise.all(duoPromises);
 
     } catch(e) {
-        console.error("Error loading chat list:", e);
+        console.error("ERROR loading chat list:", e);
         duoListEl.innerHTML = `<p style="color:red;">Error loading chat list: ${e.message}</p>`;
     }
 }
@@ -563,6 +569,7 @@ async function sendMessage() {
             const [id1, id2] = currentChatId.split('_');
 
             if (!chatDoc.exists) {
+                // Should already exist if status is 'accepted', but safety check for transaction
                 transaction.set(chatRef, {
                     participants: [id1, id2],
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -587,6 +594,7 @@ async function sendMessage() {
 // ---------------------------
 // Profile and Search Placeholders
 function filterSearchResults() { document.getElementById('searchResults').innerHTML = '<p>Search functionality pending...</p>'; }
+
 function viewProfile(uid, data) {
     document.getElementById('viewProfileContent').innerHTML = `
         <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar" style="width:120px; height:120px; border-color:cyan;">
@@ -601,7 +609,7 @@ function viewProfile(uid, data) {
     showTab('viewProfile');
 }
 
-// 🌟 NICKNAME CHANGE FIX: Load
+// 🌟 ONE-TIME NICKNAME CHANGE FIX: Load
 async function loadUserProfile() {
     if(!currentUser) return;
     const data = currentProfileData;
@@ -626,7 +634,7 @@ async function loadUserProfile() {
     }
 }
 
-// 🌟 NICKNAME CHANGE FIX: Save
+// 🌟 ONE-TIME NICKNAME CHANGE FIX: Save
 async function saveProfile() {
     if(!currentUser) return;
     const messageEl = document.getElementById('saveMessage');
@@ -654,8 +662,8 @@ async function saveProfile() {
             return;
         }
     } else if (nicknameInput.disabled && newNickname !== oldNickname) {
-         // If disabled but somehow the value changed (shouldn't happen with proper disabling)
-         messageEl.textContent = 'Error: Nickname is locked.';
+         // Should not happen, but safe to check
+         messageEl.textContent = 'Error: Nickname is locked and cannot be changed.';
          messageEl.style.color = 'red';
          return;
     }
