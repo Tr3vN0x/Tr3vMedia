@@ -239,10 +239,10 @@ textarea { resize: vertical; }
             <img id="profileAvatar" class="avatar" src="" style="width: 80px; height: 80px; margin-right: 20px; border-color: cyan;">
             <div>
                 <label style="color: cyan; display: block; margin-bottom: 5px;">Unique Identifier:</label>
-                <input type="text" id="profileNickname" value="User Nickname" disabled>
+                <input type="text" id="profileNickname" value="User Nickname" disabled> 
             </div>
         </div>
-        <p style="color: yellow; font-size: 0.9em;">(Avatar upload, username editor, and games slots omitted for brevity in this example.)</p>
+        <p style="color: yellow; font-size: 0.9em;">(Avatar upload and one-time username editor features are omitted for brevity in this example.)</p>
         
         <div style="margin-bottom: 15px;">
             <label style="color: cyan; display: block; margin-bottom: 5px;">Bio/Tagline:</label>
@@ -271,6 +271,8 @@ textarea { resize: vertical; }
 // --- Firebase Web Init ---
 const firebaseConfig = {
     // !! IMPORTANT: REPLACE WITH YOUR OWN FIREBASE CONFIG !!
+    // Note: You must replace this with YOUR actual Firebase config keys 
+    // for the app to function after deployment.
   apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
   authDomain: "duoup-cfae6.firebaseapp.com",
   projectId: "duoup-cfae6",
@@ -318,20 +320,15 @@ function showTab(tab){
         case 'friends': loadFriends(); break;
         case 'messaging': loadChatList(); break;
         case 'profile': loadUserProfile(); break;
-        case 'viewProfile': 
-            // viewProfile is handled by the function call, not here.
-            break;
+        // viewProfile is handled by the function call viewProfile(uid)
+        case 'viewProfile': break; 
         default:
             console.warn("Unknown tab:", tab);
             return;
     }
 
     // 4. Show the requested tab
-    if (tab === 'viewProfile') {
-        document.getElementById('viewProfileTab').classList.remove('hidden');
-    } else {
-        document.getElementById(tab + 'Tab').classList.remove('hidden');
-    }
+    document.getElementById(tab + 'Tab')?.classList.remove('hidden');
 }
 
 // ----------------------------------------------------------------------
@@ -366,7 +363,7 @@ function renderUserCard(uid,data){
     card.innerHTML=`
         <div class="card-content-box">
             <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
-            <h3 style="margin:0;">${data.username||data.nickname||'Unknown'}</h3>
+            <h3 style="margin:0;">${data.username ? `@${data.username}` : data.nickname||'Unknown'}</h3>
             <div class="skill-rating">${'⭐'.repeat(data.skillRating || 3)}</div>
             <div class="status-indicator status-${statusClass}">${data.status || 'Online'}</div>
             <p style="margin:5px 0; font-size:0.9em; text-align:center; color:#ccc;">${data.bio||'No bio provided.'}</p>
@@ -388,7 +385,8 @@ async function viewProfile(uid) {
     }
     
     const data = profileDoc.data();
-    const isFriend = currentProfileData.friends?.includes(uid) || false;
+    // Re-check friend status in case it was a recent addition/removal
+    const isFriend = currentProfileData.friends?.includes(uid) || false; 
     
     const content = document.getElementById('viewProfileContent');
     content.innerHTML = `
@@ -446,22 +444,33 @@ async function loadFriends(){
     
     if(friends.length===0){duosContainer.innerHTML="<p>No duos yet. Send a request from 'Suggested' or 'Search'.</p>"; return;}
     
-    for(const uid of friends){
-        const d=await db.collection('users').doc(uid).get();
+    // Fetch and render friend profiles
+    const friendPromises = friends.map(uid => db.collection('users').doc(uid).get());
+    const friendDocs = await Promise.all(friendPromises);
+
+    friendDocs.forEach(d => {
+        const uid = d.id;
         friendProfiles[uid]=d.data();
         duosContainer.appendChild(renderUserCard(uid,d.data()));
-    }
+    });
 }
 
 // --- Friend Request ---
 async function sendFriendRequest(uid){
     if(!currentUser) return;
     const id=`${currentUser.uid}_${uid}`;
-    await db.collection('requests').doc(id).set({senderId:currentUser.uid,receiverId:uid,status:'pending',sentAt:firebase.firestore.FieldValue.serverTimestamp()});
-    alert("Request sent! Check the Duos tab for responses.");
-    // Force a UI refresh on the tabs that show the cards
-    loadAllUsers(); 
-    filterSearchResults();
+    
+    // Using try/catch is good for seeing if security rules block the write
+    try {
+        await db.collection('requests').doc(id).set({senderId:currentUser.uid,receiverId:uid,status:'pending',sentAt:firebase.firestore.FieldValue.serverTimestamp()});
+        alert("Request sent! Check the Duos tab for responses.");
+        // Force a UI refresh on the tabs that show the cards
+        loadAllUsers(); 
+        filterSearchResults();
+    } catch (e) {
+        alert("Failed to send request. Check security rules or console for details.");
+        console.error(e);
+    }
 }
 
 // --- Profile ---
@@ -470,7 +479,6 @@ async function loadUserProfile(){
     const doc=await db.collection('users').doc(currentUser.uid).get();
     currentProfileData=doc.data();
     
-    // Check for required fields before accessing
     const data = currentProfileData;
 
     document.getElementById('profileAvatar').src=data.profileImageUrl||DEFAULT_AVATAR;
@@ -500,16 +508,18 @@ async function saveProfile(){
 
 
 // ----------------------------------------------------------------------
-// --- MESSAGING FUNCTIONS ---
+// --- SECURE MESSAGING FUNCTIONS (MATCHING FIREBASE RULES) ---
 // ----------------------------------------------------------------------
 
 function getChatId(u1, u2){
+    // Canonical ID: ensures chatId is the same regardless of sender/receiver order
     return [u1, u2].sort().join('_');
 }
 
 async function loadChatList(){
     // Ensure friendProfiles is loaded before showing the chat list
     if (Object.keys(friendProfiles).length === 0) {
+        // Attempt to load friends if not already in cache
         await loadFriends(); 
     }
     
@@ -534,6 +544,7 @@ async function startChat(targetUid){
     
     // UI Update for Active Chat
     document.querySelectorAll('.chat-entry').forEach(el => el.classList.remove('active'));
+    // Select the chat entry based on its click handler logic (robust selection)
     document.querySelector(`.chat-entry[onclick="startChat('${targetUid}')"]`)?.classList.add('active');
 
     currentChatUid=targetUid;
@@ -547,19 +558,20 @@ async function startChat(targetUid){
     const chatId=getChatId(currentUser.uid, targetUid);
     const chatRef = db.collection('chats').doc(chatId);
 
-    // 1. Ensure the parent chat document exists with the 'participants' field.
+    // 1. CRITICAL: Ensure the parent chat document exists with the 'participants' field.
+    // This allows the Firestore Rules to validate all subsequent reads/writes.
     try {
         await chatRef.set({
             participants: [currentUser.uid, targetUid].sort(),
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
+        }, { merge: true }); // merge: true prevents overwriting existing data
     } catch(e) {
         console.error("Failed to ensure chat document:", e);
         display.innerHTML = '<p style="color:red;">Failed to initiate chat. Check console and security rules.</p>';
         return;
     }
 
-    // 2. Set up the real-time listener on the subcollection
+    // 2. Set up the real-time listener on the messages subcollection
     const ref=chatRef.collection('messages').orderBy('timestamp','asc');
     
     chatListener=ref.onSnapshot(snapshot=>{
@@ -595,6 +607,7 @@ async function sendMessage(){
     const chatId=getChatId(currentUser.uid,currentChatUid);
     
     try {
+        // Send message to the secure subcollection
         await db.collection('chats').doc(chatId).collection('messages').add({
             senderId:currentUser.uid,
             receiverId:currentChatUid,
@@ -604,12 +617,14 @@ async function sendMessage(){
         input.value='';
     } catch (e) {
         console.error("Send Message Failed:", e);
-        alert("Failed to send message. Check console for error details.");
+        alert("Failed to send message. Check console and security rules.");
     }
 }
 
 
-// --- Auth Listener ---
+// ----------------------------------------------------------------------
+// --- Auth Listener (Initialization) ---
+// ----------------------------------------------------------------------
 auth.onAuthStateChanged(async user=>{
     if(!user){document.getElementById('loginPage').classList.remove('hidden');document.getElementById('dashboard').classList.add('hidden'); return;}
     document.getElementById('loginPage').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden');
