@@ -351,7 +351,7 @@ async function loadUserProfile() {
     renderGameSlots(); 
 }
 
-// --- PROFILE SAVE FUNCTION (NEW) ---
+// --- PROFILE SAVE FUNCTION ---
 async function saveProfile() {
     if (!currentUser) return;
 
@@ -376,7 +376,7 @@ async function saveProfile() {
         
         // Update local state and refresh the UI
         await loadUserProfile(); 
-        await loadAllUsers(); // Refresh suggested cards
+        await loadAllUsers(); 
         setTimeout(() => {
             saveMessageElement.textContent = "";
         }, 3000);
@@ -389,7 +389,7 @@ async function saveProfile() {
 }
 
 
-// --- USERNAME CHANGE FUNCTION (NEW) ---
+// --- USERNAME CHANGE FUNCTION ---
 async function attemptUsernameChange() {
     if (!currentUser || currentProfileData.usernameChanged) return;
 
@@ -438,7 +438,7 @@ async function attemptUsernameChange() {
                 username: newUsername
             });
             
-            // c. Delete the OLD username document (optional but good practice)
+            // c. Delete the OLD username document 
             const oldUsername = currentProfileData.username;
             if (oldUsername && oldUsername !== newUsername) {
                 const oldUsernameRef = db.collection("usernames").doc(oldUsername);
@@ -500,7 +500,7 @@ async function loadAllUsers(){
     }
 }
 
-// --- SEARCH AND FILTERING FUNCTION (NEW) ---
+// --- SEARCH AND FILTERING FUNCTION ---
 function filterSearchResults() {
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
@@ -601,7 +601,10 @@ function renderUserCard(d, data) {
 
     let gameBadges = '';
     (data.featuredGames || []).slice(0, 3).forEach(g => {
-        gameBadges += `<span class="game-badge">${g.game} (${g.role})</span>`;
+        // Ensure g is an object before accessing properties
+        if (typeof g === 'object' && g !== null && g.game) {
+            gameBadges += `<span class="game-badge">${g.game} (${g.role || 'Any'})</span>`;
+        }
     });
 
     const statusClass = (data.status || 'Online').replace(/\s/g, '').toLowerCase();
@@ -622,24 +625,33 @@ function renderUserCard(d, data) {
 
     return card;
 }
-function renderGameSlots() { 
-    // Placeholder logic
-}
 
 
 // --- FRIENDSHIP FUNCTIONS ---
 
 async function addFriend(targetUid) {
     if (!currentUser) return;
+    
+    // --- Defensive Check (Fix for persistent permission error) ---
+    // This ensures the 'friends' field is an array before attempting arrayUnion
+    if (!currentProfileData.friends || !Array.isArray(currentProfileData.friends)) {
+        await db.collection("users").doc(currentUser.uid).set({
+            friends: []
+        }, { merge: true });
+        currentProfileData.friends = []; 
+    }
+    // --- End Defensive Check ---
+
     try {
         await db.collection("users").doc(currentUser.uid).update({
             friends: firebase.firestore.FieldValue.arrayUnion(targetUid)
         });
+        
         alert(`Successfully added ${targetUid.substring(0, 8)}... as a Duo.`);
         await loadUserProfile(); 
         await loadFriends();
         loadAllUsers(); 
-        filterSearchResults(); // Also refresh search if active
+        filterSearchResults(); 
     } catch (e) {
         console.error("Add Friend Error:", e);
         alert("Add Duo Failed: " + (e.message || "Check Security Rules."));
@@ -656,7 +668,7 @@ async function removeFriend(friendId) {
         await loadUserProfile(); 
         await loadFriends();
         loadAllUsers(); 
-        filterSearchResults(); // Also refresh search if active
+        filterSearchResults();
     } catch (e) {
         console.error("Remove Friend Error:", e);
         alert("Remove Duo Failed: " + (e.message || "Check Security Rules."));
@@ -802,10 +814,9 @@ auth.onAuthStateChanged(async user=>{
     const userRef=db.collection("users").doc(user.uid);
     const userDoc = await userRef.get();
 
-    // 1. New User Setup
+    // 1. User Setup and Initialization (handles new and existing users with missing fields)
     if(!userDoc.exists){
         const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
-        // Generates a random unique handle for the first time
         const defaultUsername = baseName.substring(0, 16).replace(/[^a-z0-9]/g, '').slice(0, 16 - 4) + Math.floor(1000 + Math.random() * 9000); 
         
         const profileUpdate = {
@@ -815,7 +826,7 @@ auth.onAuthStateChanged(async user=>{
             bio: "New Cyber Warrior seeking a Duo partner!",
             skillRating: 3, 
             status: "Online",
-            friends: [], 
+            friends: [], // Cleanly initialized array
             profileImageUrl: user.photoURL || DEFAULT_AVATAR,
             nickname: user.displayName, 
             gamerCards: [],
@@ -825,13 +836,13 @@ auth.onAuthStateChanged(async user=>{
         
         await userRef.set(profileUpdate, { merge: true });
 
-        // Reserve the username in the separate collection
+        // Reserve the username
         await db.collection("usernames").doc(defaultUsername).set({
             uid: user.uid,
             username: defaultUsername
         });
     } else {
-        // If document exists, merge default properties if they are missing (for legacy or cleaned profiles)
+        // If document exists, merge default properties if they are missing (for clean profile setup)
         const existingData = userDoc.data();
         await userRef.set({
              usernameChanged: existingData.usernameChanged === undefined ? false : existingData.usernameChanged,
