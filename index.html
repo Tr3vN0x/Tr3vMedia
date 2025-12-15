@@ -10,7 +10,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 <style>
-/* --- BASE STYLES (Same as before) --- */
+/* --- BASE STYLES --- */
 body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:white; }
 .container { width:90%; max-width:1000px; margin:auto; padding:20px; }
 .hidden { display:none !important; }
@@ -69,12 +69,52 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 }
 #chatList { padding:10px; border-right:1px solid #333; overflow-y:auto; }
 #chatWindow { display:flex; flex-direction:column; padding:10px; }
+
+/* --- CHAT MESSAGE FLOW FIX --- */
+#messageDisplay {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 10px;
+    background: #0b0b0b;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    display: flex; /* Enable flex layout */
+    flex-direction: column; /* Stack messages vertically */
+}
+.message-wrapper { /* NEW WRAPPER CLASS */
+    display: flex;
+    margin-bottom: 8px; /* Spacing between message groups */
+    width: 100%;
+}
+.message-mine { 
+    justify-content: flex-end; /* Align my messages to the right */
+}
+.message-other { 
+    justify-content: flex-start; /* Align friend's messages to the left */
+}
+.message-bubble { 
+    display: inline-block; 
+    padding: 8px 12px; 
+    border-radius: 15px; 
+    max-width: 70%; 
+    font-family: Arial, sans-serif; 
+    word-wrap: break-word; 
+    font-size: 0.9em; 
+}
+.message-mine .message-bubble { 
+    background: magenta; 
+    color: white; 
+    border-bottom-right-radius: 4px; /* Sharper corner near the edge */
+}
+.message-other .message-bubble { 
+    background: cyan; 
+    color: #0b0b0b; 
+    border-bottom-left-radius: 4px; /* Sharper corner near the edge */
+}
+/* --- END CHAT MESSAGE FLOW FIX --- */
+
 .chat-item-btn { display:block; width:100%; text-align:left; margin-bottom:8px; }
-.message-bubble { display:inline-block; padding:8px 12px; border-radius:15px; max-width:70%; font-family:Arial, sans-serif; word-wrap:break-word; font-size:0.9em; }
-.message-mine { text-align:right; }
-.message-mine .message-bubble { background: magenta; color:white; }
-.message-other { text-align:left; }
-.message-other .message-bubble { background: cyan; color:#0b0b0b; }
+
 .gamer-card-container {
     display: flex;
     flex-wrap: wrap;
@@ -620,7 +660,8 @@ async function viewProfile(targetUid) {
     container.innerHTML = '<h2>Loading Profile...</h2>'; 
 
     try {
-        const doc = await db.collection('users').doc(targetUid).get(); // Fails if Rule 1.1 or 1.2 is wrong
+        // Read user data (Requires Rule 1.1)
+        const doc = await db.collection('users').doc(targetUid).get(); 
         
         if (!doc.exists) {
             container.innerHTML = `<h2>Error: User profile not found.</h2>`;
@@ -641,7 +682,7 @@ async function viewProfile(targetUid) {
         const isFriend = (myDoc.friends || []).includes(targetUid);
         const isOwner = targetUid === currentUser.uid;
         
-        // Check friend request status (requires Rule 2 read permission)
+        // Check friend request status (Requires Rule 2 read permission)
         const reqId = getChatId(currentUser.uid, targetUid);
         const sentReqDoc = await db.collection('friendRequests').doc(reqId).get();
         const hasSentRequest = sentReqDoc.exists && sentReqDoc.data().senderId === currentUser.uid;
@@ -665,7 +706,7 @@ async function viewProfile(targetUid) {
             adminButtonHTML = `<button class="neon-btn remove" onclick="toggleBan('${targetUid}', ${data.isBanned || false})">BAN USER</button>`;
         }
 
-        // Load gamer cards (requires Rule 4 read permission)
+        // Load gamer cards (Requires Rule 4 read permission)
         const cardSnapshot = await db.collection('gamerCards').where('uid', '==', targetUid).get();
         let imageCardsHTML = '<h3 style="color:cyan;">Gamer Cards</h3><div class="gamer-card-container">';
         
@@ -702,7 +743,6 @@ async function viewProfile(targetUid) {
         `;
     } catch (e) {
         console.error("Error loading profile:", e);
-        // This is the error line, now with proper rules, it suggests a rule failure.
         container.innerHTML = `<h2 style="color:red;">Error loading profile data!</h2><p>Permissions Check Failed (Rules 1.1, 2, 4). Check console.</p>`;
     }
 }
@@ -863,7 +903,7 @@ function renderChatList(friendUids) {
 
 async function markMessagesAsRead(friendUid) {
   if (!currentUser || !friendUid) return;
-  // Requires Rule 1.3 update permission
+  // Requires Rule 1.3 update permission (specifically for FieldValue.delete)
   await db.collection('users').doc(currentUser.uid).update({
     [`unreadMessages.${friendUid}`]: firebase.firestore.FieldValue.delete()
   }).catch(e => console.error("Error marking messages as read (Rule 1.3):", e));
@@ -879,6 +919,7 @@ async function startChat(friendUid,nickname){
   const chatId=getChatId(currentUser.uid,friendUid); 
   const chatRef=db.collection('chats').doc(chatId);
   
+  // Requires Rule 3 create permission (only creates if the document doesn't exist)
   if(!(await chatRef.get()).exists) await chatRef.set({participants:[currentUser.uid,friendUid].sort()});
   
   const header=document.getElementById('chatHeader'); 
@@ -900,13 +941,17 @@ async function startChat(friendUid,nickname){
     snap.forEach(doc=>{ 
       const data=doc.data(); 
       const mine=data.senderId===currentUser.uid; 
-      const el=document.createElement('div'); 
-      el.className=mine?'message-mine':'message-other'; 
+      
+      const wrapper = document.createElement('div'); // Create the wrapper element
+      wrapper.className = 'message-wrapper';        // Apply the base wrapper class
+      wrapper.classList.add(mine ? 'message-mine' : 'message-other'); // Apply alignment class
+      
       const bubble=document.createElement('span'); 
       bubble.className='message-bubble'; 
       bubble.textContent=data.content; 
-      el.appendChild(bubble); 
-      display.appendChild(el); 
+      
+      wrapper.appendChild(bubble); // Put bubble inside wrapper
+      display.appendChild(wrapper); // Add wrapper to display
     });
     display.scrollTop=display.scrollHeight;
   },err=>{ display.innerHTML='<p style="text-align:center;color:red;">Error loading chat (Rule 3).</p>'; });
@@ -925,7 +970,7 @@ async function sendMessage(chatId,content,recipientUid){
     createdAt:firebase.firestore.FieldValue.serverTimestamp()
   });
 
-  // Requires Rule 1.3 write permission
+  // Requires Rule 1.3 write permission (for unread count increment)
   await db.collection('users').doc(recipientUid).update({
     [`unreadMessages.${currentUser.uid}`]: firebase.firestore.FieldValue.increment(1) 
   }).catch(e => console.error("Error updating unread count (Rule 1.3):", e));
