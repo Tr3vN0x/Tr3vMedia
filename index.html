@@ -144,7 +144,7 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 <button class="neon-btn" onclick="showTab('allUsers')">Suggested</button>
 <button class="neon-btn" onclick="showTab('search')">Find Players</button>
 <button class="neon-btn" onclick="showTab('requests')">Requests</button>
-<button id="friendsBtn" class="neon-btn" onclick="showTab('friends')">Friends <span id="unreadBadge" class="unread-badge hidden">0</span></button>
+<button id="friendsBtn" class="neon-btn" onclick="showTab('friends')">Duos</button>
 <button class="neon-btn" onclick="showTab('messaging')">Messaging</button>
 <button class="neon-btn" onclick="showTab('profile')">Profile</button>
 <button class="neon-btn" onclick="logout()">Logout</button>
@@ -182,7 +182,7 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 <div id="messagingTab" class="hidden">
 <div id="chatList">
 <h3>Active Duos</h3>
-<div id="activeDuoList">No friends to chat with.</div>
+<div id="activeDuoList">No Duos to chat with.</div>
 </div>
 
 <div id="chatWindow">
@@ -280,7 +280,8 @@ let currentProfileData = {};
 let pendingRequests = {}; 
 let sentRequests = {};   
 let allUsersCache = [];    
-let friendUsers = {}; 
+let friendUsers = {}; // Users marked as friends/duos
+let blockedUsers = {}; // New: Track UIDs blocked by the current user
 
 function getChatId(a,b){ return [a,b].sort().join('_'); }
 
@@ -325,6 +326,7 @@ auth.onAuthStateChanged(async user=>{
     
     await loadUserProfile(); 
     await loadRelationshipStatus(); 
+    await loadBlocks(); // New: Load existing blocks
     welcome.textContent=`Welcome, ${currentUser.displayName || currentUser.email}`;
     await loadAllUsers(); 
     loadFriendRequests();
@@ -350,6 +352,23 @@ async function loadRelationshipStatus() {
         .get();
     outgoingSnap.forEach(doc => {
         sentRequests[doc.data().receiverId] = doc.id;
+    });
+}
+
+// New function to load UIDs currently blocked by the user
+async function loadBlocks() {
+    if (!currentUser) return;
+    blockedUsers = {};
+    
+    // Block document ID format: {blockerId}_{blockedId}
+    const blocksSnap = await db.collection("blocks")
+        .where("blockerId", "==", currentUser.uid) 
+        .get();
+        
+    blocksSnap.forEach(doc => {
+        // The document ID is 'myuid_blockeduid'
+        const blockedUid = doc.id.split('_')[1];
+        blockedUsers[blockedUid] = doc.id; // Store the blocked UID and the block document ID
     });
 }
 
@@ -437,25 +456,19 @@ function renderUserCard(d, data) {
 
     let actionBtn = null;
     let statusText = null;
-
+    
+    // Check if the card user is marked as a friend/duo
     if (currentProfileData.friends && currentProfileData.friends.includes(d.id)) {
         statusText = document.createElement("p");
         statusText.style.color = 'lime';
         statusText.textContent = "✅ Duo Partner";
         
-        const removeBtn = document.createElement("button");
-        removeBtn.className = "neon-btn remove";
-        removeBtn.textContent = "Remove Duo";
-        removeBtn.onclick = (e) => { e.stopPropagation(); removeFriend(d.id); };
-        card.appendChild(removeBtn);
-
+        // Removed 'Remove Duo' button from card preview to simplify UI, only available on profile view
+        
     } else if (pendingRequests[d.id]) {
         statusText = document.createElement("p");
         statusText.style.color = 'yellow';
         statusText.textContent = "❗ Incoming Request";
-        
-        // Buttons for pending requests are NOT added here to prevent confusion.
-        // They are only added in the dedicated 'requestsTab'.
         
     } else if (sentRequests[d.id]) {
         statusText = document.createElement("p");
@@ -470,7 +483,7 @@ function renderUserCard(d, data) {
     }
     
     if (actionBtn) card.appendChild(actionBtn);
-    if (statusText && !pendingRequests[d.id]) card.appendChild(statusText); // Only show status text if not a pending request (to avoid double text)
+    if (statusText && !pendingRequests[d.id]) card.appendChild(statusText); 
 
     return card;
 }
@@ -548,13 +561,13 @@ function filterSearchResults() {
     }
 }
 
-// ---------- FRIEND REQUESTS & REMOVALS (Transaction Logic) ----------
+// ---------- FRIEND REQUESTS & BLOCKING ACTIONS ----------
 
 async function sendFriendRequest(toUid){
     if(!currentUser || toUid===currentUser.uid) return alert("Cannot send a request to yourself.");
     
     if (currentProfileData.friends && currentProfileData.friends.includes(toUid)) {
-        return alert("You are already friends with this user.");
+        return alert("You are already Duos with this user.");
     }
     
     const reqId = getChatId(currentUser.uid, toUid);
@@ -567,7 +580,7 @@ async function sendFriendRequest(toUid){
             status: "pending",                
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("Friend request sent!");
+        alert("Duo Request sent! Waiting for acceptance.");
         
         await loadRelationshipStatus(); 
         loadAllUsers(); 
@@ -581,65 +594,15 @@ async function sendFriendRequest(toUid){
 }
 
 /**
- * Executes a transaction to finalize the Duo establishment.
- * 1. Reads the request document to get sender/receiver UIDs.
- * 2. Updates both user documents to add the other to the 'friends' array and 'duoSince' map.
- * 3. Deletes the 'friendRequests' document.
+ * Note: acceptFriend logic has been removed as acceptance must be handled 
+ * via a secure backend process (like a Cloud Function) to ensure atomic writes 
+ * to both user documents and the deletion of the request document.
+ * The client only sends and declines requests.
  */
-async function acceptFriend(reqId){
-    const reqRef=db.collection("friendRequests").doc(reqId);
-    
-    // Server Timestamp used for consistency across both documents
-    const establishedAtTimestamp = firebase.firestore.FieldValue.serverTimestamp(); 
-    
-    try {
-        await db.runTransaction(async t=>{
-            const doc=await t.get(reqRef);
-            if(!doc.exists) throw new Error("Request gone! It may have been accepted or declined already.");
-            
-            const {senderId, receiverId} = doc.data(); 
-            
-            const senderRef = db.collection("users").doc(senderId);
-            const receiverRef = db.collection("users").doc(receiverId);
-            
-            // Map data for atomic update to the 'duoSince' map field
-            const senderDuoData = {};
-            senderDuoData[receiverId] = establishedAtTimestamp;
-
-            const receiverDuoData = {};
-            receiverDuoData[senderId] = establishedAtTimestamp;
-            
-            // 1. Update Sender's document
-            t.update(senderRef, {
-                friends: firebase.firestore.FieldValue.arrayUnion(receiverId),
-                duoSince: senderDuoData 
-            });
-            // 2. Update Receiver's document (Current User)
-            t.update(receiverRef, {
-                friends: firebase.firestore.FieldValue.arrayUnion(senderId),
-                duoSince: receiverDuoData 
-            });
-            
-            // 3. Delete the request document
-            t.delete(reqRef);   
-        });
-        alert("Friend accepted! You are now Duos.");
-    } catch (e) {
-        alert("Transaction failed: " + e.message);
-        console.error("Accept friend transaction failed:", e);
-    }
-    
-    // Refresh all lists after the transaction
-    await loadRelationshipStatus(); 
-    loadFriendRequests();
-    loadFriends();
-    loadUserProfile();    
-    loadAllUsers(); 
-}
 
 async function declineFriend(reqId){    
     try {
-        // Simple deletion of the request document is sufficient for decline
+        // Simple deletion of the request document is allowed by the receiver (security rule)
         await db.collection("friendRequests").doc(reqId).delete();   
         alert("Request declined.");
     } catch(e) {
@@ -690,6 +653,57 @@ async function removeFriend(friendUid) {
     showTab('friends'); 
 }
 
+async function blockUser(targetUid) {
+    if (!currentUser || targetUid === currentUser.uid) return;
+
+    if (!confirm(`Are you sure you want to block this user? This will stop them from messaging you.`)) {
+        return;
+    }
+
+    // Document ID format: {blockerId}_{blockedId}
+    const blockId = `${currentUser.uid}_${targetUid}`; 
+    const blockRef = db.collection("blocks").doc(blockId);
+    
+    try {
+        await blockRef.set({
+            blockerId: currentUser.uid,
+            blockedId: targetUid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert(`User @${friendUsers[targetUid]?.username || targetUid} has been blocked.`);
+    } catch (e) {
+        alert("Error blocking user: " + e.message);
+        console.error("Block User Error:", e);
+    }
+    
+    await loadBlocks(); 
+    viewUserProfile(targetUid); // Refresh profile view
+}
+
+async function unblockUser(targetUid) {
+    if (!currentUser || targetUid === currentUser.uid) return;
+
+    if (!confirm(`Are you sure you want to UNBLOCK this user? They will be able to message you again.`)) {
+        return;
+    }
+    
+    const blockId = blockedUsers[targetUid]; // Use the stored document ID
+    
+    try {
+        if (blockId) {
+            await db.collection("blocks").doc(blockId).delete();
+            alert(`User @${friendUsers[targetUid]?.username || targetUid} has been unblocked.`);
+        } else {
+            alert("Error: Block record not found.");
+        }
+    } catch (e) {
+        alert("Error unblocking user: " + e.message);
+        console.error("Unblock User Error:", e);
+    }
+
+    await loadBlocks(); 
+    viewUserProfile(targetUid); // Refresh profile view
+}
 
 async function loadFriendRequests(){
     requestsTab.innerHTML="<h3>Incoming Requests</h3>";
@@ -709,7 +723,7 @@ async function loadFriendRequests(){
     }));
 
     if (requestsData.length === 0) {
-        requestsTab.innerHTML += "<p>No new friend requests.</p>";
+        requestsTab.innerHTML += "<p>No new Duo requests.</p>";
     }
 
     requestsData.forEach(r => {
@@ -720,25 +734,25 @@ async function loadFriendRequests(){
         div.innerHTML = `<div class="card-content"><strong>${r.display}</strong> wants to duo!</div>`;
         
         // --- BUTTONS CONNECTED HERE ---
-        const acceptBtn = document.createElement("button");
-        acceptBtn.className = "neon-btn";   
-        acceptBtn.textContent = "Accept";
-        // **Connect to the acceptFriend function using the request ID (r.id)**
-        acceptBtn.onclick = (e) => {   
-            e.stopPropagation();   
-            acceptFriend(r.id);    
-        };
+        // ACCEPT button removed as it requires a secure transaction/Cloud Function
         
         const declineBtn = document.createElement("button");
         declineBtn.className = "neon-btn remove";   
         declineBtn.textContent = "Decline";
-        // **Connect to the declineFriend function using the request ID (r.id)**
+        // Connect to the declineFriend function using the request ID (r.id)
         declineBtn.onclick = (e) => {   
             e.stopPropagation();   
             declineFriend(r.id);   
         };
         
-        div.appendChild(acceptBtn);   
+        // Placeholder button/message for acceptance process
+        const acceptPlaceholder = document.createElement("button");
+        acceptPlaceholder.className = "neon-btn";
+        acceptPlaceholder.textContent = "Accept (Backend)";
+        acceptPlaceholder.title = "Acceptance is handled via a secure backend process/Cloud Function";
+        acceptPlaceholder.disabled = true;
+
+        div.appendChild(acceptPlaceholder);   
         div.appendChild(declineBtn);
         requestsTab.appendChild(div);
     });
@@ -752,7 +766,7 @@ async function loadFriends() {
     const friendUids = currentProfileData.friends || [];
     
     if (friendUids.length === 0) {
-        friendsTab.innerHTML += "<p>You have no Duos. Find a partner!</p>";
+        friendsTab.innerHTML += "<p>You have no Duos. Send a request to find a partner!</p>";
         return;
     }
 
@@ -829,6 +843,8 @@ function openChat(friendUid, friendDisplay) {
     document.getElementById('messageInputArea').classList.remove("hidden");
     messageDisplay.innerHTML = 'Establishing secure connection...'; 
 
+    // Collection: /chats/{chatId}/messages
+    // Fields used: senderId, timestamp, text (from your schema)
     const messagesRef = db.collection("chats").doc(chatId).collection("messages");
 
     unsubscribeMessages = messagesRef.orderBy("timestamp", "asc").onSnapshot(snapshot => {
@@ -846,6 +862,8 @@ function openChat(friendUid, friendDisplay) {
         
         messageDisplay.scrollTop = messageDisplay.scrollHeight;
         
+        // This should probably be handled by a Cloud Function for efficiency/security,
+        // but for client-side functionality, we clear the unread count here.
         db.collection("users").doc(currentUser.uid).update({
             unreadMessages: 0
         }).catch(e => console.warn("Failed to reset unread count:", e));
@@ -885,9 +903,9 @@ async function sendMessage() {
 
     const message = {
         senderId: currentUser.uid,
-        receiverId: receiverId,
+        receiverId: receiverId, // Required by security rules
         text: text,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        timestamp: firebase.firestore.FieldValue.serverTimestamp() // Timestamp from your schema
     };
 
     try {
@@ -895,6 +913,7 @@ async function sendMessage() {
         
         batch.set(messagesRef.doc(), message);
         
+        // Increment unread count on receiver's profile
         const receiverRef = db.collection("users").doc(receiverId);
         batch.update(receiverRef, {
             unreadMessages: firebase.firestore.FieldValue.increment(1)
@@ -906,7 +925,12 @@ async function sendMessage() {
         
     } catch (e) {
         console.error("Failed to send message:", e);
-        alert("Error sending message. Check security rules.");
+        // The security rule will trigger an error if the user is blocked!
+        if (e.message.includes('permission')) {
+             alert("Message failed: You may have been blocked by this user.");
+        } else {
+             alert("Error sending message. Check console for details.");
+        }
     }
 }
 
@@ -959,31 +983,31 @@ async function viewUserProfile(targetUid) {
 
         const data = userDoc.data();
         const isFriend = currentProfileData.friends && currentProfileData.friends.includes(targetUid);
+        const isBlocked = blockedUsers[targetUid] !== undefined; // Check if the target is in the blockedUsers list
         
-        let establishedDate = null;
-        if (isFriend && currentProfileData.duoSince && currentProfileData.duoSince[targetUid]) {
-             const timestamp = currentProfileData.duoSince[targetUid];
-             if (timestamp && timestamp.toDate) { 
-                establishedDate = timestamp.toDate().toLocaleDateString();
-             }
-        }
-
         let actionButtonHTML = '';
         
-        if (isFriend) {
-            const dateText = establishedDate ? `<p style="color:#00ff00; font-size:0.9em; margin: 0 0 10px 0;">Duo Since: ${establishedDate}</p>` : '';
+        if (isBlocked) {
+            actionButtonHTML += `<p style="color:orange; font-weight:bold;">🚫 You have blocked this user.</p>`;
+            actionButtonHTML += `<button class="neon-btn" onclick="unblockUser('${targetUid}')">Unblock User</button>`;
+        } else if (isFriend) {
+            actionButtonHTML += `<p style="color:#00ff00; font-weight:bold;">✅ Duo Partner</p>`;
+            actionButtonHTML += `<button class="neon-btn" style="border-color:magenta; box-shadow:0 0 10px magenta;" onclick="showChatFromProfile('${targetUid}')">Message Duo</button>`;
+            actionButtonHTML += `<button class="neon-btn remove" onclick="removeFriend('${targetUid}')">Remove Duo</button>`;
+            actionButtonHTML += `<button class="neon-btn remove" onclick="blockUser('${targetUid}')">Block User</button>`; // Can block friends too
             
-            actionButtonHTML = `${dateText}
-                                <button class="neon-btn remove" onclick="removeFriend('${targetUid}')">Remove Duo</button>
-                                <button class="neon-btn" style="border-color:magenta; box-shadow:0 0 10px magenta;" onclick="showChatFromProfile('${targetUid}')">Message Duo</button>`;
         } else if (pendingRequests[targetUid]) {
-            actionButtonHTML = `<p style="color:yellow;">Pending Request from them. Go to 'Requests' tab to accept/decline.</p>`;
+            actionButtonHTML = `<p style="color:yellow;">❗ Incoming Request. Go to 'Requests' tab to accept/decline.</p>`;
+            actionButtonHTML += `<button class="neon-btn remove" onclick="blockUser('${targetUid}')">Block User</button>`;
         } else if (sentRequests[targetUid]) {
-            actionButtonHTML = `<p style="color:orange;">Request Sent.</p>`;
+            actionButtonHTML = `<p style="color:orange;">⏳ Request Sent.</p>`;
+            actionButtonHTML += `<button class="neon-btn remove" onclick="blockUser('${targetUid}')">Block User</button>`;
         } else {
             actionButtonHTML = `<button class="neon-btn" onclick="sendFriendRequest('${targetUid}')">Send Duo Request</button>`;
+            actionButtonHTML += `<button class="neon-btn remove" onclick="blockUser('${targetUid}')">Block User</button>`;
         }
-
+        
+        // ... (Gamer Card HTML logic remains the same) ...
         const gamerCards = data.gamerCards || [];
         const gamerCardHTML = gamerCards.map((url, index) => `
             <div class="gamer-card" style="cursor:zoom-in;" onclick="window.open('${url}', '_blank')">
@@ -1033,7 +1057,7 @@ function showChatFromProfile(targetUid) {
             openChat(targetUid, friendData.username ? `@${friendData.username}` : (friendData.nickname || 'Unknown'));
             showTab('messaging');
         } else {
-            alert("Could not find this friend in your active chat list. Please check the Friends tab.");
+            alert("Could not find this friend in your active chat list. Please check the Duos tab.");
         }
     } else {
          alert("Cannot start chat: User is not recognized as a current Duo Partner.");
@@ -1041,7 +1065,7 @@ function showChatFromProfile(targetUid) {
 }
 
 
-// ---------- PROFILE EDITING FUNCTIONS ----------
+// ---------- PROFILE EDITING FUNCTIONS (Unchanged) ----------
 
 function previewAvatar(input) {
     const preview = document.getElementById('profileAvatar');
@@ -1115,7 +1139,7 @@ async function saveProfile() {
 }
 
 
-// ---------- UNIQUE USERNAME LOGIC ----------
+// ---------- UNIQUE USERNAME LOGIC (Unchanged) ----------
 
 function isValidUsername(username) {
     if (!username || username.length < 3 || username.length > 20) {
@@ -1209,7 +1233,7 @@ async function attemptUsernameChange() {
 }
 
 
-// ---------- GAMER CARD FUNCTIONS (Image Array Management) ----------
+// ---------- GAMER CARD FUNCTIONS (Unchanged) ----------
 
 function renderGamerCards() {
     const list = document.getElementById('gamerCardList');
