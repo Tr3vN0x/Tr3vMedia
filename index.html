@@ -50,6 +50,7 @@ textarea { resize: vertical; }
 .status-ingame { background-color:#ffaa00; color:#0b0b0b; box-shadow:0 0 5px #ffaa00; }
 .status-lfd { background-color:#00aaff; color:#0b0b0b; box-shadow:0 0 5px #00aaff; }
 /* Co-Founder Badge Style */
+.nickname-group { display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
 .co-founder-badge { 
     background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700); 
     color: #333; 
@@ -58,7 +59,7 @@ textarea { resize: vertical; }
     border-radius: 4px; 
     font-weight: bold;
     text-transform: uppercase;
-    margin-bottom: 5px;
+    margin-left: 8px; /* Spacing next to nickname */
     box-shadow: 0 0 5px #FFD700;
 }
 /* Nav */
@@ -360,8 +361,10 @@ function renderUserCard(uid, data, requestInfo){
     card.innerHTML=`
         <div class="card-content-box">
         <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
-        <h3 style="margin:0;">${data.nickname||'Unknown'}</h3>
-        ${badge}
+        <div class="nickname-group">
+            <h3 style="margin:0;">${data.nickname||'Unknown'}</h3>
+            ${badge}
+        </div>
         <div class="skill-rating">${'⭐'.repeat(data.skillRating||3)}</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
         <p style="margin:5px 0; font-size:0.9em; text-align:center; color:#ccc;">${data.bio||'No bio provided.'}</p>
@@ -382,8 +385,10 @@ function renderDuoCard(uid, data){
     card.innerHTML=`
         <div class="card-content-box">
         <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar" style="border-color:lime;">
-        <h3 style="margin:0;">${data.nickname||'Unknown'}</h3>
-        ${badge}
+        <div class="nickname-group">
+            <h3 style="margin:0;">${data.nickname||'Unknown'}</h3>
+            ${badge}
+        </div>
         <div style="color:lime; margin:5px 0;">ACCEPTED DUO</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
         </div>
@@ -414,8 +419,10 @@ function renderRequestCard(senderUid, data, requestId){
     card.innerHTML=`
         <div class="card-content-box">
         <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar" style="border-color:orange;">
-        <h3 style="margin:0;">${data.nickname||'Unknown'}</h3>
-        ${badge}
+        <div class="nickname-group">
+            <h3 style="margin:0;">${data.nickname||'Unknown'}</h3>
+            ${badge}
+        </div>
         <div style="color:yellow; margin:5px 0;">Incoming Request</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
         </div>
@@ -760,8 +767,10 @@ function viewProfile(uid, data) {
 
     document.getElementById('viewProfileContent').innerHTML = `
         <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar" style="width:120px; height:120px; border-color:cyan;">
-        <h2 style="margin:10px 0;">${data.nickname}</h2>
-        ${badge}
+        <div class="nickname-group">
+            <h2 style="margin:10px 0;">${data.nickname}</h2>
+            ${badge}
+        </div>
         <div class="profile-stat"><span>Status:</span><span class="status-indicator status-${(data.status||'Online').replace(/\s/g,'').toLowerCase()}">${data.status||'Online'}</span></div>
         <div class="profile-stat"><span>Skill Rating:</span><span>${'⭐'.repeat(data.skillRating||3)}</span></div>
         <p style="margin-top:20px; color:magenta; font-weight:bold;">Bio:</p>
@@ -793,12 +802,13 @@ async function uploadAvatar(file) {
     if (!file) return null;
 
     const storageRef = storage.ref();
+    // Unique path uses the user's UID to enforce security rules
     const avatarRef = storageRef.child(`avatars/${currentUser.uid}`);
     
     // Upload the file
     const snapshot = await avatarRef.put(file);
     
-    // Get the public URL
+    // Get the public URL for Firestore
     const downloadURL = await snapshot.ref.getDownloadURL();
     return downloadURL;
 }
@@ -816,9 +826,10 @@ async function loadUserProfile() {
     document.getElementById('profileBio').value = data.bio || '';
     document.getElementById('profileSkillRating').value = data.skillRating || 3;
     document.getElementById('profileStatus').value = data.status || 'Online';
+    // Load the saved URL or the default/Google provided URL
     document.getElementById('profileAvatar').src = data.profileImageUrl || currentUser.photoURL || DEFAULT_AVATAR;
 
-    // Clear file input on load
+    // Clear file input on load to ensure old file isn't re-uploaded unnecessarily
     document.getElementById('avatarFile').value = ''; 
 
     // Check if nickname has already been changed once (count >= 1)
@@ -878,7 +889,7 @@ async function saveProfile() {
             updates.profileImageUrl = imageUrl;
         } catch(e) {
             console.error("Avatar upload failed:", e);
-            messageEl.textContent = `Error: Avatar upload failed. ${e.message}`;
+            messageEl.textContent = `Error: Avatar upload failed. Check Storage Rules. ${e.message}`;
             messageEl.style.color = 'red';
             return; 
         }
@@ -898,6 +909,11 @@ async function saveProfile() {
         // Reload profile view to update disabled state and clear file input
         loadUserProfile(); 
         
+        // Ensure image preview is the final saved image
+        if (updates.profileImageUrl) {
+            document.getElementById('profileAvatar').src = updates.profileImageUrl;
+        }
+
         setTimeout(() => messageEl.textContent = '', 3000);
     } catch(e) {
         console.error("Profile update failed:", e);
@@ -907,7 +923,7 @@ async function saveProfile() {
 }
 
 // ----------------------------------------------------
-// 🌟 NICKNAME CHANGE LOGIC (Initial Auth)
+// 🌟 INITIAL AUTHENTICATION AND USER SETUP
 // ----------------------------------------------------
 auth.onAuthStateChanged(async user=>{
     if(!user){
@@ -942,4 +958,3 @@ auth.onAuthStateChanged(async user=>{
 
 </body>
 </html>
-
