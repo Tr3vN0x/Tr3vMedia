@@ -141,7 +141,7 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 </div>
 
 <script>
-// ---------- FIREBASE INIT (Update with your specific config if needed) ----------
+// ---------- FIREBASE INIT (UPDATE THIS WITH YOUR CONFIG) ----------
 const firebaseConfig = {
   apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
   authDomain: "duoup-cfae6.firebaseapp.com",
@@ -155,7 +155,7 @@ firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
-const functions = firebase.functions(); // CRITICAL: Needed for Cloud Function call
+const functions = firebase.functions(); // Initializes Cloud Functions SDK
 
 const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQKql9HQ2";
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
@@ -163,7 +163,7 @@ let currentUser = null, currentChatUid = null, unsubscribeMessages = null;
 let unsubscribeChatList = null; 
 function getChatId(a,b){ return [a,b].sort().join('_'); }
 
-// ---------- AUTH ----------
+// ---------- AUTH & INITIALIZATION ----------
 function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message)); }
 function logout(){ 
   if(unsubscribeMessages) unsubscribeMessages(); 
@@ -203,7 +203,7 @@ auth.onAuthStateChanged(async user=>{
   loadProfile();
 });
 
-// ---------- PROFILE EDIT (Unchanged) ----------
+// ---------- PROFILE EDIT & UTILITIES (Unchanged) ----------
 async function loadProfile() {
   const userDoc = await db.collection('users').doc(currentUser.uid).get();
   if(!userDoc.exists) return;
@@ -249,7 +249,7 @@ async function saveProfile() {
 }
 
 
-// ---------- FRIEND REQUESTS & FRIENDS ----------
+// ---------- FRIEND REQUESTS & FRIENDS LOGIC ----------
 function getOwnerBadge(uid){ return uid===OWNER_UID?'<span class="owner-badge-box">OWNER</span>':''; }
 function renderSkillRating(r){r=parseInt(r)||0; return `<div class="skill-rating">${'⭐'.repeat(r)}${'☆'.repeat(5-r)}</div>`;}
 function renderStatus(s){ const c=s==='Online'?'status-online':s==='In Game'?'status-ingame':'status-lfd'; return `<div class="status-indicator ${c}">${s}</div>`; }
@@ -262,7 +262,7 @@ function renderCard(d,type,reqId=null){
     btn.onclick=()=>sendFriendRequest(d.uid); buttons.push(btn);
   }
   else if(type==='request'){
-    // Calls the Cloud Function (acceptFriendRequest)
+    // ACCEPT CALLS THE CLOUD FUNCTION
     const accept=document.createElement('button'); accept.className='neon-btn'; accept.textContent='Accept'; accept.onclick=()=>acceptFriend(reqId,d.uid); 
     const decline=document.createElement('button'); decline.className='neon-btn remove'; decline.textContent='Decline'; decline.onclick=()=>declineFriend(reqId); buttons.push(accept,decline);
   }
@@ -282,9 +282,11 @@ async function loadSuggested(){
   if(container.childElementCount===0) container.innerHTML='<p>No new suggested partners found.</p>';
 }
 
-// FINALIZED: Includes robust error handling
+// Client-side function for sending request
 async function sendFriendRequest(toUid){
   if(toUid===currentUser.uid) return;
+  
+  // Unique, sortable ID using both UIDs
   const reqId=[currentUser.uid,toUid].sort().join('_');
   const reqRef=db.collection('friendRequests').doc(reqId);
 
@@ -293,10 +295,11 @@ async function sendFriendRequest(toUid){
     const myDoc=(await db.collection('users').doc(currentUser.uid).get()).data();
     if((myDoc.friends||[]).includes(toUid)){ alert("Already friends!"); return; }
 
+    // Write operation that needs to pass Security Rules
     await reqRef.set({
       senderId:currentUser.uid, 
       receiverId:toUid, 
-      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+      createdAt:firebase.firestore.FieldValue.serverTimestamp() 
     });
     
     alert("Friend request sent!"); 
@@ -316,7 +319,7 @@ async function loadRequests(){
   snapshot.docs.forEach((doc,i)=>{ const fromUser=userDocs[i].data(); if(!fromUser)return; container.appendChild(renderCard(fromUser,'request',doc.id)); });
 }
 
-// FINALIZED: Uses Cloud Function for acceptance
+// Calls the Cloud Function for acceptance
 async function acceptFriend(reqId, friendUid){
   try {
     const acceptFunction = functions.httpsCallable('acceptFriendRequest');
@@ -360,6 +363,7 @@ async function loadFriends(){
   renderChatList(friendUids);
 }
 
+// ---------- MESSAGING & TABS (Unchanged) ----------
 function renderChatList(friendUids) {
   if(unsubscribeChatList) unsubscribeChatList();
 
@@ -404,8 +408,6 @@ async function markMessagesAsRead(friendUid) {
   }).catch(e => console.error("Error marking messages as read:", e));
 }
 
-
-// ---------- MESSAGING (Unchanged logic) ----------
 async function startChat(friendUid,nickname){
   showTab('messaging'); 
   await markMessagesAsRead(friendUid);
@@ -467,7 +469,6 @@ async function sendMessage(chatId,content,recipientUid){
   msgInput.focus();
 }
 
-// ---------- TABS ----------
 function hideAllTabs(){ 
   ["suggestedTab","requestsTab","friendsTab","profileTab","messagingTab"].forEach(t=>document.getElementById(t).classList.add('hidden')); 
 }
