@@ -348,8 +348,7 @@ async function loadUserProfile() {
         messageElement.style.color = 'yellow';
     }
     
-    // NOTE: The call to renderGameSlots() was removed here to fix the ReferenceError.
-    // renderGameSlots(); 
+    // NOTE: The call to renderGameSlots() is intentionally omitted here to prevent ReferenceError.
 }
 
 // --- PROFILE SAVE FUNCTION ---
@@ -483,8 +482,9 @@ async function loadAllUsers(){
     const allUsersTab = document.getElementById('allUsersTab');
     allUsersTab.innerHTML = "<h3>Suggested Players</h3>";
     try {
-        // Only load the first 100 users for suggestions/search caching
-        const snapshot = await db.collection("users").limit(100).get(); 
+        // FIX: Removed .limit(100) to fetch all users.
+        const snapshot = await db.collection("users").get(); 
+        
         allUsersCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
         allUsersCache.forEach(user => {
