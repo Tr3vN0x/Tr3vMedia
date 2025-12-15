@@ -267,20 +267,8 @@ const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQKql9HQ2"; 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 
-const GAMES_LIST = [
-    { name: "Apex Legends", roles: ["Tank", "DPS", "Support", "Any"] },
-    { name: "Valorant", roles: ["Duelist", "Controller", "Sentinel", "Initiator", "Any"] },
-    { name: "League of Legends", roles: ["Top", "Jungle", "Mid", "ADC", "Support", "Any"] },
-    { name: "Dota 2", roles: ["Carry", "Mid", "Offlane", "Support 4", "Support 5", "Any"] },
-    { name: "Overwatch 2", roles: ["Tank", "DPS", "Support", "Any"] },
-    { name: "Fortnite", roles: ["Builder", "Zero Build", "Any"] },
-    { name: "Destiny 2", roles: ["PVE", "PVP", "Any"] },
-    { name: "Rocket League", roles: ["Attacker", "Defender", "Midfield", "Any"] },
-    { name: "Other/Casual", roles: ["Chill", "Competitive", "Casual"] }
-];
 
 // ------------------------------------------------
 // 2. GLOBAL STATE VARIABLES
@@ -447,13 +435,6 @@ async function attemptUsernameChange() {
     }
 }
 
-
-// --- BLOCK LOADING (Placeholder) ---
-async function loadBlocks() {
-    // Placeholder function for block list management
-    if (!currentUser) return;
-    blockedUsers = {};
-}
 
 // --- USER LIST LOADING (CRITICAL FIX FOR 'Suggested Players' ERROR) ---
 async function loadAllUsers(){
@@ -661,8 +642,8 @@ function renderUserCard(d, data) {
         <div class="card-content-box">
             <img src="${data.profileImageUrl || DEFAULT_AVATAR}" class="avatar">
             <h3 style="margin:0; font-size:1.2em;">${displayName}</h3>
-            <div class="status-indicator status-${statusClass}">${data.status || 'Online'}</div>
             <div class="skill-rating">${'⭐'.repeat(data.skillRating || 3)}</div>
+            <div class="status-indicator status-${statusClass}">${data.status || 'Online'}</div>
             <p style="margin:5px 0; font-size:0.9em; text-align:center; color:#ccc;">${data.bio || 'No bio provided.'}</p>
         </div>
         <div style="margin-bottom: 10px;">${actionButton}</div>
@@ -947,7 +928,6 @@ auth.onAuthStateChanged(async user=>{
     
     // 2. Load Core Data
     await loadUserProfile(); 
-    await loadBlocks(); 
 
     // 3. Load UI Data
     document.getElementById("welcome").textContent=`Welcome, ${currentProfileData.nickname || currentUser.displayName || currentUser.email}`;
