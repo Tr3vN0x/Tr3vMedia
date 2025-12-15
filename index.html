@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DUO UP (Cyber Social Platform)</title>
 
-<link rel="icon" type="image/x-icon" href="https://your-domain.com/favicon.ico">
+<link rel="icon" type="image/x-icon" href="https://your-domain.com/favicon.ico"> 
 <link rel="apple-touch-icon" href="https://your-domain.com/apple-touch-icon.png">
 
 <meta property="og:title" content="DUO UP: Find Your Next Cyber Social Partner">
@@ -37,7 +37,8 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 /* Header */
 .header { background:#111; border-bottom:3px solid cyan; box-shadow:0 0 20px rgba(0,255,255,0.5); padding:10px 0; margin-bottom:20px; display:flex; align-items:center; justify-content:center; }
 .header h1 { font-size:2.5em; color:#fff; text-shadow:0 0 5px cyan,0 0 10px cyan,0 0 15px magenta; margin:0; }
-.icon-container { margin-right:15px; font-size:2.5em; color:cyan; text-shadow:0 0 5px cyan,0 0 10px magenta; }
+/* Updated Icon Container for Lightning Bolt */
+.icon-container { margin-right:15px; font-size:2.5em; color:yellow; text-shadow:0 0 5px yellow,0 0 10px orange; }
 /* Buttons */
 .neon-btn { border:2px solid cyan; background:transparent; color:white; padding:8px 14px; margin:5px; border-radius:6px; cursor:pointer; box-shadow:0 0 10px cyan; transition:all 0.2s ease-in-out; text-transform:uppercase; font-family:'Orbitron',sans-serif; }
 .neon-btn:hover { border-color:magenta; box-shadow:0 0 15px magenta; transform: translateY(-1px); }
@@ -116,7 +117,7 @@ textarea { resize: vertical; }
 </style>
 </head>
 <body>
-<div class="header"><div class="icon-container">⚡</div><h1>DUO UP (Cyber Social Platform)</h1></div>
+<div class="header"><div class="icon-container">⚡</div><h1>DUO UP</h1></div>
 
 <div id="loginPage" class="container">
 <p style="text-align:center;">Log in to connect and find your next cyber-duo.</p>
@@ -267,6 +268,7 @@ function getCoFounderBadge(uid) {
 // ---------------------------
 // Utility Functions
 function getChatId(otherUid) {
+    // Standardized Chat ID format: UID1_UID2 (alphabetically sorted)
     return [currentUser.uid, otherUid].sort().join('_');
 }
 
@@ -314,6 +316,7 @@ async function loadAllUsers(){
         const snapshot=await db.collection('users').get();
         allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
         
+        // Load all requests involving the current user (accepted or pending)
         const requestsSnap = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .get();
@@ -321,8 +324,14 @@ async function loadAllUsers(){
         requestCache = {};
         requestsSnap.forEach(doc => {
             const data = doc.data();
+            // Determine the UID of the *other* user in this request
             const otherUid = data.senderId === currentUser.uid ? data.receiverId : data.senderId;
-            requestCache[otherUid] = { id: doc.id, status: data.status, senderId: data.senderId };
+            requestCache[otherUid] = { 
+                id: doc.id, 
+                status: data.status, 
+                senderId: data.senderId,
+                receiverId: data.receiverId
+            };
         });
 
         container.innerHTML=""; 
@@ -344,19 +353,25 @@ function renderUserCard(uid, data, requestInfo){
     const badge = getCoFounderBadge(uid);
 
     let cardButtons;
+    
+    // Logic to determine the correct button based on request status
     if (requestInfo) {
         if (requestInfo.status === 'pending') {
             if (requestInfo.senderId === currentUser.uid) {
-                cardButtons = `<button class="neon-btn pending">Pending</button>`; 
+                // Current user is the sender
+                cardButtons = `<button class="neon-btn pending">Pending (Waiting for reply)</button>`; 
             } else {
+                // Current user is the receiver
                 cardButtons = `<button class="neon-btn pending">Request Sent To You</button>`;
             }
         } else if (requestInfo.status === 'accepted') {
             cardButtons = `<button class="neon-btn" style="border-color:lime; color:lime;">Duo</button>`;
         } else {
+            // Should not happen if requestInfo exists, but handles stale data/errors
             cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
         }
     } else {
+        // No request exists, allow sending a new one
         cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
     }
 
@@ -440,24 +455,25 @@ async function loadFriends() {
     pendingListEl.innerHTML = 'Loading Requests...';
     friendListEl.innerHTML = 'Loading Duos...';
     
+    // Refresh user cache and requests
     await loadAllUsers(); 
 
     try {
-        const pendingSnapshot = await db.collection('requests')
-            .where('receiverId', '==', currentUser.uid)
-            .where('status', '==', 'pending')
-            .get();
+        const pendingRequests = Object.values(requestCache).filter(req => 
+            req.status === 'pending' && req.receiverId === currentUser.uid
+        );
 
-        if (pendingSnapshot.empty) {
+        if (pendingRequests.length === 0) {
             pendingListEl.innerHTML = '<p style="width:100%; text-align:center;">No pending requests at this time.</p>';
         } else {
             pendingListEl.innerHTML = '';
-            pendingSnapshot.forEach(doc => {
-                const request = doc.data();
+            pendingRequests.forEach(request => {
                 const senderProfile = findUserInCache(request.senderId);
                 
                 if (senderProfile) {
-                    const card = renderRequestCard(request.senderId, senderProfile, doc.id);
+                    // Chat ID is the request ID
+                    const requestId = getChatId(request.senderId); 
+                    const card = renderRequestCard(request.senderId, senderProfile, requestId);
                     if (card) pendingListEl.appendChild(card);
                 }
             });
@@ -468,17 +484,13 @@ async function loadFriends() {
     }
     
     try {
-        const acceptedSnapshot = await db.collection('requests')
-            .where('participants', 'array-contains', currentUser.uid)
-            .where('status', '==', 'accepted')
-            .get();
+        const acceptedDuos = Object.values(requestCache).filter(req => req.status === 'accepted');
             
-        if (acceptedSnapshot.empty) {
+        if (acceptedDuos.length === 0) {
             friendListEl.innerHTML = '<p style="width:100%; text-align:center;">You have no accepted Duos yet.</p>';
         } else {
             friendListEl.innerHTML = '';
-            acceptedSnapshot.forEach(doc => {
-                const request = doc.data();
+            acceptedDuos.forEach(request => {
                 const otherUid = request.senderId === currentUser.uid ? request.receiverId : request.senderId;
                 const otherProfile = findUserInCache(otherUid);
 
@@ -521,6 +533,7 @@ async function handleRequest(requestId, newStatus) {
                 const chatRef = db.collection('chats').doc(requestId);
                 const chatDoc = await transaction.get(chatRef);
                 if (!chatDoc.exists) {
+                    // Create the initial chat document for security rules to work
                     transaction.set(chatRef, {
                         participants: participants,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -547,6 +560,7 @@ async function removeDuo(otherUid) {
     }
 
     try {
+        // Deleting the request document is enough to break the Duo connection
         await db.collection('requests').doc(requestId).delete();
         
         alert("Duo successfully removed.");
@@ -569,7 +583,7 @@ async function removeDuo(otherUid) {
 
 async function sendFriendRequest(uid){
     if(!currentUser || currentUser.uid === uid) return;
-    const id = getChatId(uid);
+    const id = getChatId(uid); // Standardized ID
 
     try{
         const requestRef = db.collection('requests').doc(id);
@@ -577,7 +591,7 @@ async function sendFriendRequest(uid){
 
         if (requestDoc.exists) {
             const status = requestDoc.data().status;
-            let message = status === 'pending' ? "Your request is PENDING." : "You are already DUOS with this player!";
+            let message = status === 'pending' ? "Your request is already PENDING." : "You are already DUOS with this player!";
             alert(message);
             return;
         }
@@ -607,6 +621,7 @@ async function loadChatList() {
     duoListEl.innerHTML = 'Loading Duos for chat...';
 
     try {
+        // Look up all accepted requests involving the current user
         const acceptedSnapshot = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .where('status', '==', 'accepted')
@@ -697,18 +712,21 @@ async function sendMessage() {
             const participants = [id1, id2].sort();
 
             if (!chatDoc.exists) {
+                // Ensure chat document exists to satisfy security rules
                 transaction.set(chatRef, {
                     participants: participants,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 });
             }
 
+            // Write the new message
             transaction.set(chatRef.collection('messages').doc(), {
                 text: text,
                 senderId: currentUser.uid,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });
 
+            // Update the chat document with the last activity time
             transaction.update(chatRef, {
                 lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -718,6 +736,7 @@ async function sendMessage() {
 
     } catch(e) {
         console.error("Message send failed:", e);
+        // This is where security rule errors for messaging would appear
         alert("Failed to send message. Error: " + e.message);
     }
 }
@@ -731,11 +750,23 @@ function viewProfile(uid, data) {
     let profileButton = '';
     const badge = getCoFounderBadge(uid);
 
+    // Logic for the profile viewing buttons
     if (requestInfo && requestInfo.status === 'accepted') {
         profileButton = `<button class="neon-btn" style="margin-top:10px;" onclick="openChat('${uid}', '${data.nickname}')">Start Chat</button>
                          <button class="neon-btn remove" style="margin-top:10px;" onclick="removeDuo('${uid}')">Remove Duo</button>`;
     } else if (requestInfo && requestInfo.status === 'pending') {
-        profileButton = `<button class="neon-btn pending" style="margin-top:20px;">Request Pending</button>`;
+        if (requestInfo.receiverId === currentUser.uid) {
+            // Pending and current user is the receiver -> show accept/reject
+            const requestId = getChatId(uid);
+            profileButton = `
+                <div style="margin-top:20px; display:flex; gap:10px;">
+                    <button class="neon-btn add" onclick="handleRequest('${requestId}', 'accepted')">Accept Request</button>
+                    <button class="neon-btn remove" onclick="handleRequest('${requestId}', 'rejected')">Reject Request</button>
+                </div>`;
+        } else {
+            // Pending and current user is the sender
+            profileButton = `<button class="neon-btn pending" style="margin-top:20px;">Request Pending</button>`;
+        }
     } else {
         profileButton = `<button class="neon-btn add" style="margin-top:20px;" onclick="sendFriendRequest('${uid}')">Send Request</button>`;
     }
@@ -776,8 +807,10 @@ async function uploadAvatar(file) {
     const storageRef = storage.ref();
     const avatarRef = storageRef.child(`avatars/${currentUser.uid}`);
     
+    // Upload the file
     const snapshot = await avatarRef.put(file);
     
+    // Get the public URL for the image
     const downloadURL = await snapshot.ref.getDownloadURL();
     return downloadURL;
 }
@@ -792,6 +825,7 @@ async function loadUserProfile() {
     document.getElementById('profileBio').value = data.bio || '';
     document.getElementById('profileSkillRating').value = data.skillRating || 3;
     document.getElementById('profileStatus').value = data.status || 'Online';
+    // Use stored URL, or the default Google photo, or the local fallback image
     document.getElementById('profileAvatar').src = data.profileImageUrl || currentUser.photoURL || DEFAULT_AVATAR;
 
     document.getElementById('avatarFile').value = ''; 
@@ -874,6 +908,7 @@ async function saveProfile() {
         setTimeout(() => messageEl.textContent = '', 3000);
     } catch(e) {
         console.error("Profile update failed:", e);
+        // This is where security rule errors for profile updates would appear
         messageEl.textContent = `Error: ${e.message}`;
         messageEl.style.color = 'red';
     }
