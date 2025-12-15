@@ -43,13 +43,13 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
     align-items:center; 
     margin-bottom:15px; 
     cursor:pointer; 
-    overflow: hidden; /* Ensure card content doesn't bleed */
+    overflow: hidden; 
 }
 .card-content { display:flex; flex-direction:column; align-items:center; width:100%; margin-bottom:10px; }
 .avatar { width:50px; height:50px; border-radius:50%; border:2px solid cyan; object-fit:cover; margin-bottom:10px; }
 .card-gamer-preview {
     width: 100%;
-    height: 100px; /* Fixed height for the preview */
+    height: 100px; 
     object-fit: cover;
     margin-top: 10px;
     border-radius: 6px;
@@ -314,6 +314,7 @@ auth.onAuthStateChanged(async user=>{
             skillRating: 3, 
             status: "Online",
             friends: [],
+            duoSince: {}, // NEW: Initialize the map for established dates
             unreadMessages: 0,
             profileImageUrl: user.photoURL || DEFAULT_AVATAR,
             nickname: user.displayName, 
@@ -406,6 +407,7 @@ function showTab(tab){
       case "friends": friendsTab.classList.remove("hidden"); loadFriends(); break; 
       case "messaging": messagingTab.classList.remove("hidden"); break;
       case "profile": profileTab.classList.remove("hidden"); loadUserProfile(); break; 
+      case "viewProfile": viewProfileTab.classList.remove("hidden"); break; // Handled in viewUserProfile
     }
 }
 
@@ -418,11 +420,11 @@ function renderUserCard(d, data) {
     const skillRating = data.skillRating || 0; 
     const status = data.status || "Offline";
     const statusClass = status.replace(/\s/g, "").toLowerCase(); 
-    const firstGamerCard = (data.gamerCards && data.gamerCards.length > 0) ? data.gamerCards[0] : null; // NEW: Get first card
+    const firstGamerCard = (data.gamerCards && data.gamerCards.length > 0) ? data.gamerCards[0] : null; 
     
     const card = document.createElement("div");
     card.className = "card";
-    card.onclick = () => viewUserProfile(d.id); // View profile passes the UID
+    card.onclick = () => viewUserProfile(d.id); 
     
     // Updated Card Inner HTML to include the Gamer Card Preview
     let cardContentHTML = `<div class="card-content">
@@ -595,6 +597,10 @@ async function sendFriendRequest(toUid){
 
 async function acceptFriend(reqId){
     const reqRef=db.collection("friendRequests").doc(reqId);
+    
+    // NEW: Get the server timestamp once for the transaction
+    const establishedAtTimestamp = firebase.firestore.FieldValue.serverTimestamp(); 
+    
     try {
         await db.runTransaction(async t=>{
             const doc=await t.get(reqRef);
@@ -605,13 +611,22 @@ async function acceptFriend(reqId){
             const senderRef = db.collection("users").doc(senderId);
             const receiverRef = db.collection("users").doc(receiverId);
             
-            // 1. Add Receiver to Sender's friends list
+            // Data to be written to the 'duoSince' map
+            const senderDuoData = {};
+            senderDuoData[receiverId] = establishedAtTimestamp;
+
+            const receiverDuoData = {};
+            receiverDuoData[senderId] = establishedAtTimestamp;
+            
+            // 1. Add Receiver to Sender's friends list & record timestamp
             t.update(senderRef, {
-                friends: firebase.firestore.FieldValue.arrayUnion(receiverId)
+                friends: firebase.firestore.FieldValue.arrayUnion(receiverId),
+                duoSince: senderDuoData // Writes the map { 'friendUID': timestamp }
             });
-            // 2. Add Sender to Receiver's friends list
+            // 2. Add Sender to Receiver's friends list & record timestamp
             t.update(receiverRef, {
-                friends: firebase.firestore.FieldValue.arrayUnion(senderId)
+                friends: firebase.firestore.FieldValue.arrayUnion(senderId),
+                duoSince: receiverDuoData // Writes the map { 'friendUID': timestamp }
             });
             
             // 3. Delete the request document
@@ -658,17 +673,18 @@ async function removeFriend(friendUid) {
         await db.runTransaction(async (t) => {
             // 1. Remove friendUid from the current user's friends array
             t.update(userRef, {
-                friends: firebase.firestore.FieldValue.arrayRemove(friendUid)
+                friends: firebase.firestore.FieldValue.arrayRemove(friendUid),
+                // Optionally remove the duoSince timestamp entry (requires field value delete, which is not supported in client transactions for map fields)
             });
 
             // 2. Remove currentUser.uid from the friend's friends array
             t.update(friendRef, {
-                friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+                // Optionally remove the duoSince timestamp entry
             });
             
             // 3. Delete the chat document 
-            // Note: This does NOT delete the subcollection messages. This is a client limitation
-            // and usually requires a Cloud Function (not implemented here) for full cleanup.
+            // Note: This does NOT delete the subcollection messages. This is a client limitation.
             t.delete(chatRef);    
         });
         alert(`Successfully removed Duo.`);
@@ -824,8 +840,7 @@ function openChat(friendUid, friendDisplay) {
     document.getElementById('messageInputArea').classList.remove("hidden");
     messageDisplay.innerHTML = 'Establishing secure connection...'; 
 
-    const chatRef = db.collection("chats").doc(chatId);
-    const messagesRef = chatRef.collection("messages");
+    const messagesRef = db.collection("chats").doc(chatId).collection("messages");
 
     unsubscribeMessages = messagesRef.orderBy("timestamp", "asc").onSnapshot(snapshot => {
         
@@ -885,8 +900,7 @@ async function sendMessage() {
     const chatId = getChatId(currentUser.uid, currentChatUid);
     const receiverId = currentChatUid;
 
-    const chatRef = db.collection("chats").doc(chatId);
-    const messagesRef = chatRef.collection("messages");
+    const messagesRef = db.collection("chats").doc(chatId).collection("messages");
 
     const message = {
         senderId: currentUser.uid,
@@ -972,10 +986,23 @@ async function viewUserProfile(targetUid) {
         const data = userDoc.data();
         const isFriend = currentProfileData.friends && currentProfileData.friends.includes(targetUid);
         
+        // NEW: Date processing for established date
+        let establishedDate = null;
+        if (isFriend && currentProfileData.duoSince && currentProfileData.duoSince[targetUid]) {
+             const timestamp = currentProfileData.duoSince[targetUid];
+             if (timestamp && timestamp.toDate) { 
+                establishedDate = timestamp.toDate().toLocaleDateString();
+             }
+        }
+
         // Determine the current relationship status for the button
         let actionButtonHTML = '';
+        
         if (isFriend) {
-            actionButtonHTML = `<button class="neon-btn remove" onclick="removeFriend('${targetUid}')">Remove Duo</button>
+            const dateText = establishedDate ? `<p style="color:#00ff00; font-size:0.9em; margin: 0 0 10px 0;">Duo Since: ${establishedDate}</p>` : '';
+            
+            actionButtonHTML = `${dateText}
+                                <button class="neon-btn remove" onclick="removeFriend('${targetUid}')">Remove Duo</button>
                                 <button class="neon-btn" style="border-color:magenta; box-shadow:0 0 10px magenta;" onclick="showChatFromProfile('${targetUid}')">Message Duo</button>`;
         } else if (pendingRequests[targetUid]) {
             actionButtonHTML = `<p style="color:yellow;">Pending Request from them. Go to 'Requests' tab to accept.</p>`;
