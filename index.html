@@ -69,51 +69,14 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 #chatList { padding:10px; border-right:1px solid #333; overflow-y:auto; }
 #chatWindow { display:flex; flex-direction:column; padding:10px; }
 
-/* --- CHAT BUBBLE STYLES --- */
-#messageDisplay {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding: 15px;
-    background: #0b0b0b;
-    border-radius: 6px;
-    margin-bottom: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-.message-wrapper {
-    display: flex;
-    width: 100%;
-}
-.message-mine {
-    justify-content: flex-end;
-}
-.message-other {
-    justify-content: flex-start;
-}
-.message-bubble {
-    display: inline-block;
-    padding: 10px 15px;
-    border-radius: 20px;
-    max-width: 65%;
-    font-family: Arial, sans-serif;
-    word-wrap: break-word;
-    font-size: 1.0em;
-    line-height: 1.4;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-.message-mine .message-bubble {
-    background: magenta;
-    color: white;
-    border-bottom-right-radius: 4px;
-    box-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
-}
-.message-other .message-bubble {
-    background: cyan;
-    color: #0b0b0b;
-    border-bottom-left-radius: 4px;
-    box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
-}
+/* --- CHAT BUBBLE STYLES (OMITTED FOR BREVITY) --- */
+#messageDisplay { flex-grow: 1; overflow-y: auto; padding: 15px; background: #0b0b0b; border-radius: 6px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 10px; }
+.message-wrapper { display: flex; width: 100%; }
+.message-mine { justify-content: flex-end; }
+.message-other { justify-content: flex-start; }
+.message-bubble { display: inline-block; padding: 10px 15px; border-radius: 20px; max-width: 65%; font-family: Arial, sans-serif; word-wrap: break-word; font-size: 1.0em; line-height: 1.4; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2); }
+.message-mine .message-bubble { background: magenta; color: white; border-bottom-right-radius: 4px; box-shadow: 0 0 5px rgba(255, 0, 255, 0.5); }
+.message-other .message-bubble { background: cyan; color: #0b0b0b; border-bottom-left-radius: 4px; box-shadow: 0 0 5px rgba(0, 255, 255, 0.5); }
 /* --- END CHAT BUBBLE STYLES --- */
 
 .chat-item-btn { display:block; width:100%; text-align:left; margin-bottom:8px; }
@@ -126,7 +89,85 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 #usernameDisplay { font-size: 1.5em; font-weight: bold; color: yellow; text-shadow: 0 0 5px orange; margin-bottom: 15px; }
 #usernameEditor { display: flex; gap: 10px; align-items: center; }
 
-@media (max-width: 600px) { .header h1 { font-size: 1.5em; } .icon-container { font-size: 1.5em; } .dashboard div { display: flex; flex-wrap: wrap; justify-content: center; } .card { max-width: 100%; } #messagingTab { grid-template-columns: 1fr; height: auto; min-height: 400px; } #chatList { border-right: none; border-bottom: 1px solid #333; max-height: 200px; } #profileTab > div > div:nth-child(1) { flex-direction: column; align-items: flex-start; } #profileTab > div > div:nth-child(1) > div { margin-top: 15px; } #profileNickname { width: 100% !important; max-width: 100%; } #profileSkillRating, #profileStatus { max-width: 100%; } #profileBio { width: 100%; } .flex { flex-direction: column; } #searchControls { flex-wrap: wrap; } #searchInput { flex-basis: 100%; } }
+/* --- NEW GAME CARD STYLES --- */
+.game-slot-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 15px;
+}
+.game-slot {
+    width: 220px;
+    border: 2px solid magenta;
+    border-radius: 8px;
+    padding: 10px;
+    background: #181818;
+    box-shadow: 0 0 8px magenta;
+    position: relative;
+}
+.game-slot h4 {
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: cyan;
+    font-size: 1em;
+}
+.game-slot select, .game-slot input {
+    width: 100%;
+    padding: 5px;
+    margin-bottom: 5px;
+    border: 1px solid cyan;
+    background: #0d0d0d;
+    color: white;
+    border-radius: 4px;
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+.game-slot .remove-game-btn {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: red;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    line-height: 1;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 5px red;
+    z-index: 10; /* Ensure button is on top */
+}
+.game-slot .remove-game-btn:hover {
+    background: darkred;
+}
+
+/* --- USER CARD GAME DISPLAY --- */
+.card-games {
+    width: 100%;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed #333;
+    text-align: center;
+}
+.card-games p {
+    margin: 3px 0;
+    font-size: 0.85em;
+    color: lime;
+    line-height: 1.2;
+}
+.game-badge {
+    display: inline-block;
+    background: #008888;
+    color: #ccffff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin: 2px 5px;
+    font-weight: bold;
+    font-size: 0.8em;
+}
+
+
+@media (max-width: 600px) { .header h1 { font-size: 1.5em; } .icon-container { font-size: 1.5em; } .dashboard div { display: flex; flex-wrap: wrap; justify-content: center; } .card { max-width: 100%; } #messagingTab { grid-template-columns: 1fr; height: auto; min-height: 400px; } #chatList { border-right: none; border-bottom: 1px solid #333; max-height: 200px; } #profileTab > div > div:nth-child(1) { flex-direction: column; align-items: flex-start; } #profileTab > div > div:nth-child(1) > div { margin-top: 15px; } #profileNickname { width: 100% !important; max-width: 100%; } #profileSkillRating, #profileStatus { max-width: 100%; } #profileBio { width: 100%; } .flex { flex-direction: column; } #searchControls { flex-wrap: wrap; } #searchInput { flex-basis: 100%; } .game-slot { width: 100%; } }
 </style>
 </head>
 <body>
@@ -250,6 +291,12 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
                 </select>
             </div>
         </div>
+        
+        <h3 style="color:cyan; margin-top: 25px;">Featured Games & Needs (Max 4)</h3>
+        <button class="neon-btn" onclick="addGameSlot()" id="addGameBtn">Add Game</button>
+        <div id="gameSlotList" class="game-slot-container">
+            </div>
+
         <h3 style="color:cyan; margin-top: 25px;">Gamer Card Manager (Max 8)</h3>
         <p style="font-size: 0.9em; color: gray;">Click the "+" slot to upload a new card (Max 2MB per image).</p>
         <div id="gamerCardList" class="gamer-card-container" style="border: 1px dashed cyan; padding: 10px; border-radius: 6px; margin-bottom: 15px;"></div>
@@ -277,6 +324,19 @@ const storage = firebase.storage();
 // OWNER UID (Used for a display badge)
 const OWNER_UID = "DecuxiBRxoSwb8wKMmaHQql9HQ2"; 
 const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+// Common Game and Role Lists for Selection
+const GAMES_LIST = [
+    { name: "Apex Legends", roles: ["Tank", "DPS", "Support", "Any"] },
+    { name: "Valorant", roles: ["Duelist", "Controller", "Sentinel", "Initiator", "Any"] },
+    { name: "League of Legends", roles: ["Top", "Jungle", "Mid", "ADC", "Support", "Any"] },
+    { name: "Dota 2", roles: ["Carry", "Mid", "Offlane", "Support 4", "Support 5", "Any"] },
+    { name: "Overwatch 2", roles: ["Tank", "DPS", "Support", "Any"] },
+    { name: "Fortnite", roles: ["Builder", "Zero Build", "Any"] },
+    { name: "Destiny 2", roles: ["PVE", "PVP", "Any"] },
+    { name: "Rocket League", roles: ["Attacker", "Defender", "Midfield", "Any"] },
+    { name: "Other/Casual", roles: ["Chill", "Competitive", "Casual"] }
+];
 
 // Global State
 let currentUser = null, 
@@ -308,29 +368,35 @@ auth.onAuthStateChanged(async user=>{
     const userRef=db.collection("users").doc(user.uid);
     const userDoc = await userRef.get();
 
-    // 1. New User Setup (If profile doesn't exist)
-    if(!userDoc.exists){
+    // 1. New User Setup (If profile doesn't exist or is missing new fields)
+    if(!userDoc.exists || !userDoc.data().featuredGames){
         const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
-        // Generate a 4-digit random number suffix
         const defaultUsername = baseName.substring(0, 16).slice(0, 16 - 4) + Math.floor(1000 + Math.random() * 9000); 
-        
-        await userRef.set({
+       
+        // Ensure new fields exist for new and existing users
+        const profileUpdate = {
             uid: user.uid,
-            username: defaultUsername,    
-            usernameChanged: false, 
-            bio: "New Cyber Warrior seeking a Duo partner!",
-            skillRating: 3, 
-            status: "Online",
-            friends: [],
-            unreadMessages: 0,
+            username: userDoc.exists ? (userDoc.data().username || defaultUsername) : defaultUsername,
+            usernameChanged: userDoc.exists ? (userDoc.data().usernameChanged || false) : false,
+            bio: userDoc.exists ? (userDoc.data().bio || "New Cyber Warrior seeking a Duo partner!") : "New Cyber Warrior seeking a Duo partner!",
+            skillRating: userDoc.exists ? (userDoc.data().skillRating || 3) : 3,
+            status: userDoc.exists ? (userDoc.data().status || "Online") : "Online",
+            friends: userDoc.exists ? (userDoc.data().friends || []) : [],
             profileImageUrl: user.photoURL || DEFAULT_AVATAR,
             nickname: user.displayName, 
-            gamerCards: []
-        });
-        await db.collection("usernames").doc(defaultUsername).set({
-            uid: user.uid,
-            username: defaultUsername
-        });
+            gamerCards: userDoc.exists ? (userDoc.data().gamerCards || []) : [],
+            featuredGames: userDoc.exists ? (userDoc.data().featuredGames || []) : [], // NEW FIELD
+        };
+        
+        await userRef.set(profileUpdate, { merge: true });
+
+        // Only set username doc if new user
+        if (!userDoc.exists) {
+            await db.collection("usernames").doc(defaultUsername).set({
+                uid: user.uid,
+                username: defaultUsername
+            });
+        }
     }
     
     // 2. Load Core Data
@@ -343,8 +409,7 @@ auth.onAuthStateChanged(async user=>{
     await loadAllUsers(); 
     loadFriendRequests();
     await loadFriends();
-    // initMessaging(); // Placeholder for messaging init
-    // monitorUnreadMessages();  // Placeholder for unread messages
+    // initMessaging(); // Placeholder
 });
 
 
@@ -374,15 +439,13 @@ async function loadBlocks() {
     if (!currentUser) return;
     blockedUsers = {};
     
-    // Block document ID format: {blockerId}_{blockedId}
     const blocksSnap = await db.collection("blocks")
         .where("blockerId", "==", currentUser.uid) 
         .get();
         
     blocksSnap.forEach(doc => {
-        // The document ID is 'myuid_blockeduid'
         const blockedUid = doc.id.split('_')[1];
-        blockedUsers[blockedUid] = doc.id; // Store the blocked UID and the block document ID
+        blockedUsers[blockedUid] = doc.id;
     });
 }
 
@@ -421,13 +484,118 @@ async function loadUserProfile() {
         messageElement.textContent = "You have one change remaining to set your unique @handle.";
     }
     
-    // renderGamerCards(); // Placeholder
+    renderGameSlots(); // NEW: Render the game slots
 }
+
+
+// --- GAME SLOTS LOGIC (NEW) ---
+
+function renderGameSlots() {
+    const gameSlotList = document.getElementById('gameSlotList');
+    const featuredGames = currentProfileData.featuredGames || [];
+    gameSlotList.innerHTML = '';
+    
+    // Update button visibility
+    document.getElementById('addGameBtn').disabled = featuredGames.length >= 4;
+
+    featuredGames.forEach((game, index) => {
+        const slot = document.createElement('div');
+        slot.className = 'game-slot';
+        slot.innerHTML = `
+            <button class="remove-game-btn" onclick="removeGameSlot(${index})">X</button>
+            <h4>Game ${index + 1}</h4>
+            <label style="font-size: 0.9em; color: gray;">Game Title:</label>
+            <select data-index="${index}" data-field="game" onchange="updateGameRoleOptions(this.value, ${index})">
+                <option value="">-- Select Game --</option>
+                ${GAMES_LIST.map(g => `<option value="${g.name}" ${g.name === game.game ? 'selected' : ''}>${g.name}</option>`).join('')}
+            </select>
+            <label style="font-size: 0.9em; color: gray;">Role/Need:</label>
+            <select data-index="${index}" data-field="role" class="role-select-${index}">
+                ${generateRoleOptions(game.game, game.role)}
+            </select>
+        `;
+        gameSlotList.appendChild(slot);
+    });
+}
+
+function generateRoleOptions(gameName, selectedRole) {
+    const game = GAMES_LIST.find(g => g.name === gameName);
+    const roles = game ? game.roles : ["Any"];
+    return roles.map(r => `<option value="${r}" ${r === selectedRole ? 'selected' : ''}>${r}</option>`).join('');
+}
+
+function updateGameRoleOptions(gameName, index) {
+    const select = document.querySelector(`.role-select-${index}`);
+    if (select) {
+        select.innerHTML = generateRoleOptions(gameName, "");
+    }
+}
+
+function addGameSlot() {
+    if (currentProfileData.featuredGames.length < 4) {
+        currentProfileData.featuredGames.push({
+            game: GAMES_LIST[0].name, // Default to first game
+            role: GAMES_LIST[0].roles[0] // Default to first role
+        });
+        renderGameSlots();
+    } else {
+        alert("Maximum of 4 featured games allowed.");
+    }
+}
+
+function removeGameSlot(index) {
+    currentProfileData.featuredGames.splice(index, 1);
+    renderGameSlots();
+}
+
+async function saveProfile() {
+    const featuredGames = [];
+    const gameSlots = document.querySelectorAll('#gameSlotList .game-slot');
+    let hasError = false;
+
+    gameSlots.forEach((slot, index) => {
+        const gameSelect = slot.querySelector(`select[data-field="game"]`);
+        const roleSelect = slot.querySelector(`select[data-field="role"]`);
+        
+        if (gameSelect.value && roleSelect.value) {
+            featuredGames.push({
+                game: gameSelect.value,
+                role: roleSelect.value
+            });
+        } else if (gameSelect.value || roleSelect.value) {
+             hasError = true;
+        }
+    });
+    
+    if (hasError) {
+        alert("Please ensure every selected game slot has both a Game Title and a Role/Need selected, or remove the slot.");
+        return;
+    }
+
+    const updateData = {
+        bio: profileBio.value,
+        skillRating: parseInt(profileSkillRating.value),
+        status: profileStatus.value,
+        featuredGames: featuredGames, // Save the collected game data
+    };
+    
+    try {
+        await db.collection("users").doc(currentUser.uid).update(updateData);
+        document.getElementById('saveMessage').textContent = 'Profile saved successfully!';
+        setTimeout(() => document.getElementById('saveMessage').textContent = '', 3000);
+        await loadUserProfile(); // Reload data to reflect changes
+        loadAllUsers();
+    } catch(e) {
+        document.getElementById('saveMessage').textContent = `Error saving profile: ${e.message}`;
+        console.error("Save Profile Error:", e);
+    }
+}
+
+// --- END GAME SLOTS LOGIC ---
 
 
 // --- TAB MANAGEMENT ---
 function showTab(tab){
-    // FIX: Only hide the specific tab content divs, leaving the navigation bar visible.
     document.querySelectorAll('#allUsersTab, #searchTab, #requestsTab, #friendsTab, #messagingTab, #profileTab, #viewProfileTab').forEach(el => el.classList.add('hidden'));
     
     switch(tab){
@@ -442,7 +610,7 @@ function showTab(tab){
 }
 
 
-// ---------- CORE USER CARD RENDERING (RESTORED) ----------
+// ---------- CORE USER CARD RENDERING (UPDATED) ----------
 
 function renderUserCard(d, data) {
     const nickname = data.nickname || "Unknown Player";
@@ -467,6 +635,17 @@ function renderUserCard(d, data) {
     if (firstGamerCard) {
         cardContentHTML += `<img src="${firstGamerCard}" class="card-gamer-preview" alt="Gamer Card Preview">`;
     }
+    
+    // NEW: Display featured games
+    const featuredGames = data.featuredGames || [];
+    if (featuredGames.length > 0) {
+        cardContentHTML += `<div class="card-games">`;
+        featuredGames.forEach(g => {
+            cardContentHTML += `<span class="game-badge">${g.game} (${g.role})</span>`;
+        });
+        cardContentHTML += `</div>`;
+    }
+
 
     card.innerHTML = cardContentHTML;
 
@@ -485,11 +664,10 @@ function renderUserCard(d, data) {
         statusText = document.createElement("p");
         statusText.style.color = 'orange';
         statusText.textContent = "⏳ Request Sent";
-    } else if (!blockedUsers[d.id]) { // Only show request button if not blocked
+    } else if (!blockedUsers[d.id]) {
         actionBtn = document.createElement("button");
         actionBtn.className = "neon-btn";
         actionBtn.textContent = "Send Duo Request";
-        // FIX: Add the sendFriendRequest event listener
         actionBtn.onclick = (e) => { e.stopPropagation(); sendFriendRequest(d.id); };
     }
     
@@ -525,7 +703,7 @@ async function loadAllUsers(){
     }
 
     allUsersCache.forEach(({id, data})=>{
-      if(id === currentUser.uid || blockedUsers[id]) return; // Skip own user and blocked users
+      if(id === currentUser.uid || blockedUsers[id]) return; 
       
       const card = renderUserCard({id}, data); 
       allUsersTab.appendChild(card);
@@ -572,24 +750,20 @@ function filterSearchResults() {
     }
 }
 
-// Placeholder for loadFriends, initMessaging, viewUserProfile
+
 async function loadFriends() {
-    friendsTab.innerHTML = "<h3>Your Duo Partners</h3><p>Loading...</p>";
-    // Fetch friends from currentProfileData.friends array and render cards.
-    // Omitted for brevity, but this is where the friend list logic would go.
     friendsTab.innerHTML = "<h3>Your Duo Partners</h3><p>Duos functionality omitted for this step.</p>";
 }
 function initMessaging() {
-    // Omitted for brevity, this would set up listeners for chats.
+    // Omitted for brevity
 }
 function viewUserProfile(uid) {
-    // Omitted for brevity, this would populate the viewProfileTab.
     showTab('viewProfile');
     document.getElementById('viewProfileContent').innerHTML = `Viewing profile for UID: ${uid}`;
 }
 
 
-// ---------- FRIEND REQUESTS & BLOCKING ACTIONS (FIXED/COMPLETED) ----------
+// ---------- FRIEND REQUESTS & BLOCKING ACTIONS (RESTORED) ----------
 
 async function sendFriendRequest(toUid){
     if(!currentUser || toUid===currentUser.uid) return alert("Cannot send a request to yourself.");
@@ -663,10 +837,6 @@ async function acceptFriendRequest(requestId, senderId) {
             t.update(receiverRef, {
                 friends: firebase.firestore.FieldValue.arrayUnion(senderId),
             });
-            
-            // 4. (Optional) Create a chat document here if needed, 
-            //    or rely on chat listener to find a missing chat document.
-
         });
         
         alert(`Request accepted! You are now Duos with @${friendUsers[senderId]?.username || senderId}.`);
@@ -679,98 +849,11 @@ async function acceptFriendRequest(requestId, senderId) {
     
     // Refresh UI state
     await loadRelationshipStatus(); 
-    await loadUserProfile(); // Important: Refreshes the local friends array
+    await loadUserProfile();
     loadFriendRequests();
     loadFriends();
     loadAllUsers();
-    showTab('friends'); // Move to friends list
-}
-
-async function removeFriend(friendUid) {
-    if (!currentUser || friendUid === currentUser.uid) return;
-
-    if (!confirm(`Are you sure you want to remove this profile from your Duo list? This will also clear the chat history.`)) {
-        return;
-    }
-
-    const userRef = db.collection("users").doc(currentUser.uid);
-    const friendRef = db.collection("users").doc(friendUid);
-    const chatId = getChatId(currentUser.uid, friendUid);
-    
-    try {
-        await db.runTransaction(async (t) => {
-            t.update(userRef, {
-                friends: firebase.firestore.FieldValue.arrayRemove(friendUid),
-            });
-            t.update(friendRef, {
-                friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
-            });
-            // Chat deletion logic (requires Cloud Function in a real app) skipped for client-side
-        });
-        alert(`Successfully removed Duo.`);
-    } catch (e) {
-        alert("Error removing Duo: " + e.message);
-        console.error("Friend removal transaction failed:", e);
-    }
-    
-    await loadRelationshipStatus(); 
-    loadFriends();
-    loadUserProfile();
-    loadAllUsers(); 
-    showTab('friends'); 
-}
-
-async function blockUser(targetUid) {
-    if (!currentUser || targetUid === currentUser.uid) return;
-
-    if (!confirm(`Are you sure you want to block this user? This will stop them from messaging you.`)) {
-        return;
-    }
-
-    const blockId = `${currentUser.uid}_${targetUid}`; 
-    const blockRef = db.collection("blocks").doc(blockId);
-    
-    try {
-        await blockRef.set({
-            blockerId: currentUser.uid,
-            blockedId: targetUid,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert(`User @${friendUsers[targetUid]?.username || targetUid} has been blocked.`);
-    } catch (e) {
-        alert("Error blocking user: " + e.message);
-        console.error("Block User Error:", e);
-    }
-    
-    await loadBlocks(); 
-    await loadAllUsers(); // Reload to hide the blocked user
-    viewUserProfile(targetUid); // Refresh profile view
-}
-
-async function unblockUser(targetUid) {
-    if (!currentUser || targetUid === currentUser.uid) return;
-
-    if (!confirm(`Are you sure you want to UNBLOCK this user? They will be able to message you again.`)) {
-        return;
-    }
-    
-    const blockId = blockedUsers[targetUid];
-    
-    try {
-        if (blockId) {
-            await db.collection("blocks").doc(blockId).delete();
-            alert(`User @${friendUsers[targetUid]?.username || targetUid} has been unblocked.`);
-        } else {
-            alert("Error: Block record not found.");
-        }
-    } catch (e) {
-        alert("Error unblocking user: " + e.message);
-        console.error("Unblock User Error:", e);
-    }
-
-    await loadBlocks(); 
-    await loadAllUsers(); 
-    viewUserProfile(targetUid);
+    showTab('friends');
 }
 
 async function loadFriendRequests(){
@@ -812,7 +895,6 @@ async function loadFriendRequests(){
             declineFriend(r.id);   
         };
         
-        // FIX: Accept button implementation
         const acceptBtn = document.createElement("button");
         acceptBtn.className = "neon-btn accept";
         acceptBtn.textContent = "Accept";
@@ -832,8 +914,81 @@ async function loadFriendRequests(){
     });
 }
 
-// Additional profile/storage functions omitted for this step:
-// saveProfile, previewAvatar, attemptUsernameChange, renderGamerCards
+// Additional profile/storage functions restored for completeness:
+async function removeFriend(friendUid) {
+    if (!currentUser || friendUid === currentUser.uid) return;
+    if (!confirm(`Are you sure you want to remove this profile from your Duo list? This will also clear the chat history.`)) {
+        return;
+    }
+    const userRef = db.collection("users").doc(currentUser.uid);
+    const friendRef = db.collection("users").doc(friendUid);
+    try {
+        await db.runTransaction(async (t) => {
+            t.update(userRef, {
+                friends: firebase.firestore.FieldValue.arrayRemove(friendUid),
+            });
+            t.update(friendRef, {
+                friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid),
+            });
+        });
+        alert(`Successfully removed Duo.`);
+    } catch (e) {
+        alert("Error removing Duo: " + e.message);
+        console.error("Friend removal transaction failed:", e);
+    }
+    await loadRelationshipStatus(); 
+    loadFriends();
+    loadUserProfile();
+    loadAllUsers(); 
+    showTab('friends'); 
+}
+async function blockUser(targetUid) {
+    if (!currentUser || targetUid === currentUser.uid) return;
+    if (!confirm(`Are you sure you want to block this user? This will stop them from messaging you.`)) {
+        return;
+    }
+    const blockId = `${currentUser.uid}_${targetUid}`; 
+    const blockRef = db.collection("blocks").doc(blockId);
+    try {
+        await blockRef.set({
+            blockerId: currentUser.uid,
+            blockedId: targetUid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alert(`User @${friendUsers[targetUid]?.username || targetUid} has been blocked.`);
+    } catch (e) {
+        alert("Error blocking user: " + e.message);
+        console.error("Block User Error:", e);
+    }
+    await loadBlocks(); 
+    await loadAllUsers();
+    viewUserProfile(targetUid);
+}
+async function unblockUser(targetUid) {
+    if (!currentUser || targetUid === currentUser.uid) return;
+    if (!confirm(`Are you sure you want to UNBLOCK this user? They will be able to message you again.`)) {
+        return;
+    }
+    const blockId = blockedUsers[targetUid];
+    try {
+        if (blockId) {
+            await db.collection("blocks").doc(blockId).delete();
+            alert(`User @${friendUsers[targetUid]?.username || targetUid} has been unblocked.`);
+        } else {
+            alert("Error: Block record not found.");
+        }
+    } catch (e) {
+        alert("Error unblocking user: " + e.message);
+        console.error("Unblock User Error:", e);
+    }
+    await loadBlocks(); 
+    await loadAllUsers(); 
+    viewUserProfile(targetUid);
+}
+// Placeholder for other missing functions:
+function previewAvatar(input) { console.log('Preview avatar functionality not implemented.'); }
+function attemptUsernameChange() { console.log('Username change functionality not implemented.'); }
+function renderGamerCards() { console.log('Gamer card functionality not implemented.'); }
 </script>
 
 </body>
