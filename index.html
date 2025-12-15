@@ -179,7 +179,8 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 <script>
 // ---------- FIREBASE INIT ----------
 const firebaseConfig = {
-  apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
+  // NOTE: REPLACE with your actual Firebase configuration
+  apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw", 
   authDomain: "duoup-cfae6.firebaseapp.com",
   projectId: "duoup-cfae6",
   storageBucket: "duoup-cfae6.firebasestorage.app",
@@ -204,234 +205,272 @@ function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).c
 function logout(){ if(unsubscribeMessages) unsubscribeMessages(); if(unsubscribeChatList) unsubscribeChatList(); auth.signOut(); }
 
 auth.onAuthStateChanged(async user=>{
-  if(!user){ loginPage.classList.remove("hidden"); dashboard.classList.add("hidden"); return; }
-  loginPage.classList.add("hidden"); dashboard.classList.remove("hidden"); currentUser=user;
-  
-  const userRef=db.collection("users").doc(user.uid);
-  if(!(await userRef.get()).exists){
-    await userRef.set({
-      uid:user.uid,
-      nickname:user.displayName || "Unknown",
-      bio:"",
-      skillRating:0,
-      status:"Online",
-      friends:[],
-      unreadMessages:0,
-      profileImageUrl:user.photoURL || DEFAULT_AVATAR,
-      gamerCards: []
-    });
-  }
-  
-  welcome.textContent=`Welcome, ${user.displayName || user.email}`;
-  profileAvatar.src=user.photoURL || DEFAULT_AVATAR;
-  profileNickname.value=user.displayName || "Unknown";
-  loadAllUsers();
-  loadFriendRequests();
-  loadFriends();
-  initMessaging();
+    if(!user){ loginPage.classList.remove("hidden"); dashboard.classList.add("hidden"); return; }
+    loginPage.classList.add("hidden"); dashboard.classList.remove("hidden"); currentUser=user;
+    
+    const userRef=db.collection("users").doc(user.uid);
+    if(!(await userRef.get()).exists){
+      await userRef.set({
+        uid:user.uid,
+        nickname:user.displayName || "Unknown",
+        bio:"",
+        skillRating:0,
+        status:"Online",
+        friends:[],
+        unreadMessages:0,
+        profileImageUrl:user.photoURL || DEFAULT_AVATAR,
+        gamerCards: []
+      });
+    }
+    
+    welcome.textContent=`Welcome, ${user.displayName || user.email}`;
+    profileAvatar.src=user.photoURL || DEFAULT_AVATAR;
+    profileNickname.value=user.displayName || "Unknown";
+    loadAllUsers();
+    loadFriendRequests();
+    loadFriends();
+    initMessaging();
 });
 
 // ---------- TABS ----------
 function showTab(tab){
-  allUsersTab.classList.add("hidden"); searchTab.classList.add("hidden"); requestsTab.classList.add("hidden");
-  friendsTab.classList.add("hidden"); messagingTab.classList.add("hidden"); profileTab.classList.add("hidden");
-  viewProfileTab.classList.add("hidden");
-  
-  switch(tab){
-    case "allUsers": allUsersTab.classList.remove("hidden"); break;
-    case "search": searchTab.classList.remove("hidden"); break;
-    case "requests": requestsTab.classList.remove("hidden"); break;
-    case "friends": friendsTab.classList.remove("hidden"); break;
-    case "messaging": messagingTab.classList.remove("hidden"); break;
-    case "profile": profileTab.classList.remove("hidden"); break;
-  }
+    allUsersTab.classList.add("hidden"); searchTab.classList.add("hidden"); requestsTab.classList.add("hidden");
+    friendsTab.classList.add("hidden"); messagingTab.classList.add("hidden"); profileTab.classList.add("hidden");
+    viewProfileTab.classList.add("hidden");
+    
+    switch(tab){
+      case "allUsers": allUsersTab.classList.remove("hidden"); break;
+      case "search": searchTab.classList.remove("hidden"); break;
+      case "requests": requestsTab.classList.remove("hidden"); break;
+      case "friends": friendsTab.classList.remove("hidden"); break;
+      case "messaging": messagingTab.classList.remove("hidden"); break;
+      case "profile": profileTab.classList.remove("hidden"); break;
+    }
 }
 
 // ---------- FRIEND REQUESTS ----------
 async function sendFriendRequest(toUid){
-  if(!currentUser || toUid===currentUser.uid) return;
-  const reqId=[currentUser.uid,toUid].sort().join('_');
-  const reqRef=db.collection("friendRequests").doc(reqId);
-  const reqSnap=await reqRef.get();
-  if(reqSnap.exists) return alert("Request already exists.");
-  await reqRef.set({
-    senderId: currentUser.uid,
-    receiverId: toUid,
-    status: "pending",
-    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-  });
-  alert("Friend request sent!");
-  loadFriendRequests();
+    if(!currentUser || toUid===currentUser.uid) return;
+    const reqId=[currentUser.uid,toUid].sort().join('_');
+    const reqRef=db.collection("friendRequests").doc(reqId);
+    const reqSnap=await reqRef.get();
+    if(reqSnap.exists) return alert("Request already exists.");
+    await reqRef.set({
+      senderId: currentUser.uid,
+      receiverId: toUid,
+      status: "pending",
+      createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    alert("Friend request sent!");
+    loadFriendRequests();
 }
 
 async function acceptFriend(reqId){
-  const reqRef=db.collection("friendRequests").doc(reqId);
-  await db.runTransaction(async t=>{
-    const doc=await t.get(reqRef);
-    if(!doc.exists) throw "Request gone!";
-    const {senderId, receiverId}=doc.data();
-    const senderRef=db.collection("users").doc(senderId);
-    const receiverRef=db.collection("users").doc(receiverId);
-    t.update(senderRef,{friends:firebase.firestore.FieldValue.arrayUnion(receiverId)});
-    t.update(receiverRef,{friends:firebase.firestore.FieldValue.arrayUnion(senderId)});
-    t.delete(reqRef);
-  });
-  loadFriendRequests();
-  loadFriends();
+    const reqRef=db.collection("friendRequests").doc(reqId);
+    await db.runTransaction(async t=>{
+      const doc=await t.get(reqRef);
+      if(!doc.exists) throw "Request gone!";
+      const {senderId, receiverId}=doc.data();
+      const senderRef=db.collection("users").doc(senderId);
+      const receiverRef=db.collection("users").doc(receiverId);
+      t.update(senderRef,{friends:firebase.firestore.FieldValue.arrayUnion(receiverId)});
+      t.update(receiverRef,{friends:firebase.firestore.FieldValue.arrayUnion(senderId)});
+      t.delete(reqRef);
+    });
+    loadFriendRequests();
+    loadFriends();
 }
 
 async function declineFriend(reqId){ await db.collection("friendRequests").doc(reqId).delete(); loadFriendRequests(); }
 
+// --- FIXED: Fetching Nickname for Requests ---
 async function loadFriendRequests(){
-  requestsTab.innerHTML="";
-  const querySnap=await db.collection("friendRequests")
-    .where("receiverId","==",currentUser.uid).get();
-  querySnap.forEach(d=>{
-    const r=d.data();
-    const div=document.createElement("div");
-    div.className="card";
-    div.innerHTML=`<strong>${r.senderId}</strong> wants to duo!`;
-    const acceptBtn=document.createElement("button");
-    acceptBtn.className="neon-btn"; acceptBtn.textContent="Accept";
-    acceptBtn.onclick=(e)=>{ e.stopPropagation(); acceptFriend(d.id); };
-    const declineBtn=document.createElement("button");
-    declineBtn.className="neon-btn remove"; declineBtn.textContent="Decline";
-    declineBtn.onclick=(e)=>{ e.stopPropagation(); declineFriend(d.id); };
-    div.appendChild(acceptBtn); div.appendChild(declineBtn);
-    requestsTab.appendChild(div);
-  });
+    requestsTab.innerHTML="";
+    const querySnap=await db.collection("friendRequests")
+      .where("receiverId","==",currentUser.uid).get();
+      
+    // Fetch sender details concurrently using Promise.all
+    const requestsData = await Promise.all(querySnap.docs.map(async d => {
+        const request = d.data();
+        const senderDoc = await db.collection("users").doc(request.senderId).get();
+        const senderData = senderDoc.data() || { nickname: 'Unknown User' };
+        
+        return {
+            id: d.id,
+            senderNickname: senderData.nickname,
+        };
+    }));
+
+    // Render the list
+    requestsData.forEach(r => {
+        const div = document.createElement("div");
+        div.className = "card";
+        // Use the fetched nickname
+        div.innerHTML = `<strong>${r.senderNickname}</strong> wants to duo!`;
+        
+        const acceptBtn = document.createElement("button");
+        acceptBtn.className = "neon-btn"; 
+        acceptBtn.textContent = "Accept";
+        acceptBtn.onclick = (e) => { 
+            e.stopPropagation(); 
+            acceptFriend(r.id); 
+        };
+        
+        const declineBtn = document.createElement("button");
+        declineBtn.className = "neon-btn remove"; 
+        declineBtn.textContent = "Decline";
+        declineBtn.onclick = (e) => { 
+            e.stopPropagation(); 
+            declineFriend(r.id); 
+        };
+        
+        div.appendChild(acceptBtn); 
+        div.appendChild(declineBtn);
+        requestsTab.appendChild(div);
+    });
 }
+// ---------------------------------------------
 
 // ---------- FRIENDS ----------
 async function loadFriends(){
-  friendsTab.innerHTML="";
-  const userRef=db.collection("users").doc(currentUser.uid);
-  const doc=await userRef.get();
-  const friends=doc.data().friends||[];
-  friends.forEach(async f=>{
-    const fDoc=await db.collection("users").doc(f).get();
-    if(!fDoc.exists) return;
-    const d=fDoc.data();
-    const div=document.createElement("div");
-    div.className="card";
-    div.innerHTML=`<strong>${d.nickname}</strong><span class="status-indicator status-${d.status.replace(" ","").toLowerCase()}">${d.status}</span>`;
-    friendsTab.appendChild(div);
-  });
+    friendsTab.innerHTML="";
+    const userRef=db.collection("users").doc(currentUser.uid);
+    const doc=await userRef.get();
+    const friends=doc.data().friends||[];
+    friends.forEach(async f=>{
+      const fDoc=await db.collection("users").doc(f).get();
+      if(!fDoc.exists) return;
+      const d=fDoc.data();
+      const div=document.createElement("div");
+      div.className="card";
+      div.innerHTML=`<strong>${d.nickname}</strong><span class="status-indicator status-${d.status.replace(" ","").toLowerCase()}">${d.status}</span>`;
+      friendsTab.appendChild(div);
+    });
 }
 
 // ---------- ALL USERS ----------
 async function loadAllUsers(){
-  allUsersTab.innerHTML="";
-  const querySnap=await db.collection("users").get();
-  querySnap.forEach(d=>{
-    if(d.id===currentUser.uid) return;
-    const data=d.data();
-    if(data.isBanned) return;
-    const card=document.createElement("div");
-    card.className="card";
-    card.innerHTML=`<div class="card-content">
-      <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
-      <strong>${data.nickname}</strong> ${d.id===OWNER_UID?'<span class="owner-badge-box">OWNER</span>':''}
-      <span class="skill-rating">${'⭐'.repeat(data.skillRating||0)}</span>
-      <span class="status-indicator status-${data.status.replace(" ","").toLowerCase()}">${data.status}</span>
-      </div>`;
-    const btn=document.createElement("button");
-    btn.className="neon-btn"; btn.textContent="Send Friend Request";
-    btn.onclick=(e)=>{ e.stopPropagation(); sendFriendRequest(d.id); };
-    card.appendChild(btn);
-    allUsersTab.appendChild(card);
-  });
+    allUsersTab.innerHTML="";
+    const querySnap=await db.collection("users").get();
+    querySnap.forEach(d=>{
+      if(d.id===currentUser.uid) return;
+      const data=d.data();
+      if(data.isBanned) return;
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=`<div class="card-content">
+        <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
+        <strong>${data.nickname}</strong> ${d.id===OWNER_UID?'<span class="owner-badge-box">OWNER</span>':''}
+        <span class="skill-rating">${'⭐'.repeat(data.skillRating||0)}</span>
+        <span class="status-indicator status-${data.status.replace(" ","").toLowerCase()}">${data.status}</span>
+        </div>`;
+      const btn=document.createElement("button");
+      btn.className="neon-btn"; btn.textContent="Send Friend Request";
+      btn.onclick=(e)=>{ e.stopPropagation(); sendFriendRequest(d.id); };
+      card.appendChild(btn);
+      allUsersTab.appendChild(card);
+    });
 }
 
 // ---------- MESSAGING ----------
 function initMessaging(){
-  if(unsubscribeChatList) unsubscribeChatList();
-  unsubscribeChatList=db.collection("users").doc(currentUser.uid)
-    .onSnapshot(doc=>{
-      const friends=doc.data().friends||[];
-      const activeDuoList=document.getElementById("activeDuoList");
-      activeDuoList.innerHTML="";
-      friends.forEach(async f=>{
-        const fDoc=await db.collection("users").doc(f).get();
-        if(!fDoc.exists) return;
-        const btn=document.createElement("button");
-        btn.className="neon-btn chat-item-btn";
-        const unread=fDoc.data().unreadMessages||0;
-        btn.innerHTML=`${fDoc.data().nickname} ${unread>0?`<span class="unread-badge">${unread}</span>`:""}`;
-        btn.onclick=()=>openChat(f);
-        activeDuoList.appendChild(btn);
+    if(unsubscribeChatList) unsubscribeChatList();
+    unsubscribeChatList=db.collection("users").doc(currentUser.uid)
+      .onSnapshot(doc=>{
+        const friends=doc.data().friends||[];
+        const activeDuoList=document.getElementById("activeDuoList");
+        activeDuoList.innerHTML="";
+        friends.forEach(async f=>{
+          const fDoc=await db.collection("users").doc(f).get();
+          if(!fDoc.exists) return;
+          const btn=document.createElement("button");
+          btn.className="neon-btn chat-item-btn";
+          const unread=fDoc.data().unreadMessages||0;
+          btn.innerHTML=`${fDoc.data().nickname} ${unread>0?`<span class="unread-badge">${unread}</span>`:""}`;
+          btn.onclick=()=>openChat(f);
+          activeDuoList.appendChild(btn);
+        });
       });
-    });
 }
 
 function openChat(friendUid){
-  currentChatUid=friendUid;
-  messageDisplay.innerHTML="";
-  chatHeader.textContent="Chat with "+friendUid;
-  messageInputArea.classList.remove("hidden");
-  if(unsubscribeMessages) unsubscribeMessages();
-  const chatId=getChatId(currentUser.uid,friendUid);
-  const chatRef=db.collection("chats").doc(chatId);
-  chatRef.get().then(doc=>{
-    if(!doc.exists) chatRef.set({participants:[currentUser.uid,friendUid].sort()});
-  });
-  unsubscribeMessages=chatRef.collection("messages").orderBy("createdAt")
-    .onSnapshot(snap=>{
-      messageDisplay.innerHTML="";
-      snap.forEach(m=>{
-        const msg=m.data();
-        const div=document.createElement("div");
-        div.className="message-wrapper "+(msg.senderId===currentUser.uid?"message-mine":"message-other");
-        const bubble=document.createElement("div");
-        bubble.className="message-bubble";
-        bubble.textContent=msg.content;
-        div.appendChild(bubble); messageDisplay.appendChild(div);
-        messageDisplay.scrollTop=messageDisplay.scrollHeight;
-      });
+    currentChatUid=friendUid;
+    messageDisplay.innerHTML="";
+    
+    // Fetch friend's nickname for the chat header
+    db.collection("users").doc(friendUid).get().then(doc => {
+        const nickname = doc.data().nickname || "Unknown User";
+        chatHeader.textContent="Chat with " + nickname;
+    }).catch(console.error);
+    
+    messageInputArea.classList.remove("hidden");
+    if(unsubscribeMessages) unsubscribeMessages();
+    const chatId=getChatId(currentUser.uid,friendUid);
+    const chatRef=db.collection("chats").doc(chatId);
+    
+    // Create chat doc if it doesn't exist
+    chatRef.get().then(doc=>{
+      if(!doc.exists) chatRef.set({participants:[currentUser.uid,friendUid].sort()});
     });
+    
+    unsubscribeMessages=chatRef.collection("messages").orderBy("createdAt")
+      .onSnapshot(snap=>{
+        messageDisplay.innerHTML="";
+        snap.forEach(m=>{
+          const msg=m.data();
+          const div=document.createElement("div");
+          div.className="message-wrapper "+(msg.senderId===currentUser.uid?"message-mine":"message-other");
+          const bubble=document.createElement("div");
+          bubble.className="message-bubble";
+          bubble.textContent=msg.content;
+          div.appendChild(bubble); messageDisplay.appendChild(div);
+          messageDisplay.scrollTop=messageDisplay.scrollHeight;
+        });
+      });
 }
 
 sendMessageBtn.onclick=sendMessage;
 messageInput.addEventListener("keypress", e=>{ if(e.key==="Enter") sendMessage(); });
 
 async function sendMessage(){
-  if(!currentChatUid) return;
-  const chatId=getChatId(currentUser.uid,currentChatUid);
-  const msgInput=document.getElementById("messageInput");
-  const content=msgInput.value.trim();
-  if(!content) return;
-  msgInput.value="";
-  const chatRef=db.collection("chats").doc(chatId);
-  await chatRef.collection("messages").add({
-    senderId:currentUser.uid,
-    content,
-    createdAt:firebase.firestore.FieldValue.serverTimestamp()
-  });
-  const receiverRef=db.collection("users").doc(currentChatUid);
-  await receiverRef.update({unreadMessages:firebase.firestore.FieldValue.increment(1)});
+    if(!currentChatUid) return;
+    const chatId=getChatId(currentUser.uid,currentChatUid);
+    const msgInput=document.getElementById("messageInput");
+    const content=msgInput.value.trim();
+    if(!content) return;
+    msgInput.value="";
+    const chatRef=db.collection("chats").doc(chatId);
+    await chatRef.collection("messages").add({
+      senderId:currentUser.uid,
+      content,
+      createdAt:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const receiverRef=db.collection("users").doc(currentChatUid);
+    // This is client-side implementation of unread messages count
+    await receiverRef.update({unreadMessages:firebase.firestore.FieldValue.increment(1)});
 }
 
 // ---------- PROFILE ----------
 avatarUpload.onchange=async e=>{
-  if(!currentUser) return;
-  const file=e.target.files[0];
-  if(!file) return;
-  const storageRef=storage.ref().child(`avatars/${currentUser.uid}`);
-  await storageRef.put(file);
-  const url=await storageRef.getDownloadURL();
-  profileAvatar.src=url;
+    if(!currentUser) return;
+    const file=e.target.files[0];
+    if(!file) return;
+    const storageRef=storage.ref().child(`avatars/${currentUser.uid}`);
+    await storageRef.put(file);
+    const url=await storageRef.getDownloadURL();
+    profileAvatar.src=url;
 };
 
 async function saveProfile(){
-  if(!currentUser) return;
-  await db.collection("users").doc(currentUser.uid).update({
-    bio:profileBio.value,
-    skillRating:parseInt(profileSkillRating.value),
-    status:profileStatus.value,
-    profileImageUrl:profileAvatar.src
-  });
-  saveMessage.textContent="Profile saved successfully!";
-  setTimeout(()=>saveMessage.textContent="",3000);
+    if(!currentUser) return;
+    await db.collection("users").doc(currentUser.uid).update({
+      bio:profileBio.value,
+      skillRating:parseInt(profileSkillRating.value),
+      status:profileStatus.value,
+      profileImageUrl:profileAvatar.src
+    });
+    saveMessage.textContent="Profile saved successfully!";
+    setTimeout(()=>saveMessage.textContent="",3000);
 }
 
 // ---------- SEARCH ----------
@@ -440,33 +479,33 @@ statusFilter.addEventListener("change", filterSearchResults);
 skillFilter.addEventListener("change", filterSearchResults);
 
 async function filterSearchResults(){
-  const q=searchInput.value.toLowerCase();
-  const status=statusFilter.value;
-  const minSkill=parseInt(skillFilter.value);
-  const results=await db.collection("users").get();
-  const container=document.getElementById("searchResults");
-  container.innerHTML="";
-  results.forEach(d=>{
-    if(d.id===currentUser.uid) return;
-    const data=d.data();
-    if(data.isBanned) return;
-    if(q && !(data.nickname.toLowerCase().includes(q) || (data.bio||"").toLowerCase().includes(q))) return;
-    if(status && data.status!==status) return;
-    if((data.skillRating||0)<minSkill) return;
-    const card=document.createElement("div");
-    card.className="card";
-    card.innerHTML=`<div class="card-content">
-      <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
-      <strong>${data.nickname}</strong>
-      <span class="skill-rating">${'⭐'.repeat(data.skillRating||0)}</span>
-      <span class="status-indicator status-${data.status.replace(" ","").toLowerCase()}">${data.status}</span>
-      </div>`;
-    const btn=document.createElement("button");
-    btn.className="neon-btn"; btn.textContent="Send Friend Request";
-    btn.onclick=(e)=>{ e.stopPropagation(); sendFriendRequest(d.id); };
-    card.appendChild(btn);
-    container.appendChild(card);
-  });
+    const q=searchInput.value.toLowerCase();
+    const status=statusFilter.value;
+    const minSkill=parseInt(skillFilter.value);
+    const results=await db.collection("users").get();
+    const container=document.getElementById("searchResults");
+    container.innerHTML="";
+    results.forEach(d=>{
+      if(d.id===currentUser.uid) return;
+      const data=d.data();
+      if(data.isBanned) return;
+      if(q && !(data.nickname.toLowerCase().includes(q) || (data.bio||"").toLowerCase().includes(q))) return;
+      if(status && data.status!==status) return;
+      if((data.skillRating||0)<minSkill) return;
+      const card=document.createElement("div");
+      card.className="card";
+      card.innerHTML=`<div class="card-content">
+        <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar">
+        <strong>${data.nickname}</strong>
+        <span class="skill-rating">${'⭐'.repeat(data.skillRating||0)}</span>
+        <span class="status-indicator status-${data.status.replace(" ","").toLowerCase()}">${data.status}</span>
+        </div>`;
+      const btn=document.createElement("button");
+      btn.className="neon-btn"; btn.textContent="Send Friend Request";
+      btn.onclick=(e)=>{ e.stopPropagation(); sendFriendRequest(d.id); };
+      card.appendChild(btn);
+      container.appendChild(card);
+    });
 }
 
 </script>
