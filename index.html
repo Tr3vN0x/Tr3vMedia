@@ -1,7 +1,6 @@
 <?php
 // index.php
 // This PHP file serves as the wrapper for the single-page application (SPA).
-// All social media logic is handled client-side by JavaScript using Firebase.
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -250,6 +249,7 @@ async function loadAllUsers(){
     const container=document.getElementById('allUsersTab');
     container.innerHTML="<h3>Loading Suggested Players...</h3>";
     try{
+        // This query requires 'allow read: if isAuthenticated()' on /users
         const snapshot=await db.collection('users').get();
         allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
         container.innerHTML=""; 
@@ -259,7 +259,7 @@ async function loadAllUsers(){
             const card=renderUserCard(user.id,user);
             if(card) container.appendChild(card);
         });
-    }catch(e){ container.innerHTML+=`<p style="color:red;">Error loading users: ${e.message}</p>`; }
+    }catch(e){ container.innerHTML+=`<p style="width:100%; text-align:center; color:red;">Error loading users: ${e.message}</p>`; }
 }
 
 function renderUserCard(uid,data){
@@ -332,13 +332,14 @@ function renderRequestCard(senderUid, data, requestId){
 
 
 // ---------------------------
-// Friends / Duos / Requests (FINAL FIXED LOGIC)
+// Friends / Duos / Requests (CRITICALLY FIXED LOGIC)
 async function loadFriends() {
     const pendingListEl = document.getElementById('pendingRequestsList');
     const friendListEl = document.getElementById('friendList');
     pendingListEl.innerHTML = 'Loading Requests...';
     friendListEl.innerHTML = 'Loading Duos...';
     
+    // Ensure all user data is loaded for nicknames/avatars
     await loadAllUsers(); 
 
     // 1. PENDING REQUESTS: Query where current user is the receiver
@@ -364,7 +365,6 @@ async function loadFriends() {
         }
     } catch (e) {
         console.error("Error loading Pending Requests:", e);
-        // Custom error message for clear diagnosis
         pendingListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Pending Requests: ${e.message}. Check Security Rules and Index 1 (receiverId + status).</p>`;
     }
     
@@ -393,13 +393,12 @@ async function loadFriends() {
         
     } catch (e) {
         console.error("Error loading Accepted Duos:", e);
-        // Custom error message for clear diagnosis
         friendListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Accepted Duos: ${e.message}. Check Security Rules and Index 2 (participants + status).</p>`;
     }
 }
 
 
-// Handle Request Logic (Accept/Reject)
+// Handle Request Logic (Accept/Reject) - **THIS IS THE FIX FOR CREATING PARTICIPANTS ARRAY**
 async function handleRequest(requestId, newStatus) {
     if (!currentUser) return;
     
@@ -412,14 +411,29 @@ async function handleRequest(requestId, newStatus) {
                  throw new Error("Request no longer pending or does not exist.");
             }
 
+            // The requestId is formed as id1_id2 (sorted UIDs). We extract them.
             const [id1, id2] = requestId.split('_');
-            const participants = [id1, id2].sort();
+            const participants = [id1, id2].sort(); // Create the participants array
 
+            // 1. Update the status
+            // 2. ONLY add the 'participants' array if the status is 'accepted'
             transaction.update(docRef, {
                 status: newStatus,
                 ...(newStatus === 'accepted' && { participants: participants }),
                 handledAt: firebase.firestore.FieldValue.serverTimestamp()
             });
+            
+            // If accepted, also ensure the chat document exists
+            if (newStatus === 'accepted') {
+                const chatRef = db.collection('chats').doc(requestId);
+                const chatDoc = await transaction.get(chatRef);
+                if (!chatDoc.exists) {
+                    transaction.set(chatRef, {
+                        participants: participants,
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    });
+                }
+            }
         });
 
         alert(`Request ${newStatus}!`);
@@ -435,6 +449,7 @@ async function handleRequest(requestId, newStatus) {
 // Send Friend Request
 async function sendFriendRequest(uid){
     if(!currentUser || currentUser.uid === uid) return;
+    // Request ID is always the two UIDs sorted and joined
     const id = getChatId(uid);
 
     try{
@@ -470,6 +485,7 @@ async function loadChatList() {
     duoListEl.innerHTML = 'Loading Duos for chat...';
 
     try {
+        // Query accepted duos for the chat list
         const acceptedSnapshot = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .where('status', '==', 'accepted')
@@ -554,6 +570,7 @@ async function sendMessage() {
             const [id1, id2] = currentChatId.split('_');
 
             if (!chatDoc.exists) {
+                // Should already be created in handleRequest, but this is a failsafe
                 transaction.set(chatRef, {
                     participants: [id1, id2],
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
