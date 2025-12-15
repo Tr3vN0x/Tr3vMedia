@@ -1,5 +1,6 @@
 <?php
 // index.php
+// PHP is used here only as a wrapper for hosting the single-page application.
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -251,11 +252,9 @@ async function loadAllUsers(){
 function renderUserCard(uid,data){
     if(!data) return null;
     const card=document.createElement('div'); card.className='card';
-    // Use an anonymous function to pass arguments correctly to viewProfile
     card.onclick=()=>viewProfile(uid, data);
     const statusClass=(data.status||'Online').replace(/\s/g,'').toLowerCase();
 
-    // Render the button that sends the request
     const friendBtn = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
 
     card.innerHTML=`
@@ -278,7 +277,6 @@ function filterSearchResults() {
 }
 
 function viewProfile(uid, data) {
-    // Populate profile view with data
     document.getElementById('viewProfileContent').innerHTML = `
         <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar" style="width:120px; height:120px; border-color:cyan;">
         <h2 style="margin:10px 0;">${data.nickname} ${data.username ? `(@${data.username})` : ''}</h2>
@@ -317,9 +315,8 @@ async function saveProfile() {
     };
 
     try {
-        // Use update() to only send fields that are allowed to be changed
         await db.collection('users').doc(currentUser.uid).update(updates);
-        currentProfileData = {...currentProfileData, ...updates}; // Update local cache
+        currentProfileData = {...currentProfileData, ...updates};
         messageEl.textContent = 'Profile Saved!';
         setTimeout(() => messageEl.textContent = '', 3000);
     } catch(e) {
@@ -336,29 +333,53 @@ async function loadFriends() {
 }
 
 // ---------------------------
-// Friend Request
+// Friend Request (FIXED with existence check)
 async function sendFriendRequest(uid){
     if(!currentUser || currentUser.uid === uid) return;
-    const id=getChatId(uid); // Use consistent ID for requests (and future chat doc)
+    const id = getChatId(uid);
+
     try{
-        await db.collection('requests').doc(id).set({
-            senderId:currentUser.uid,
-            receiverId:uid,
-            status:'pending',
-            sentAt:firebase.firestore.FieldValue.serverTimestamp()
+        const requestRef = db.collection('requests').doc(id);
+        const requestDoc = await requestRef.get(); // Check for existing request
+
+        if (requestDoc.exists) {
+            const status = requestDoc.data().status;
+            let message = "Request failed.";
+
+            if (status === 'pending') {
+                message = "Your friend request to this player is already PENDING.";
+            } else if (status === 'accepted') {
+                message = "You are already DUOS with this player!";
+            } else {
+                 message = "A previous request exists, status: " + status;
+            }
+            alert(message);
+            return; // Exit the function gracefully
+        }
+
+        // If the document does not exist, proceed with creation (relies on 'create' rule)
+        await requestRef.set({
+            senderId: currentUser.uid,
+            receiverId: uid,
+            status: 'pending',
+            sentAt: firebase.firestore.FieldValue.serverTimestamp()
         });
-        alert("Request sent!");
+        alert("Request sent successfully!");
         loadAllUsers();
-    }catch(e){ console.error(e); alert("Failed to send request. Check your security rules and console."); }
+    }catch(e){
+        console.error("Error sending friend request:", e);
+        // This will catch security rule failures (e.g., trying to send to self)
+        alert("Failed to send request. Check your security rules and console for details.");
+    }
 }
 
 // ---------------------------
-// Messaging Logic (FIXED and implemented)
+// Messaging Logic
 async function loadChatList() {
     const duoListEl = document.getElementById('activeDuoList');
     duoListEl.innerHTML = '';
 
-    // Placeholder: In a real app, you would query the 'chats' collection where 'participants' array contains currentUser.uid
+    // Placeholder: You would query the 'chats' collection here
     const dummyDuos = [
         { uid: 'partner1', nickname: 'CyberAce' },
         { uid: 'partner2', nickname: 'SynthWitch' },
@@ -379,12 +400,8 @@ async function loadChatList() {
 
 function openChat(otherUid, otherNickname) {
     if (chatListener) {
-        chatListener(); // Unsubscribe from the previous chat
+        chatListener();
     }
-
-    // Highlight the active chat
-    document.querySelectorAll('.chat-entry').forEach(e => e.classList.remove('active'));
-    // Note: You'd need to correctly identify and add the 'active' class based on otherUid
 
     currentChatId = getChatId(otherUid);
     document.getElementById('chatHeader').textContent = `Duo Chat: ${otherNickname}`;
@@ -393,16 +410,15 @@ function openChat(otherUid, otherNickname) {
 
     const messagesRef = db.collection('chats').doc(currentChatId).collection('messages').orderBy('timestamp', 'asc');
 
-    // Attach real-time listener
     chatListener = messagesRef.onSnapshot(snapshot => {
         const messageDisplay = document.getElementById('messageDisplay');
         messageDisplay.innerHTML = '';
-        
+
         snapshot.forEach(doc => {
             const data = doc.data();
             const messageEl = document.createElement('div');
             messageEl.className = `message ${data.senderId === currentUser.uid ? 'sent' : 'received'}`;
-            messageEl.innerHTML = `<strong>${data.senderId === currentUser.uid ? 'You' : otherNickname}:</strong> ${data.text}`; // Added sender label
+            messageEl.innerHTML = `<strong>${data.senderId === currentUser.uid ? 'You' : otherNickname}:</strong> ${data.text}`;
             messageDisplay.appendChild(messageEl);
         });
 
@@ -425,24 +441,23 @@ async function sendMessage() {
             const chatDoc = await transaction.get(chatRef);
             const [id1, id2] = currentChatId.split('_');
 
-            // 1. Create chat document if it doesn't exist (relies on 'create' rule for /chats/{chatId})
+            // 1. Create chat document if it doesn't exist
             if (!chatDoc.exists) {
-                // The sort in getChatId ensures id1 and id2 are sorted alphabetically
                 transaction.set(chatRef, {
                     participants: [id1, id2],
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 });
             }
 
-            // 2. Add the message to the subcollection (relies on 'create' rule for /messages/{messageId})
+            // 2. Add the message to the subcollection
             transaction.set(chatRef.collection('messages').doc(), {
                 text: text,
-                senderId: currentUser.uid, // Security rule ensures this matches request.auth.uid
+                senderId: currentUser.uid,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });
         });
 
-        messageInput.value = ''; // Clear input on success
+        messageInput.value = '';
 
     } catch(e) {
         console.error("Message send failed:", e);
@@ -467,7 +482,6 @@ auth.onAuthStateChanged(async user=>{
     const uDoc=await uRef.get();
 
     if(!uDoc.exists){
-        // Initial setup for a new user. Omit 'friends' array to satisfy security rules.
         await uRef.set({
             nickname:user.displayName,
             profileImageUrl:user.photoURL,
