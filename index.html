@@ -62,9 +62,21 @@ textarea { resize: vertical; }
 #chatWindow { flex-grow:1; display:flex; flex-direction:column; border:2px solid magenta; border-radius:8px; background:#1a1a1a; }
 #chatHeader { padding:10px; border-bottom:2px solid magenta; margin:0; background:#330033; }
 #messageDisplay { flex-grow:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:15px; }
-.message { max-width:70%; padding:10px 15px; border-radius:18px; font-size:0.95em; }
-.message.sent { background:#005555; align-self:flex-end; border-bottom-right-radius:5px; }
-.message.received { background:#333333; align-self:flex-start; border-bottom-left-radius:5px; }
+/* Message Bubbles - Styling the chat */
+.message { max-width:70%; padding:10px 15px; border-radius:18px; font-size:0.95em; position:relative; }
+.message span { display:block; font-size:0.7em; opacity:0.6; text-align:right; margin-top:3px; }
+.message.sent { 
+    background:#005555; 
+    align-self:flex-end; 
+    border-bottom-right-radius:5px;
+    box-shadow: 0 0 5px #00ffff;
+}
+.message.received { 
+    background:#333333; 
+    align-self:flex-start; 
+    border-bottom-left-radius:5px;
+    box-shadow: 0 0 5px #ff00ff;
+}
 #messageInputArea { padding:10px; border-top:2px solid magenta; background:#0b0b0b; display:flex; gap:10px; }
 /* Profile view */
 #viewProfileTab { display:none; }
@@ -199,7 +211,7 @@ const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
 let currentUser=null;
 let currentProfileData={};
 let allUsersCache=[]; 
-let requestCache = {}; // Global variable to store request states (New for state logic)
+let requestCache = {}; // Global variable to store request states
 let currentChatId=null;
 let chatListener=null;
 
@@ -257,7 +269,6 @@ async function loadAllUsers(){
         allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
         
         // 2. Pre-fetch ALL related requests (sent, received, accepted)
-        // We query where the currentUser is a participant (sender or receiver)
         const requestsSnap = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .get();
@@ -414,7 +425,6 @@ async function loadFriends() {
     
     // 2. ACCEPTED DUOS: Query where current user is a participant and status is 'accepted'
     try {
-        // This query relies on the Index 2 (participants/Array + status/Ascending) and the final Security Rule fix.
         const acceptedSnapshot = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .where('status', '==', 'accepted')
@@ -438,7 +448,7 @@ async function loadFriends() {
         
     } catch (e) {
         console.error("ERROR loading Accepted Duos:", e);
-        friendListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Accepted Duos: ${e.message}. Check Security Rules and Index 2 (participants + status).</p>`;
+        friendListEl.innerHTML = `<p style="width:100%; text-align:center; color:red;">ERROR loading Accepted Duos: ${e.message}. Check Security Rules and Index (participants + status).</p>`;
     }
 }
 
@@ -470,6 +480,7 @@ async function handleRequest(requestId, newStatus) {
             if (newStatus === 'accepted') {
                 const chatRef = db.collection('chats').doc(requestId);
                 const chatDoc = await transaction.get(chatRef);
+                // Create the chat document if it doesn't exist
                 if (!chatDoc.exists) {
                     transaction.set(chatRef, {
                         participants: participants,
@@ -501,9 +512,8 @@ async function removeDuo(otherUid) {
         // 1. Delete the request document (Duo relationship)
         await db.collection('requests').doc(requestId).delete();
         
-        // 2. Optional: Delete the chat history associated with the duo
-        // await db.collection('chats').doc(requestId).delete(); 
-
+        // Note: We intentionally leave the chat history in the 'chats' collection for simplicity.
+        
         alert("Duo successfully removed.");
         loadFriends(); // Reload the Duos list
         
@@ -539,10 +549,14 @@ async function sendFriendRequest(uid){
             return;
         }
 
+        // Must include both UIDs in the `participants` field for security rules to work
+        const participants = [currentUser.uid, uid].sort();
+        
         await requestRef.set({
             senderId: currentUser.uid,
             receiverId: uid,
             status: 'pending',
+            participants: participants, // Needed for the 'read' rule to work on suggested users
             sentAt: firebase.firestore.FieldValue.serverTimestamp()
         });
         alert("Request sent successfully!");
@@ -561,7 +575,7 @@ async function loadChatList() {
     duoListEl.innerHTML = 'Loading Duos for chat...';
 
     try {
-        // Use the same accepted duos query to find active chat partners
+        // Use the accepted duos query
         const acceptedSnapshot = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .where('status', '==', 'accepted')
@@ -601,6 +615,7 @@ async function loadChatList() {
     }
 }
 
+// Message display logic for bubbles
 function openChat(otherUid, otherNickname) {
     if (chatListener) {
         chatListener();
@@ -620,12 +635,21 @@ function openChat(otherUid, otherNickname) {
         snapshot.forEach(doc => {
             const data = doc.data();
             const messageEl = document.createElement('div');
+            // Applies 'sent' or 'received' class for styling
             messageEl.className = `message ${data.senderId === currentUser.uid ? 'sent' : 'received'}`;
-            const time = data.timestamp ? new Date(data.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/A';
-            messageEl.innerHTML = `${data.text} <span style="font-size:0.7em; opacity:0.6;">(${time})</span>`;
+            
+            // Format time nicely
+            const time = data.timestamp 
+                ? new Date(data.timestamp.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                : 'N/A';
+                
+            // Include the text and the styled time span inside the bubble
+            messageEl.innerHTML = `${data.text} <span>${time}</span>`;
+            
             messageDisplay.appendChild(messageEl);
         });
 
+        // Auto-scroll to the bottom of the chat window
         messageDisplay.scrollTop = messageDisplay.scrollHeight;
     }, error => {
         console.error("Error listening to messages:", error);
@@ -633,6 +657,7 @@ function openChat(otherUid, otherNickname) {
     });
 }
 
+// Transactional message sending
 async function sendMessage() {
     const messageInput = document.getElementById('messageInput');
     const text = messageInput.value.trim();
@@ -644,19 +669,26 @@ async function sendMessage() {
         await db.runTransaction(async (transaction) => {
             const chatDoc = await transaction.get(chatRef);
             const [id1, id2] = currentChatId.split('_');
+            const participants = [id1, id2].sort();
 
+            // 1. Ensure the CHAT document exists (needed if chat is new)
             if (!chatDoc.exists) {
-                // Should already exist if status is 'accepted', but safety check for transaction
                 transaction.set(chatRef, {
-                    participants: [id1, id2],
+                    participants: participants,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 });
             }
 
+            // 2. Add the MESSAGE to the subcollection
             transaction.set(chatRef.collection('messages').doc(), {
                 text: text,
                 senderId: currentUser.uid,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+            });
+
+            // 3. Update last message timestamp on the parent chat document
+            transaction.update(chatRef, {
+                lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
             });
         });
 
@@ -664,7 +696,7 @@ async function sendMessage() {
 
     } catch(e) {
         console.error("Message send failed:", e);
-        alert("Failed to send message. Check your security rules and console.");
+        alert("Failed to send message. Error: " + e.message);
     }
 }
 
