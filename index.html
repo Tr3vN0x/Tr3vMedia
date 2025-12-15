@@ -62,11 +62,17 @@ textarea { resize: vertical; }
 .card-content-box { display:flex; flex-direction:column; align-items:center; width:100%; margin-bottom:15px; padding-bottom:15px; border-bottom:1px dashed #333; }
 .avatar { width:80px; height:80px; border-radius:50%; border:4px solid magenta; object-fit:cover; margin-bottom:15px; }
 .skill-rating { color:gold; font-size:1.4em; margin-bottom:10px; }
-/* Discipline styling */
-.discipline { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; color:#0b0b0b; }
-.discipline-offensive { background-color:red; }
-.discipline-defensive { background-color:lime; }
-.discipline-research { background-color:cyan; }
+
+/* Game Category (formerly Discipline) styling */
+.game-category { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; color:#0b0b0b; }
+.game-category-leagueoflegends { background-color:#0077B6; color:white; }
+.game-category-fortnite { background-color:#5a189a; color:white; }
+.game-category-valorant { background-color:#FF4655; color:white; }
+.game-category-cybersecurity { background-color:lime; color:#0b0b0b; }
+.game-category-other { background-color:gray; color:white; }
+
+/* Game Role styling */
+.game-role { font-size:0.8em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; background-color:cyan; color:#0b0b0b;}
 
 /* Looking For Category styling */
 .lfd-category { font-size:0.8em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; background-color:#ff00ff; color:white; border:1px solid white;}
@@ -75,7 +81,6 @@ textarea { resize: vertical; }
 .status-indicator { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; }
 .status-online { background-color:#00cc00; color:#0b0b0b; box-shadow:0 0 5px #00ff00; }
 .status-ingame { background-color:#ffaa00; color:#0b0b0b; box-shadow:0 0 5px #ffaa00; }
-/* LFD status now uses a unique indicator color */
 .status-lfd { background-color:#ff00ff; color:white; box-shadow:0 0 5px #ff00ff; border:1px solid #ff00ff; }
 
 /* Co-Founder Badge Style */
@@ -163,16 +168,29 @@ textarea { resize: vertical; }
 <option value="In Game">In Game</option>
 <option value="LFD">Looking For Duo (LFD)</option>
 </select>
-<label style="color:cyan; margin-left:15px;">Discipline:</label>
-<select id="disciplineFilter" onchange="filterSearchResults()">
-<option value="">Any Discipline</option>
-<option value="Offensive">Offensive (Red Team)</option>
-<option value="Defensive">Defensive (Blue Team)</option>
-<option value="Research">Research/Exploit Dev</option>
+<label style="color:cyan; margin-left:15px;">Game/Category:</label>
+<select id="gameCategoryFilter" onchange="filterSearchResults()">
+<option value="">Any Game/Category</option>
+<option value="LeagueOfLegends">League of Legends</option>
+<option value="Fortnite">Fortnite</option>
+<option value="Valorant">Valorant</option>
+<option value="CyberSecurity">Cyber Security</option>
+<option value="Other">Other</option>
+</select>
+<label style="color:cyan; margin-left:15px;">Game Role/Mode:</label>
+<select id="gameRoleFilter" onchange="filterSearchResults()">
+<option value="">Any Role/Mode</option>
+<option value="TopTank">Top Tank (LoL)</option>
+<option value="JungleCarry">Jungle Carry (LoL)</option>
+<option value="Duo">Duo (Fortnite/Valorant)</option>
+<option value="Squad">Squad (Fortnite)</option>
+<option value="Support">Support (LoL/Valorant)</option>
+<option value="ExploitDev">Exploit Dev (Cyber)</option>
+<option value="RedTeamOp">Red Team Op (Cyber)</option>
 </select>
 <label style="color:cyan; margin-left:15px;">Looking For:</label>
 <select id="lfdCategoryFilter" onchange="filterSearchResults()">
-<option value="">Any Category</option>
+<option value="">Any LFD Type</option>
 <option value="Duo">Duo (2-person team)</option>
 <option value="Squad">Squad (3+ person team)</option>
 <option value="Team">Full Team (Permanent)</option>
@@ -214,7 +232,7 @@ textarea { resize: vertical; }
 </div>
 
 <div id="profileTab" class="hidden container">
-<h2>Cyber-Profile Editor</h2>
+<h2>Gamer-Profile Editor</h2>
 <div style="padding:20px; border:2px solid magenta; border-radius:10px; background:#1a1a1a;">
 <div style="display:flex; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
     <div style="margin-right:20px; display:flex; flex-direction:column; align-items:center;">
@@ -238,16 +256,30 @@ textarea { resize: vertical; }
     <input id="profileSkillRating" type="number" min="1" max="5">
 </div>
 <div>
-    <label style="color: cyan; display:block; margin-bottom:5px;">Cyber Discipline:</label>
-    <select id="profileDiscipline">
-        <option value="Offensive">Offensive (Red Team)</option>
-        <option value="Defensive">Defensive (Blue Team)</option>
-        <option value="Research">Research/Exploit Dev</option>
-        <option value="None">Prefer not to say</option>
+    <label style="color: cyan; display:block; margin-bottom:5px;">Primary Game/Category:</label>
+    <select id="profileGameCategory">
+        <option value="LeagueOfLegends">League of Legends</option>
+        <option value="Fortnite">Fortnite</option>
+        <option value="Valorant">Valorant</option>
+        <option value="CyberSecurity">Cyber Security</option>
+        <option value="Other">Other</option>
     </select>
 </div>
 </div>
-<div style="display:flex; align-items:center; margin-bottom:20px; gap:20px;">
+<div style="display:flex; gap:30px; margin-bottom:20px; flex-wrap:wrap;">
+    <div>
+        <label style="color: cyan; display:block; margin-bottom:5px;">Game Role/Mode:</label>
+        <select id="profileGameRole">
+            <option value="TopTank">Top Tank (LoL)</option>
+            <option value="JungleCarry">Jungle Carry (LoL)</option>
+            <option value="Duo">Duo (Fortnite/Valorant)</option>
+            <option value="Squad">Squad (Fortnite)</option>
+            <option value="Support">Support (LoL/Valorant)</option>
+            <option value="ExploitDev">Exploit Dev (Cyber)</option>
+            <option value="RedTeamOp">Red Team Op (Cyber)</option>
+            <option value="Generalist">Generalist/Flex</option>
+        </select>
+    </div>
     <div>
         <label style="color: cyan; display:block; margin-bottom:5px;">Current Status:</label>
         <select id="profileStatus" onchange="toggleLfdCategory()">
@@ -257,7 +289,7 @@ textarea { resize: vertical; }
         </select>
     </div>
     <div id="lfdCategoryGroup" class="hidden">
-        <label style="color: cyan; display:block; margin-bottom:5px;">LFD Category:</label>
+        <label style="color: cyan; display:block; margin-bottom:5px;">LFD Goal:</label>
         <select id="profileLfdCategory">
             <option value="Duo">Duo (2-person team)</option>
             <option value="Squad">Squad (3+ person team)</option>
@@ -411,30 +443,29 @@ function renderUserCard(uid, data, requestInfo){
     card.onclick=()=>viewProfile(uid, data);
     const statusClass=(data.status||'Online').replace(/\s/g,'').toLowerCase();
     const badge = getCoFounderBadge(uid);
-    const discipline = data.discipline || 'None';
-    const disciplineClass = `discipline-${discipline.toLowerCase()}`;
-    const lfdCategory = data.lfdCategory || null; // NEW
+    
+    // NEW FIELDS
+    const gameCategory = data.gameCategory || 'Other';
+    const gameCategoryClass = `game-category-${gameCategory.toLowerCase()}`;
+    const gameRole = data.gameRole || 'Generalist';
+    const lfdCategory = data.lfdCategory || null; 
 
     let cardButtons;
     
-    // Logic to determine the correct button based on request status
+    // Logic to determine the correct button based on request status (omitted for brevity)
     if (requestInfo) {
         if (requestInfo.status === 'pending') {
             if (requestInfo.senderId === currentUser.uid) {
-                // Current user is the sender
                 cardButtons = `<button class="neon-btn pending">Pending (Waiting for reply)</button>`; 
             } else {
-                // Current user is the receiver
                 cardButtons = `<button class="neon-btn pending">Request Sent To You</button>`;
             }
         } else if (requestInfo.status === 'accepted') {
             cardButtons = `<button class="neon-btn" style="border-color:lime; color:lime;">Duo</button>`;
         } else {
-            // Should not happen if requestInfo exists, but handles stale data/errors
             cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
         }
     } else {
-        // No request exists, allow sending a new one
         cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
     }
     
@@ -451,7 +482,8 @@ function renderUserCard(uid, data, requestInfo){
             <h3 style="margin:0;">${data.nickname||'Unknown'}</h3>
             ${badge}
         </div>
-        <div class="discipline ${disciplineClass}">${discipline}</div>
+        <div class="game-category ${gameCategoryClass}">${gameCategory.replace(/([A-Z])/g, ' $1').trim()}</div>
+        <div class="game-role">${gameRole.replace(/([A-Z])/g, ' $1').trim()}</div>
         ${lfdCategoryDisplay} 
         <div class="skill-rating">${'⭐'.repeat(data.skillRating||3)}</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
@@ -469,9 +501,12 @@ function renderDuoCard(uid, data){
     card.onclick=()=>viewProfile(uid, data);
     const statusClass=(data.status||'Online').replace(/\s/g,'').toLowerCase();
     const badge = getCoFounderBadge(uid);
-    const discipline = data.discipline || 'None';
-    const disciplineClass = `discipline-${discipline.toLowerCase()}`;
-    const lfdCategory = data.lfdCategory || null; // NEW
+    
+    // NEW FIELDS
+    const gameCategory = data.gameCategory || 'Other';
+    const gameCategoryClass = `game-category-${gameCategory.toLowerCase()}`;
+    const gameRole = data.gameRole || 'Generalist';
+    const lfdCategory = data.lfdCategory || null; 
 
     // Optional LFD Category Display
     let lfdCategoryDisplay = '';
@@ -486,7 +521,8 @@ function renderDuoCard(uid, data){
             <h3 style="margin:0;">${data.nickname||'Unknown'}</h3>
             ${badge}
         </div>
-        <div class="discipline ${disciplineClass}">${discipline}</div>
+        <div class="game-category ${gameCategoryClass}">${gameCategory.replace(/([A-Z])/g, ' $1').trim()}</div>
+        <div class="game-role">${gameRole.replace(/([A-Z])/g, ' $1').trim()}</div>
         ${lfdCategoryDisplay}
         <div style="color:lime; margin:5px 0;">ACCEPTED DUO</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
@@ -506,9 +542,12 @@ function renderRequestCard(senderUid, data, requestId){
     card.className='card request-card';
     const statusClass=(data.status||'Online').replace(/\s/g,'').toLowerCase();
     const badge = getCoFounderBadge(senderUid);
-    const discipline = data.discipline || 'None';
-    const disciplineClass = `discipline-${discipline.toLowerCase()}`;
-    const lfdCategory = data.lfdCategory || null; // NEW
+    
+    // NEW FIELDS
+    const gameCategory = data.gameCategory || 'Other';
+    const gameCategoryClass = `game-category-${gameCategory.toLowerCase()}`;
+    const gameRole = data.gameRole || 'Generalist';
+    const lfdCategory = data.lfdCategory || null; 
 
     const cardButtons = `
         <div style="display:flex; gap:10px;">
@@ -530,7 +569,8 @@ function renderRequestCard(senderUid, data, requestId){
             <h3 style="margin:0;">${data.nickname||'Unknown'}</h3>
             ${badge}
         </div>
-        <div class="discipline ${disciplineClass}">${discipline}</div>
+        <div class="game-category ${gameCategoryClass}">${gameCategory.replace(/([A-Z])/g, ' $1').trim()}</div>
+        <div class="game-role">${gameRole.replace(/([A-Z])/g, ' $1').trim()}</div>
         ${lfdCategoryDisplay}
         <div style="color:yellow; margin:5px 0;">Incoming Request</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
@@ -542,14 +582,16 @@ function renderRequestCard(senderUid, data, requestId){
 
 
 // ---------------------------
-// Friends / Duos / Requests 
+// Friends / Duos / Requests (omitted for brevity, remains unchanged)
+// ... (handleRequest, removeDuo, sendFriendRequest remain the same)
+// ---------------------------
+
 async function loadFriends() {
     const pendingListEl = document.getElementById('pendingRequestsList');
     const friendListEl = document.getElementById('friendList');
     pendingListEl.innerHTML = 'Loading Requests...';
     friendListEl.innerHTML = 'Loading Duos...';
     
-    // Refresh user cache and requests
     await loadAllUsers(); 
 
     try {
@@ -565,7 +607,6 @@ async function loadFriends() {
                 const senderProfile = findUserInCache(request.senderId);
                 
                 if (senderProfile) {
-                    // Chat ID is the request ID
                     const requestId = getChatId(request.senderId); 
                     const card = renderRequestCard(request.senderId, senderProfile, requestId);
                     if (card) pendingListEl.appendChild(card);
@@ -654,7 +695,6 @@ async function removeDuo(otherUid) {
     }
 
     try {
-        // Deleting the request document is enough to break the Duo connection
         await db.collection('requests').doc(requestId).delete();
         
         alert("Duo successfully removed.");
@@ -677,7 +717,7 @@ async function removeDuo(otherUid) {
 
 async function sendFriendRequest(uid){
     if(!currentUser || currentUser.uid === uid) return;
-    const id = getChatId(uid); // Standardized ID
+    const id = getChatId(uid); 
 
     try{
         const requestRef = db.collection('requests').doc(id);
@@ -709,13 +749,15 @@ async function sendFriendRequest(uid){
 
 
 // ---------------------------
-// Messaging Logic
+// Messaging Logic (omitted for brevity, remains unchanged)
+// ... (loadChatList, openChat, sendMessage remain the same)
+// ---------------------------
+
 async function loadChatList() {
     const duoListEl = document.getElementById('activeDuoList');
     duoListEl.innerHTML = 'Loading Duos for chat...';
 
     try {
-        // Look up all accepted requests involving the current user
         const acceptedSnapshot = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .where('status', '==', 'accepted')
@@ -806,21 +848,18 @@ async function sendMessage() {
             const participants = [id1, id2].sort();
 
             if (!chatDoc.exists) {
-                // Ensure chat document exists to satisfy security rules
                 transaction.set(chatRef, {
                     participants: participants,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 });
             }
 
-            // Write the new message
             transaction.set(chatRef.collection('messages').doc(), {
                 text: text,
                 senderId: currentUser.uid,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });
 
-            // Update the chat document with the last activity time
             transaction.update(chatRef, {
                 lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -830,18 +869,19 @@ async function sendMessage() {
 
     } catch(e) {
         console.error("Message send failed:", e);
-        // This is where security rule errors for messaging would appear
         alert("Failed to send message. Error: " + e.message);
     }
 }
 
+
 // ---------------------------
-// Search Filter Logic (now includes Discipline and LFD Category)
+// Search Filter Logic (now includes Game Category and Game Role)
 function filterSearchResults() { 
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
-    const disciplineFilter = document.getElementById('disciplineFilter').value;
-    const lfdCategoryFilter = document.getElementById('lfdCategoryFilter').value; // NEW
+    const gameCategoryFilter = document.getElementById('gameCategoryFilter').value; // RENAMED
+    const gameRoleFilter = document.getElementById('gameRoleFilter').value; // NEW
+    const lfdCategoryFilter = document.getElementById('lfdCategoryFilter').value; 
 
     const searchResultsEl = document.getElementById('searchResults');
     searchResultsEl.innerHTML = '';
@@ -852,21 +892,20 @@ function filterSearchResults() {
         const nicknameMatch = (user.nickname || '').toLowerCase().includes(searchInput);
         const bioMatch = (user.bio || '').toLowerCase().includes(searchInput);
         const statusMatch = statusFilter ? (user.status === statusFilter) : true;
-        const disciplineMatch = disciplineFilter ? (user.discipline === disciplineFilter) : true;
+        const gameCategoryMatch = gameCategoryFilter ? (user.gameCategory === gameCategoryFilter) : true; // NEW
+        const gameRoleMatch = gameRoleFilter ? (user.gameRole === gameRoleFilter) : true; // NEW
         
-        // NEW: LFD Category match logic
+        // LFD Category match logic
         let lfdMatch = true;
         if (lfdCategoryFilter) {
-            // Only consider the LFD category if the user's status is LFD
             if (user.status === 'LFD') {
                 lfdMatch = (user.lfdCategory === lfdCategoryFilter);
             } else {
-                // If filtering by category, only show users with LFD status
                 lfdMatch = false; 
             }
         }
 
-        return (nicknameMatch || bioMatch) && statusMatch && disciplineMatch && lfdMatch;
+        return (nicknameMatch || bioMatch) && statusMatch && gameCategoryMatch && gameRoleMatch && lfdMatch;
     });
 
     if (filteredUsers.length === 0) {
@@ -884,17 +923,19 @@ function viewProfile(uid, data) {
     const requestInfo = requestCache[uid];
     let profileButton = '';
     const badge = getCoFounderBadge(uid);
-    const discipline = data.discipline || 'None';
-    const disciplineClass = `discipline-${discipline.toLowerCase()}`;
-    const lfdCategory = data.lfdCategory || null; // NEW
+    
+    // NEW FIELDS
+    const gameCategory = data.gameCategory || 'Other';
+    const gameCategoryClass = `game-category-${gameCategory.toLowerCase()}`;
+    const gameRole = data.gameRole || 'Generalist';
+    const lfdCategory = data.lfdCategory || null; 
 
-    // Logic for the profile viewing buttons
+    // Logic for the profile viewing buttons (omitted for brevity)
     if (requestInfo && requestInfo.status === 'accepted') {
         profileButton = `<button class="neon-btn" style="margin-top:10px;" onclick="openChat('${uid}', '${data.nickname}')">Start Chat</button>
                          <button class="neon-btn remove" style="margin-top:10px;" onclick="removeDuo('${uid}')">Remove Duo</button>`;
     } else if (requestInfo && requestInfo.status === 'pending') {
         if (requestInfo.receiverId === currentUser.uid) {
-            // Pending and current user is the receiver -> show accept/reject
             const requestId = getChatId(uid);
             profileButton = `
                 <div style="margin-top:20px; display:flex; gap:10px;">
@@ -902,7 +943,6 @@ function viewProfile(uid, data) {
                     <button class="neon-btn remove" onclick="handleRequest('${requestId}', 'rejected')">Reject Request</button>
                 </div>`;
         } else {
-            // Pending and current user is the sender
             profileButton = `<button class="neon-btn pending" style="margin-top:20px;">Request Pending</button>`;
         }
     } else {
@@ -912,7 +952,7 @@ function viewProfile(uid, data) {
     // Conditional LFD Category display for the profile view
     let lfdDisplayHtml = '';
     if (data.status === 'LFD' && lfdCategory) {
-        lfdDisplayHtml = `<div class="profile-stat"><span>Looking For:</span><span class="lfd-category" style="margin:0;">${lfdCategory}</span></div>`;
+        lfdDisplayHtml = `<div class="profile-stat"><span>LFD Goal:</span><span class="lfd-category" style="margin:0;">${lfdCategory}</span></div>`;
     }
 
 
@@ -922,9 +962,11 @@ function viewProfile(uid, data) {
             <h2 style="margin:10px 0;">${data.nickname}</h2>
             ${badge}
         </div>
-        <div class="profile-stat"><span>Discipline:</span><span class="discipline ${disciplineClass}" style="margin:0;">${discipline}</span></div>
+        <div class="profile-stat"><span>Game/Category:</span><span class="game-category ${gameCategoryClass}" style="margin:0;">${gameCategory.replace(/([A-Z])/g, ' $1').trim()}</span></div>
+        <div class="profile-stat"><span>Role/Mode:</span><span class="game-role" style="margin:0;">${gameRole.replace(/([A-Z])/g, ' $1').trim()}</span></div>
         <div class="profile-stat"><span>Status:</span><span class="status-indicator status-${(data.status||'Online').replace(/\s/g,'').toLowerCase()}" style="margin:0;">${data.status||'Online'}</span></div>
-        ${lfdDisplayHtml} <div class="profile-stat"><span>Skill Rating:</span><span>${'⭐'.repeat(data.skillRating||3)}</span></div>
+        ${lfdDisplayHtml} 
+        <div class="profile-stat"><span>Skill Rating:</span><span>${'⭐'.repeat(data.skillRating||3)}</span></div>
         <p style="margin-top:20px; color:magenta; font-weight:bold;">Bio:</p>
         <p style="text-align:center; max-width:400px;">${data.bio||'No bio provided.'}</p>
         ${profileButton}
@@ -971,8 +1013,11 @@ async function loadUserProfile() {
     document.getElementById('profileBio').value = data.bio || '';
     document.getElementById('profileSkillRating').value = data.skillRating || 3;
     document.getElementById('profileStatus').value = data.status || 'Online';
-    document.getElementById('profileDiscipline').value = data.discipline || 'Offensive';
-    document.getElementById('profileLfdCategory').value = data.lfdCategory || 'Duo'; // NEW: Load LFD Category
+    // NEW/RENAMED
+    document.getElementById('profileGameCategory').value = data.gameCategory || 'LeagueOfLegends';
+    document.getElementById('profileGameRole').value = data.gameRole || 'Generalist';
+    document.getElementById('profileLfdCategory').value = data.lfdCategory || 'Duo'; 
+    
     document.getElementById('profileAvatar').src = data.profileImageUrl || currentUser.photoURL || DEFAULT_AVATAR;
 
     document.getElementById('avatarFile').value = ''; 
@@ -1005,10 +1050,12 @@ async function saveProfile() {
         bio: document.getElementById('profileBio').value,
         skillRating: parseInt(document.getElementById('profileSkillRating').value),
         status: status,
-        discipline: document.getElementById('profileDiscipline').value,
+        // NEW/RENAMED FIELDS
+        gameCategory: document.getElementById('profileGameCategory').value,
+        gameRole: document.getElementById('profileGameRole').value,
     };
     
-    // NEW: Only save lfdCategory if status is LFD
+    // Only save lfdCategory if status is LFD
     updates.lfdCategory = status === 'LFD' ? document.getElementById('profileLfdCategory').value : null;
 
 
@@ -1091,8 +1138,9 @@ auth.onAuthStateChanged(async user=>{
             bio:'New Cyber Warrior!',
             skillRating:3,
             status:'Online',
-            discipline:'Offensive', 
-            lfdCategory: null, // Initialize LFD Category
+            gameCategory:'LeagueOfLegends', // Initial default
+            gameRole:'Generalist', // Initial default
+            lfdCategory: null, 
             nicknameChangeCount: 0 
         });
     }
