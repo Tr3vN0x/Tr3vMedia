@@ -294,13 +294,15 @@ let blockedUsers = {};
 
 
 // ------------------------------------------------
-// 3. CORE HELPER FUNCTIONS (DEFINED FIRST to prevent ReferenceError)
+// 3. CORE HELPER FUNCTIONS (DEFINED FIRST for execution safety)
 // ------------------------------------------------
 
-// --- TAB MANAGEMENT ---
+// --- TAB MANAGEMENT (Fixes initial showTab ReferenceError) ---
 function showTab(tab){
+    // Hide ALL tab containers first
     document.querySelectorAll('#allUsersTab, #searchTab, #friendsTab, #messagingTab, #profileTab, #viewProfileTab').forEach(el => el.classList.add('hidden'));
     
+    // Then show the specific one and trigger necessary loading functions
     switch(tab){
       case "allUsers": document.getElementById('allUsersTab').classList.remove("hidden"); loadAllUsers(); break; 
       case "search": document.getElementById('searchTab').classList.remove("hidden"); filterSearchResults(); break; 
@@ -311,7 +313,7 @@ function showTab(tab){
     }
 }
 
-// --- PROFILE LOADING ---
+// --- PROFILE LOADING (Fixes loadUserProfile ReferenceError) ---
 async function loadUserProfile() {
     if (!currentUser) return;
     const userDoc = await db.collection("users").doc(currentUser.uid).get();
@@ -319,6 +321,7 @@ async function loadUserProfile() {
 
     const currentDisplayUsername = currentProfileData.username || 'Loading...';
 
+    // Update Profile Tab UI
     document.getElementById("profileAvatar").src = currentProfileData.profileImageUrl || DEFAULT_AVATAR;
     document.getElementById("profileNickname").value = currentProfileData.nickname || currentUser.displayName || "Unknown User";
     document.getElementById("profileBio").value = currentProfileData.bio || "";
@@ -344,8 +347,7 @@ async function loadUserProfile() {
         messageElement.textContent = "You have one change remaining to set your unique @handle.";
     }
     
-    // Call helper for games
-    renderGameSlots(); 
+    renderGameSlots(); // Render featured games in profile editor
 }
 
 // --- FRIENDSHIP, SEARCH, AND BLOCK LOADING ---
@@ -353,17 +355,23 @@ async function loadBlocks() {
     if (!currentUser) return;
     blockedUsers = {};
     
-    const blocksSnap = await db.collection("blocks")
-        .where("blockerId", "==", currentUser.uid) 
-        .get();
-        
-    blocksSnap.forEach(doc => {
-        const blockedUid = doc.id.split('_')[1];
-        blockedUsers[blockedUid] = doc.id;
-    });
+    try {
+        const blocksSnap = await db.collection("blocks")
+            .where("blockerId", "==", currentUser.uid) 
+            .get();
+            
+        blocksSnap.forEach(doc => {
+            const docId = doc.id;
+            const blockedUid = docId.split('_')[1];
+            blockedUsers[blockedUid] = docId;
+        });
+    } catch (e) {
+        console.warn("Could not load blocks list. Check security rules for /blocks.", e);
+    }
 }
 
 async function loadAllUsers(){
+    const allUsersTab = document.getElementById('allUsersTab');
     allUsersTab.innerHTML = "<h3>Suggested Players</h3>";
     try {
         const snapshot = await db.collection("users").limit(100).get();
@@ -374,6 +382,9 @@ async function loadAllUsers(){
                 allUsersTab.appendChild(renderUserCard({ uid: user.id }, user));
             }
         });
+        if (allUsersTab.children.length <= 1) { // Only the H3 is present
+             allUsersTab.innerHTML += "<p>No other users found or all are blocked.</p>";
+        }
 
     } catch(e) {
         allUsersTab.innerHTML += `<p style="color:red;">Error loading users: ${e.message}</p>`;
@@ -402,8 +413,8 @@ async function loadFriends() {
         friendsTab.appendChild(renderUserCard(doc, friendData));
     });
     
-    // If we're viewing the messaging tab, refresh the list
-    if (document.getElementById('messagingTab').classList.contains('hidden') === false) {
+    // Refresh chat list if messaging tab is active
+    if (!document.getElementById('messagingTab').classList.contains('hidden')) {
         loadChatList();
     }
 }
@@ -415,6 +426,7 @@ function renderUserCard(d, data) {
     card.className = 'card';
     card.onclick = () => viewUserProfile(d.uid);
 
+    // ... (Action Button, Game Badges, Status Class logic unchanged) ...
     let actionButton = '';
     const isFriend = currentProfileData.friends && currentProfileData.friends.includes(d.uid);
     const isSelf = d.uid === currentUser.uid;
@@ -436,6 +448,7 @@ function renderUserCard(d, data) {
 
     const statusClass = (data.status || 'Online').replace(/\s/g, '').toLowerCase();
 
+
     card.innerHTML = `
         <div class="card-content-box">
             <img src="${data.profileImageUrl || DEFAULT_AVATAR}" class="avatar">
@@ -450,14 +463,12 @@ function renderUserCard(d, data) {
 
     return card;
 }
-
+function filterSearchResults() {
+    // ... (Placeholder logic) ...
+    document.getElementById('searchResults').innerHTML = "Filtering placeholder...";
+}
 function renderGameSlots() { 
-    // Simplified placeholder for profile editor
-    const list = document.getElementById('gameSlotList');
-    list.innerHTML = '';
-    const games = currentProfileData.featuredGames || [];
-    if (games.length === 0) list.innerHTML = `<p style="color:gray;">No games set.</p>`;
-    // ... (actual rendering of selectors omitted) ...
+    // ... (Placeholder logic) ...
 }
 
 
@@ -470,7 +481,7 @@ async function addFriend(targetUid) {
             friends: firebase.firestore.FieldValue.arrayUnion(targetUid)
         });
         alert(`Successfully added ${targetUid.substring(0, 8)}... as a Duo.`);
-        await loadUserProfile();
+        await loadUserProfile(); // Important: updates the friends list array
         await loadFriends();
         loadAllUsers(); 
     } catch (e) {
@@ -486,7 +497,7 @@ async function removeFriend(friendId) {
             friends: firebase.firestore.FieldValue.arrayRemove(friendId)
         });
         alert(`Successfully removed ${friendId.substring(0, 8)}... from Duos.`);
-        await loadUserProfile();
+        await loadUserProfile(); // Important: updates the friends list array
         await loadFriends();
         loadAllUsers(); 
     } catch (e) {
@@ -526,8 +537,6 @@ function loadChatList() {
         entry.onclick = () => startChat(uid, profile);
         duoList.appendChild(entry);
     });
-
-    // Optional: Add a listener here to update lastMessage and lastTimestamp snippets
 }
 
 async function startChat(targetUid, targetProfile) {
@@ -542,7 +551,6 @@ async function startChat(targetUid, targetProfile) {
     document.getElementById('messageInputArea').classList.remove('hidden');
     document.getElementById('messageDisplay').innerHTML = '';
 
-    // Set up the real-time listener for the messages subcollection
     const chatRef = db.collection("chats").doc(chatId).collection("messages").orderBy("timestamp", "asc");
 
     unsubscribeMessages = chatRef.onSnapshot(snapshot => {
@@ -595,35 +603,7 @@ async function sendMessage() {
 }
 
 
-// --- OTHER PLACEHOLDERS ---
-
-function saveProfile() {
-    // ... (Profile saving logic Omitted) ...
-    alert("Profile Save function placeholder called.");
-}
-function filterSearchResults() {
-    // ... (Search logic Omitted) ...
-}
-function viewUserProfile(uid) {
-    // ... (Profile viewing logic Omitted) ...
-    alert(`Viewing profile of ${uid}`);
-}
-function attemptUsernameChange() {
-    // ... (Username change logic Omitted) ...
-    alert("Username change placeholder called.");
-}
-function previewAvatar(input) {
-    // ... (Avatar preview logic Omitted) ...
-}
-function addGameSlot() {
-     // ... (Game slot logic Omitted) ...
-     alert("Add Game Slot placeholder called.");
-}
-
-// ------------------------------------------------
-// 4. AUTHENTICATION AND MAIN EXECUTION BLOCK (CALLED LAST!)
-// ------------------------------------------------
-
+// --- AUTHENTICATION FUNCTIONS (Called by HTML and init) ---
 function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message)); }
 function logout(){ 
     if(unsubscribeMessages) unsubscribeMessages(); 
@@ -631,6 +611,28 @@ function logout(){
     auth.signOut(); 
 }
 
+
+// --- OTHER PLACEHOLDERS ---
+
+function saveProfile() {
+    alert("Profile Save function placeholder called.");
+}
+function viewUserProfile(uid) {
+    alert(`Viewing profile of ${uid}`);
+}
+function attemptUsernameChange() {
+    alert("Username change placeholder called.");
+}
+function previewAvatar(input) {
+    alert("Avatar preview placeholder called.");
+}
+function addGameSlot() {
+     alert("Add Game Slot placeholder called.");
+}
+
+// ------------------------------------------------
+// 4. MAIN EXECUTION BLOCK (CALLED LAST!)
+// ------------------------------------------------
 
 auth.onAuthStateChanged(async user=>{
     if(!user){ 
@@ -646,7 +648,7 @@ auth.onAuthStateChanged(async user=>{
     const userRef=db.collection("users").doc(user.uid);
     const userDoc = await userRef.get();
 
-    // 1. New User Setup (Ensuring profile exists with all fields)
+    // 1. New User Setup
     if(!userDoc.exists || !userDoc.data().featuredGames){
         const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
         const defaultUsername = baseName.substring(0, 16).slice(0, 16 - 4) + Math.floor(1000 + Math.random() * 9000); 
@@ -658,7 +660,8 @@ auth.onAuthStateChanged(async user=>{
             username: existingData.username || defaultUsername,
             usernameChanged: existingData.usernameChanged || false,
             bio: existingData.bio || "New Cyber Warrior seeking a Duo partner!",
-            skillRating: existingData.skillRating || 3,
+            // IMPORTANT: skillRating must be a Number, not a String
+            skillRating: existingData.skillRating || 3, 
             status: existingData.status || "Online",
             friends: existingData.friends || [], 
             profileImageUrl: user.photoURL || DEFAULT_AVATAR,
@@ -669,6 +672,7 @@ auth.onAuthStateChanged(async user=>{
         
         await userRef.set(profileUpdate, { merge: true });
 
+        // Setup username in the separate collection for uniqueness tracking
         if (!userDoc.exists) {
             await db.collection("usernames").doc(defaultUsername).set({
                 uid: user.uid,
@@ -677,7 +681,7 @@ auth.onAuthStateChanged(async user=>{
         }
     }
     
-    // 2. Load Core Data (Now properly defined!)
+    // 2. Load Core Data
     await loadUserProfile(); 
     await loadBlocks(); 
 
