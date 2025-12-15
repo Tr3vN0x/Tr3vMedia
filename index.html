@@ -488,7 +488,10 @@ async function loadAllUsers(){
         allUsersCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
         allUsersCache.forEach(user => {
-            if (user.id !== currentUser.uid && !blockedUsers[user.id]) {
+            // CRITICAL TEMPORARY CHANGE: Only filter out the current user. 
+            // The block list check (!blockedUsers[user.id]) is intentionally REMOVED 
+            // to ensure ALL accounts are displayed for testing.
+            if (user.id !== currentUser.uid) { 
                 allUsersTab.appendChild(renderUserCard({ uid: user.id }, user));
             }
         });
@@ -511,7 +514,7 @@ function filterSearchResults() {
     searchResultsDiv.innerHTML = ""; 
 
     const filteredUsers = allUsersCache.filter(user => {
-        // 1. Filter out self and blocked users
+        // 1. Filter out self and blocked users (Blocks are still applied in search for now)
         if (user.id === currentUser.uid || blockedUsers[user.id]) {
             return false;
         }
