@@ -164,7 +164,8 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
     <div id="searchResults" class="card-container"></div>
 </div>
 
-<div id="friendsTab" class="flex hidden" style="flex-direction: column;"></div>
+<div id="friendsTab" class="flex hidden" style="flex-direction: column;">
+    </div>
 
 <div id="messagingTab" class="hidden">
     <div id="chatList">
@@ -252,6 +253,7 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 // 1. FIREBASE INIT AND CONSTANTS
 // ------------------------------------------------
 const firebaseConfig = {
+    // !! IMPORTANT: REPLACE WITH YOUR OWN FIREBASE CONFIG !!
     apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
     authDomain: "duoup-cfae6.firebaseapp.com",
     projectId: "duoup-cfae6",
@@ -323,7 +325,6 @@ async function loadUserProfile() {
     document.getElementById("profileAvatar").src = currentProfileData.profileImageUrl || DEFAULT_AVATAR;
     document.getElementById("profileNickname").value = currentProfileData.nickname || currentUser.displayName || "Unknown User";
     document.getElementById("profileBio").value = currentProfileData.bio || "";
-    // Ensure the select dropdown is set using its string value
     document.getElementById("profileSkillRating").value = String(currentProfileData.skillRating || "3");
     document.getElementById("profileStatus").value = currentProfileData.status || "Online";
     document.getElementById("usernameDisplay").textContent = `@${currentDisplayUsername}`;
@@ -354,7 +355,6 @@ async function saveProfile() {
     if (!currentUser) return;
 
     const bio = document.getElementById("profileBio").value.trim();
-    // Skill rating must be saved as a NUMBER, not a string, for correct filtering.
     const skillRating = parseInt(document.getElementById("profileSkillRating").value);
     const status = document.getElementById("profileStatus").value;
     
@@ -363,6 +363,7 @@ async function saveProfile() {
     saveMessageElement.style.color = 'yellow';
 
     try {
+        // This relies on the 'allow update: if request.auth.uid == userId;' rule
         await db.collection("users").doc(currentUser.uid).update({
             bio: bio,
             skillRating: skillRating,
@@ -372,7 +373,6 @@ async function saveProfile() {
         saveMessageElement.textContent = "Profile Saved Successfully! Reloading...";
         saveMessageElement.style.color = '#00ff00';
         
-        // Update local state and refresh the UI
         await loadUserProfile(); 
         await loadAllUsers(); 
         setTimeout(() => {
@@ -395,14 +395,8 @@ async function attemptUsernameChange() {
     const newUsername = input.value.trim().toLowerCase();
     const messageElement = document.getElementById("usernameMessage");
     
-    // 1. Basic Validation
-    if (newUsername.length < 3 || newUsername.length > 20) {
-        messageElement.textContent = "Username must be between 3 and 20 characters.";
-        messageElement.style.color = 'red';
-        return;
-    }
-    if (!/^[a-z0-9]+$/.test(newUsername)) {
-        messageElement.textContent = "Username can only contain lowercase letters (a-z) and numbers (0-9).";
+    if (newUsername.length < 3 || newUsername.length > 20 || !/^[a-z0-9]+$/.test(newUsername)) {
+        messageElement.textContent = "Username must be 3-20 lowercase letters/numbers.";
         messageElement.style.color = 'red';
         return;
     }
@@ -411,32 +405,30 @@ async function attemptUsernameChange() {
     messageElement.style.color = 'yellow';
 
     try {
-        // 2. Check Uniqueness in the /usernames collection
         const usernameDoc = await db.collection("usernames").doc(newUsername).get();
-
         if (usernameDoc.exists) {
             messageElement.textContent = `@${newUsername} is already taken. Try another.`;
             messageElement.style.color = 'red';
             return;
         }
 
-        // 3. Perform the Atomic Write Transaction
+        // Use transaction for atomic username swap
         await db.runTransaction(async (transaction) => {
             const userRef = db.collection("users").doc(currentUser.uid);
             
             // a. Update the main user document
             transaction.update(userRef, {
                 username: newUsername,
-                usernameChanged: true // CRITICAL: This locks the change
+                usernameChanged: true 
             });
 
-            // b. Create the reservation in the /usernames collection
+            // b. Create the new reservation (Rule: allow create: if request.auth != null)
             transaction.set(db.collection("usernames").doc(newUsername), {
                 uid: currentUser.uid,
                 username: newUsername
             });
             
-            // c. Delete the OLD username document 
+            // c. Delete the OLD username document (Rule: allow delete: if request.auth.uid == resource.data.uid)
             const oldUsername = currentProfileData.username;
             if (oldUsername && oldUsername !== newUsername) {
                 const oldUsernameRef = db.collection("usernames").doc(oldUsername);
@@ -446,7 +438,7 @@ async function attemptUsernameChange() {
 
         messageElement.textContent = `Success! Your unique handle is now @${newUsername}.`;
         messageElement.style.color = 'lime';
-        await loadUserProfile(); // Reload UI to show locked status and new name
+        await loadUserProfile(); 
 
     } catch (e) {
         console.error("Username Change Error:", e);
@@ -456,47 +448,40 @@ async function attemptUsernameChange() {
 }
 
 
-// --- FRIENDSHIP, SEARCH, AND BLOCK LOADING ---
+// --- BLOCK LOADING (Placeholder) ---
 async function loadBlocks() {
+    // Placeholder function for block list management
     if (!currentUser) return;
     blockedUsers = {};
-    
-    try {
-        const blocksSnap = await db.collection("blocks")
-            .where("blockerId", "==", currentUser.uid) 
-            .get();
-            
-        blocksSnap.forEach(doc => {
-            const docId = doc.id;
-            const blockedUid = docId.split('_')[1];
-            blockedUsers[blockedUid] = docId;
-        });
-    } catch (e) {
-        // console.warn("Could not load blocks list. Check security rules for /blocks.", e); 
-    }
 }
 
+// --- USER LIST LOADING (CRITICAL FIX FOR 'Suggested Players' ERROR) ---
 async function loadAllUsers(){
     const allUsersTab = document.getElementById('allUsersTab');
     allUsersTab.innerHTML = "<h3>Suggested Players</h3>";
+    if (!currentUser) {
+        allUsersTab.innerHTML += "<p style='color:yellow;'>Please log in to see suggested players.</p>";
+        return;
+    }
     try {
-        // This is the correct way to get all users for the 'Suggested' list
+        // This operation requires 'allow read: if request.auth != null;' on /users
         const snapshot = await db.collection("users").get(); 
         
         allUsersCache = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         
         allUsersCache.forEach(user => {
-            // Only filter out the current user.
+            // Only render users that are NOT the current user
             if (user.id !== currentUser.uid) { 
                 allUsersTab.appendChild(renderUserCard({ uid: user.id }, user));
             }
         });
         if (allUsersTab.children.length <= 1) { 
-             allUsersTab.innerHTML += "<p>No other users found or all are blocked.</p>";
+             allUsersTab.innerHTML += "<p>No other users found in the system.</p>";
         }
 
     } catch(e) {
-        allUsersTab.innerHTML += `<p style="color:red;">Error loading users: ${e.message}</p>`;
+        allUsersTab.innerHTML += `<p style="color:red; font-weight:bold;">Error loading users: ${e.message}</p>
+                                  <p style="color:red;">Check if 'allow read: if request.auth != null;' is set on /users collection.</p>`;
         console.error("Load All Users Error:", e);
     }
 }
@@ -510,34 +495,19 @@ function filterSearchResults() {
     searchResultsDiv.innerHTML = ""; 
 
     const filteredUsers = allUsersCache.filter(user => {
-        // Only filter out self.
-        if (user.id === currentUser.uid) {
-            return false;
-        }
+        if (user.id === currentUser.uid) return false;
 
-        // 2. Text Search Filter (Nickname/Username OR Bio)
         const userNickname = (user.nickname || "").toLowerCase();
         const userUsername = (user.username || "").toLowerCase();
         const userBio = (user.bio || "").toLowerCase();
         
-        const textMatch = userNickname.includes(searchInput) || 
-                          userUsername.includes(searchInput) ||
-                          userBio.includes(searchInput);
-        
-        if (!textMatch) {
-            return false;
-        }
+        const textMatch = userNickname.includes(searchInput) || userUsername.includes(searchInput) || userBio.includes(searchInput);
+        if (!textMatch) return false;
 
-        // 3. Status Filter
-        if (statusFilter && user.status !== statusFilter) {
-            return false;
-        }
+        if (statusFilter && user.status !== statusFilter) return false;
 
-        // 4. Skill Rating Filter (Must be greater than or equal to the filter value)
         const userSkill = user.skillRating || 0; 
-        if (userSkill < skillFilter) {
-            return false;
-        }
+        if (userSkill < skillFilter) return false;
 
         return true;
     });
@@ -553,17 +523,17 @@ function filterSearchResults() {
 }
 
 
-// --- FRIEND/REQUEST LOADING ---
+// --- FRIEND/REQUEST LOADING (DUOS TAB) ---
 async function loadFriends() {
     const friendsTab = document.getElementById('friendsTab');
-    friendsTab.innerHTML = ""; // Clear the tab
+    friendsTab.innerHTML = ""; 
     friendProfiles = {}; 
     const friendUids = Array.isArray(currentProfileData.friends) ? currentProfileData.friends : [];
     
     let incomingRequests = [];
     
     try {
-        // 1. Fetch Incoming Requests
+        // 1. FETCH INCOMING REQUESTS
         const requestsSnapshot = await db.collection("requests")
             .where("receiverId", "==", currentUser.uid)
             .where("status", "==", "pending")
@@ -573,20 +543,21 @@ async function loadFriends() {
             const data = doc.data();
             incomingRequests.push({ 
                 requestId: doc.id, 
-                senderId: data.senderId 
+                senderId: data.senderId,
+                sentAt: data.sentAt
             });
         });
         
     } catch(e) {
         console.error("Error loading incoming requests:", e);
+        friendsTab.innerHTML += `<p style="color:red;">Error fetching requests. Check /requests READ rule: ${e.message}</p>`;
     }
     
-    // --- 2. Display Incoming Requests ---
+    // --- 2. DISPLAY INCOMING REQUESTS ---
     if (incomingRequests.length > 0) {
-        friendsTab.innerHTML += `<h3>Pending Requests (${incomingRequests.length})</h3><div class="card-container"></div>`;
-        const requestContainer = friendsTab.querySelector('.card-container:last-of-type');
+        friendsTab.innerHTML += `<h3>Pending Requests (${incomingRequests.length})</h3><div class="card-container" id="pendingRequestsContainer"></div>`;
+        const requestContainer = friendsTab.querySelector('#pendingRequestsContainer');
         
-        // Fetch the profile data for all senders
         const senderPromises = incomingRequests.map(req => db.collection("users").doc(req.senderId).get());
         const senderDocs = await Promise.all(senderPromises);
 
@@ -598,15 +569,16 @@ async function loadFriends() {
             
             requestContainer.appendChild(renderRequestCard({ uid: senderUid }, senderData, requestId));
         });
+    } else {
+        friendsTab.innerHTML += `<p style="color:gray;">No pending requests at this time.</p>`;
     }
 
-    // --- 3. Display Established Friends (Duos) ---
-    friendsTab.innerHTML += "<h3>Established Duos</h3><div class='card-container'></div>";
-    const duoContainer = friendsTab.querySelector('.card-container:last-of-type');
+    // --- 3. DISPLAY ESTABLISHED DUOS ---
+    friendsTab.innerHTML += "<h3 style='margin-top:20px;'>Established Duos</h3><div class='card-container' id='establishedDuosContainer'></div>";
+    const duoContainer = friendsTab.querySelector('#establishedDuosContainer');
 
-    if (friendUids.length === 0 && incomingRequests.length === 0) {
-        friendsTab.innerHTML += "<p>You have no Duo Partners yet. Find someone in Suggested or Search!</p>";
-        return;
+    if (friendUids.length === 0) {
+        duoContainer.innerHTML = "<p>You have no Duo Partners yet. Find someone in Suggested or Search!</p>";
     }
     
     const friendPromises = friendUids.map(uid => db.collection("users").doc(uid).get());
@@ -631,6 +603,7 @@ function renderRequestCard(d, data, requestId) {
     card.className = 'card';
     card.style.borderColor = 'yellow';
     card.style.boxShadow = '0 0 15px rgba(255, 255, 0, 0.6), inset 0 0 5px rgba(255, 255, 0, 0.4)';
+    card.style.cursor = 'default';
     
     const statusClass = (data.status || 'Online').replace(/\s/g, '').toLowerCase();
     
@@ -646,8 +619,8 @@ function renderRequestCard(d, data, requestId) {
             <p style="margin:5px 0; font-size:0.9em; text-align:center; color:#ccc;">${data.bio || 'No bio provided.'}</p>
         </div>
         <div style="margin-top: 10px;">
-            <button class="neon-btn add" style="border-color:lime; box-shadow:0 0 10px lime;" onclick="event.stopPropagation(); acceptFriendRequest('${d.uid}', '${requestId}')">Accept Duo</button>
-            <button class="neon-btn remove" style="border-color:red; box-shadow:0 0 10px red;" onclick="event.stopPropagation(); declineFriendRequest('${requestId}')">Decline</button>
+            <button class="neon-btn add" style="border-color:lime; box-shadow:0 0 10px lime;" onclick="acceptFriendRequest('${d.uid}', '${requestId}')">Accept Duo</button>
+            <button class="neon-btn remove" style="border-color:red; box-shadow:0 0 10px red;" onclick="declineFriendRequest('${requestId}')">Decline</button>
         </div>
     `;
 
@@ -655,14 +628,12 @@ function renderRequestCard(d, data, requestId) {
 }
 
 
-// --- RENDERING AND CORE LOGIC ---
+// --- RENDERING A STANDARD USER CARD ---
 function renderUserCard(d, data) {
     const card = document.createElement('div');
-    // Store the UID directly on the card for potential future use (like viewing profile)
     card.dataset.uid = d.uid; 
     card.className = 'card';
     
-    // --- 1. DETERMINE STATUS AND BUTTON ACTION ---
     let actionButton = '';
     const isFriend = Array.isArray(currentProfileData.friends) && currentProfileData.friends.includes(d.uid);
     const isSelf = d.uid === currentUser.uid;
@@ -672,22 +643,17 @@ function renderUserCard(d, data) {
     } else if (isFriend) {
         actionButton = `<button class="neon-btn remove" onclick="event.stopPropagation(); removeFriend('${d.uid}')">Remove Duo</button>`;
     } else {
-        // Fix: Ensure the UID is passed as a string literal correctly
         actionButton = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${d.uid}')">Send Request</button>`;
     }
-    // --- END 1. DETERMINE STATUS AND BUTTON ACTION ---
 
     let gameBadges = '';
     (data.featuredGames || []).slice(0, 3).forEach(g => {
-        // Ensure g is an object before accessing properties
         if (typeof g === 'object' && g !== null && g.game) {
             gameBadges += `<span class="game-badge">${g.game} (${g.role || 'Any'})</span>`;
         }
     });
 
     const statusClass = (data.status || 'Online').replace(/\s/g, '').toLowerCase();
-    
-    // Enhanced Display Name Check: Prefer username, then nickname, then email start
     let primaryName = data.nickname || (data.email ? data.email.split('@')[0] : 'Unknown User');
     const displayName = data.username ? `@${data.username}` : primaryName;
 
@@ -707,19 +673,27 @@ function renderUserCard(d, data) {
 }
 
 
-// --- FRIEND REQUEST FUNCTIONS ---
+// --- FRIEND REQUEST FUNCTIONS (RULE-SAFE) ---
 
 async function sendFriendRequest(targetUid) {
     if (!currentUser) return;
-    
-    // DEBUG CHECK (Ensure targetUid is not undefined/empty)
-    if (!targetUid || targetUid.length < 10) {
-        console.error("sendFriendRequest aborted: targetUid is invalid or missing:", targetUid);
-        alert("Cannot send request: Target user ID is missing.");
+
+    if (!targetUid || typeof targetUid !== "string" || targetUid.length < 10) {
+        alert("Invalid target user ID.");
         return;
     }
-    
-    // CRITICAL: Document ID must be canonical (Sender_Receiver)
+
+    if (targetUid === currentUser.uid) {
+        alert("You cannot send a request to yourself.");
+        return;
+    }
+
+    const friends = Array.isArray(currentProfileData.friends) ? currentProfileData.friends : [];
+    if (friends.includes(targetUid)) {
+        alert("You are already Duo partners.");
+        return;
+    }
+
     const senderUid = currentUser.uid;
     const receiverUid = targetUid;
     const requestId = `${senderUid}_${receiverUid}`;
@@ -727,40 +701,40 @@ async function sendFriendRequest(targetUid) {
 
     try {
         const requestRef = db.collection("requests").doc(requestId);
-        
+        const reverseRef = db.collection("requests").doc(reverseRequestId);
+
         // 1. Check for request from this user (A->B)
-        const requestDoc = await requestRef.get();
-        if (requestDoc.exists) {
-            alert("A request has already been sent to this user.");
+        const existing = await requestRef.get();
+        if (existing.exists) {
+            alert("Request already sent.");
             return;
         }
 
-        // 2. Check for reverse request (B->A)
-        const reverseRequestDoc = await db.collection("requests").doc(reverseRequestId).get();
-
-        if (reverseRequestDoc.exists) {
-            // If they requested us first, auto-accept
-            await acceptFriendRequest(targetUid, reverseRequestDoc.id); // Use the existing doc ID
-            alert("Request was found! Automatically accepted and added as Duo.");
+        // 2. Check for reverse request (B->A) -> Auto-accept
+        const reverse = await reverseRef.get();
+        if (reverse.exists) {
+            await acceptFriendRequest(receiverUid, reverse.id);
+            alert("Duo request found — automatically accepted!");
             return;
         }
 
-        // 3. Send the new request using .doc(requestId).set() 
-        // NOTE: This object structure MUST perfectly match the Security Rules
+        // 3. Create request (MUST match security rules exactly)
         await requestRef.set({
-            senderId: senderUid,       // Matches Condition 1 (request.resource.data.senderId == request.auth.uid)
-            receiverId: receiverUid,   // Used to check Condition 2
-            status: 'pending',         // Matches Condition 3
+            senderId: senderUid,
+            receiverId: receiverUid,
+            status: "pending",
             sentAt: firebase.firestore.FieldValue.serverTimestamp()
         });
 
-        alert(`Duo request sent to ${targetUid.substring(0, 8)}...`);
-        loadAllUsers(); 
+        alert("Duo request sent!");
+        // Only refresh the UI sections affected
+        await loadAllUsers();
         filterSearchResults();
 
     } catch (e) {
-        console.error("Send Request Error:", e);
-        alert("CRITICAL FIREBASE ERROR: Failed to send request. Check published Security Rules.");
+        console.error("Send Friend Request FAILED:", e);
+        // This is the error indicating the rule failed or the token is invalid
+        alert("CRITICAL FIREBASE ERROR: Failed to send request. Check published Security Rules AND ensure you are on a secure (HTTPS) host.");
     }
 }
 
@@ -773,19 +747,18 @@ async function acceptFriendRequest(targetUid, requestId) {
         const targetRef = db.collection("users").doc(targetUid);
         const requestRef = db.collection("requests").doc(requestId);
 
-        // 1. Add both UIDs to each other's 'friends' arrays (Atomic Update)
+        // 1. Add both UIDs to each other's 'friends' arrays
         batch.update(userRef, { friends: firebase.firestore.FieldValue.arrayUnion(targetUid) });
         batch.update(targetRef, { friends: firebase.firestore.FieldValue.arrayUnion(currentUser.uid) });
 
-        // 2. Delete the request document
+        // 2. Delete the request document (Rule: allow delete for sender/receiver)
         batch.delete(requestRef);
 
         await batch.commit();
 
         alert(`Successfully added ${targetUid.substring(0, 8)}... as a Duo partner!`);
-        // Refresh UI
         await loadUserProfile(); 
-        await loadFriends();
+        await loadFriends(); // Reloads Duos tab
         loadAllUsers(); 
         filterSearchResults();
 
@@ -795,16 +768,15 @@ async function acceptFriendRequest(targetUid, requestId) {
     }
 }
 
-// --- DECLINE REQUEST FUNCTION ---
 async function declineFriendRequest(requestId) {
     if (!currentUser) return;
     
     try {
+        // Only sender or receiver can delete this document (matching security rules)
         await db.collection("requests").doc(requestId).delete();
         
         alert("Duo request declined.");
-        // Refresh UI
-        await loadFriends(); 
+        await loadFriends(); // Reloads Duos tab
 
     } catch (e) {
         console.error("Decline Request Error:", e);
@@ -818,6 +790,9 @@ async function removeFriend(friendId) {
         await db.collection("users").doc(currentUser.uid).update({
             friends: firebase.firestore.FieldValue.arrayRemove(friendId)
         });
+        
+        await db.collection("users").doc(friendId).update({ friends: firebase.firestore.FieldValue.arrayRemove(currentUser.uid) });
+
         alert(`Successfully removed ${friendId.substring(0, 8)}... from Duos.`);
         await loadUserProfile(); 
         await loadFriends();
@@ -868,9 +843,8 @@ async function ensureUserProfileDefaults(user) {
     const userRef = db.collection("users").doc(user.uid);
     const userDoc = await userRef.get();
     
-    // Default values to ensure the profile card renders correctly
     const defaults = {
-        nickname: user.displayName || user.email.split('@')[0], // Use current Google Display Name
+        nickname: user.displayName || user.email.split('@')[0], 
         bio: "New Cyber Warrior seeking a Duo partner!",
         skillRating: 3,
         status: "Online",
@@ -886,7 +860,6 @@ async function ensureUserProfileDefaults(user) {
     let needsUpdate = false;
 
     for (const key in defaults) {
-        // If the key is missing OR if the type is corrupted, apply the default value
         if (existingData[key] === undefined || existingData[key] === null || 
             (key === 'friends' && !Array.isArray(existingData[key])) ||
             (key === 'gamerCards' && !Array.isArray(existingData[key])) ||
@@ -898,15 +871,14 @@ async function ensureUserProfileDefaults(user) {
         }
     }
     
-    // Special handling for the unique username field (if it's missing)
     if (existingData.username === undefined || existingData.username === null || existingData.username === "") {
         const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
-        const defaultUsername = baseName.substring(0, 16).replace(/[^a-z0-9]/g, '').slice(0, 16 - 4) + Math.floor(1000 + Math.random() * 9000); 
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000); 
+        const defaultUsername = baseName.substring(0, 16).replace(/[^a-z0-9]/g, '').slice(0, 16 - 4) + randomSuffix; 
         
         updateData.username = defaultUsername;
         needsUpdate = true;
         
-        // Also ensure the reservation is created in the /usernames collection
         try {
              await db.collection("usernames").doc(defaultUsername).set({
                 uid: user.uid,
@@ -925,7 +897,7 @@ async function ensureUserProfileDefaults(user) {
 
 
 // ------------------------------------------------
-// 4. MAIN EXECUTION BLOCK (Finalized New User Setup)
+// 4. MAIN EXECUTION BLOCK 
 // ------------------------------------------------
 
 auth.onAuthStateChanged(async user=>{
@@ -944,9 +916,9 @@ auth.onAuthStateChanged(async user=>{
 
     // 1. Initial User Setup or Data Repair
     if(!userDoc.exists){
-        // --- If document does not exist, set the full default profile ---
         const baseName = (user.displayName || user.email.split('@')[0]).replace(/\s/g, '').toLowerCase();
-        const defaultUsername = baseName.substring(0, 16).replace(/[^a-z0-9]/g, '').slice(0, 16 - 4) + Math.floor(1000 + Math.random() * 9000); 
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000); 
+        const defaultUsername = baseName.substring(0, 16).replace(/[^a-z0-9]/g, '').slice(0, 16 - 4) + randomSuffix; 
         
         const profileUpdate = {
             uid: user.uid,
@@ -955,7 +927,7 @@ auth.onAuthStateChanged(async user=>{
             bio: "New Cyber Warrior seeking a Duo partner!", 
             skillRating: 3, 
             status: "Online", 
-            friends: [], // Array for Duo partner UIDs
+            friends: [], 
             profileImageUrl: user.photoURL || DEFAULT_AVATAR, 
             nickname: user.displayName, 
             gamerCards: [], 
@@ -970,7 +942,6 @@ auth.onAuthStateChanged(async user=>{
         });
         
     } else {
-        // --- If document exists, run the repair function to fill any missing/corrupted fields ---
         await ensureUserProfileDefaults(user);
     }
     
