@@ -10,7 +10,6 @@
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 <style>
-/* (All CSS is preserved and correctly formatted) */
 /* --- BASE STYLES --- */
 body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:white; }
 .container { width:90%; max-width:1000px; margin:auto; padding:20px; }
@@ -141,7 +140,7 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 
 <div id="dashboard" class="container hidden">
 <h2 id="welcome"></h2>
-<div style="margin-bottom:20px;">
+<div id="navigationBar" style="margin-bottom:20px;">
 <button class="neon-btn" onclick="showTab('allUsers')">Suggested</button>
 <button class="neon-btn" onclick="showTab('search')">Find Players</button>
 <button class="neon-btn" onclick="showTab('requests')">Requests</button>
@@ -426,7 +425,8 @@ async function loadUserProfile() {
 
 // --- TAB MANAGEMENT ---
 function showTab(tab){
-    document.querySelectorAll('#dashboard > div, #profileTab, #viewProfileTab').forEach(el => el.classList.add('hidden'));
+    // FIX: Only hide the specific tab content divs, leaving the navigation bar visible.
+    document.querySelectorAll('#allUsersTab, #searchTab, #requestsTab, #friendsTab, #messagingTab, #profileTab, #viewProfileTab').forEach(el => el.classList.add('hidden'));
     
     switch(tab){
       case "allUsers": document.getElementById('allUsersTab').classList.remove("hidden"); loadAllUsers(); break; 
