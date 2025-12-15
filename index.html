@@ -135,7 +135,7 @@ textarea { resize: vertical; }
 </style>
 </head>
 <body>
-<div class="header"><div class="icon-container">⚡</div><h1>DUO UP</h1></div>
+<div class="header"><div class="icon-container">⚡</div><h1>DUO UP (Cyber Social Platform)</h1></div>
 
 <div id="loginPage" class="container">
 <p style="text-align:center;">Log in to connect and find your next cyber-duo.</p>
@@ -433,7 +433,7 @@ async function loadAllUsers(){
             const card=renderUserCard(user.id, user, requestCache[user.id]);
             if(card) container.appendChild(card);
         });
-    }catch(e){ container.innerHTML+=`<p style="width:100%; text-align:center; color:red;">Error loading users: ${e.message}</p>`; }
+    }catch(e){ container.innerHTML+=`<p style="width:100%; text-align:center; color:red;">Error loading users: Missing or insufficient permissions. Please check Firestore Rules. Details: ${e.message}</p>`; }
 }
 
 function renderUserCard(uid, data, requestInfo){
@@ -571,7 +571,6 @@ function renderRequestCard(senderUid, data, requestId){
         </div>
         <div class="game-category ${gameCategoryClass}">${gameCategory.replace(/([A-Z])/g, ' $1').trim()}</div>
         <div class="game-role">${gameRole.replace(/([A-Z])/g, ' $1').trim()}</div>
-        ${lfdCategoryDisplay}
         <div style="color:yellow; margin:5px 0;">Incoming Request</div>
         <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
         </div>
@@ -580,11 +579,6 @@ function renderRequestCard(senderUid, data, requestId){
     return card;
 }
 
-
-// ---------------------------
-// Friends / Duos / Requests (omitted for brevity, remains unchanged)
-// ... (handleRequest, removeDuo, sendFriendRequest remain the same)
-// ---------------------------
 
 async function loadFriends() {
     const pendingListEl = document.getElementById('pendingRequestsList');
@@ -749,8 +743,7 @@ async function sendFriendRequest(uid){
 
 
 // ---------------------------
-// Messaging Logic (omitted for brevity, remains unchanged)
-// ... (loadChatList, openChat, sendMessage remain the same)
+// Messaging Logic
 // ---------------------------
 
 async function loadChatList() {
@@ -758,6 +751,7 @@ async function loadChatList() {
     duoListEl.innerHTML = 'Loading Duos for chat...';
 
     try {
+        // Query only requests where the status is 'accepted'
         const acceptedSnapshot = await db.collection('requests')
             .where('participants', 'array-contains', currentUser.uid)
             .where('status', '==', 'accepted')
@@ -777,6 +771,7 @@ async function loadChatList() {
             const chatEntry = document.createElement('div');
             chatEntry.className = 'chat-entry';
             
+            // Fetch the other user's nickname
             duoPromises.push(db.collection('users').doc(otherUid).get().then(userDoc => {
                 const nickname = userDoc.data()?.nickname || 'Unknown Duo';
                 chatEntry.textContent = nickname;
@@ -793,7 +788,7 @@ async function loadChatList() {
 
     } catch(e) {
         console.error("ERROR loading chat list:", e);
-        duoListEl.innerHTML = `<p style="color:red;">Error loading chat list: ${e.message}</p>`;
+        duoListEl.innerHTML = `<p style="color:red;">Error loading chat list: Missing or insufficient permissions. Details: ${e.message}</p>`;
     }
 }
 
@@ -830,7 +825,7 @@ function openChat(otherUid, otherNickname) {
         messageDisplay.scrollTop = messageDisplay.scrollHeight;
     }, error => {
         console.error("Error listening to messages:", error);
-        document.getElementById('messageDisplay').innerHTML = `<p style="color:red;">Error loading messages: ${error.message}</p>`;
+        document.getElementById('messageDisplay').innerHTML = `<p style="color:red;">Error loading messages: Missing or insufficient permissions. Please check Firestore Rules. Details: ${error.message}</p>`;
     });
 }
 
@@ -848,18 +843,21 @@ async function sendMessage() {
             const participants = [id1, id2].sort();
 
             if (!chatDoc.exists) {
+                // This block creates the base chat document if it's missing (needed for security rules)
                 transaction.set(chatRef, {
                     participants: participants,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                 });
             }
 
+            // Write the new message
             transaction.set(chatRef.collection('messages').doc(), {
                 text: text,
                 senderId: currentUser.uid,
                 timestamp: firebase.firestore.FieldValue.serverTimestamp(),
             });
 
+            // Update the chat document
             transaction.update(chatRef, {
                 lastMessageAt: firebase.firestore.FieldValue.serverTimestamp()
             });
@@ -869,18 +867,19 @@ async function sendMessage() {
 
     } catch(e) {
         console.error("Message send failed:", e);
-        alert("Failed to send message. Error: " + e.message);
+        alert("Failed to send message. Error: Missing or insufficient permissions.");
     }
 }
 
 
 // ---------------------------
-// Search Filter Logic (now includes Game Category and Game Role)
+// Search Filter Logic
+// ---------------------------
 function filterSearchResults() { 
     const searchInput = document.getElementById('searchInput').value.toLowerCase();
     const statusFilter = document.getElementById('statusFilter').value;
-    const gameCategoryFilter = document.getElementById('gameCategoryFilter').value; // RENAMED
-    const gameRoleFilter = document.getElementById('gameRoleFilter').value; // NEW
+    const gameCategoryFilter = document.getElementById('gameCategoryFilter').value; 
+    const gameRoleFilter = document.getElementById('gameRoleFilter').value; 
     const lfdCategoryFilter = document.getElementById('lfdCategoryFilter').value; 
 
     const searchResultsEl = document.getElementById('searchResults');
@@ -892,8 +891,8 @@ function filterSearchResults() {
         const nicknameMatch = (user.nickname || '').toLowerCase().includes(searchInput);
         const bioMatch = (user.bio || '').toLowerCase().includes(searchInput);
         const statusMatch = statusFilter ? (user.status === statusFilter) : true;
-        const gameCategoryMatch = gameCategoryFilter ? (user.gameCategory === gameCategoryFilter) : true; // NEW
-        const gameRoleMatch = gameRoleFilter ? (user.gameRole === gameRoleFilter) : true; // NEW
+        const gameCategoryMatch = gameCategoryFilter ? (user.gameCategory === gameCategoryFilter) : true; 
+        const gameRoleMatch = gameRoleFilter ? (user.gameRole === gameRoleFilter) : true; 
         
         // LFD Category match logic
         let lfdMatch = true;
@@ -976,7 +975,7 @@ function viewProfile(uid, data) {
 
 
 // ----------------------------------------------------
-// 🌟 CUSTOM PROFILE PICTURE LOGIC (Upload and Save)
+// 🌟 PROFILE PICTURE & SAVE LOGIC
 // ----------------------------------------------------
 function previewAvatar(event) {
     const file = event.target.files[0];
@@ -1013,7 +1012,7 @@ async function loadUserProfile() {
     document.getElementById('profileBio').value = data.bio || '';
     document.getElementById('profileSkillRating').value = data.skillRating || 3;
     document.getElementById('profileStatus').value = data.status || 'Online';
-    // NEW/RENAMED
+    // Load Game/Role Fields
     document.getElementById('profileGameCategory').value = data.gameCategory || 'LeagueOfLegends';
     document.getElementById('profileGameRole').value = data.gameRole || 'Generalist';
     document.getElementById('profileLfdCategory').value = data.lfdCategory || 'Duo'; 
@@ -1050,7 +1049,7 @@ async function saveProfile() {
         bio: document.getElementById('profileBio').value,
         skillRating: parseInt(document.getElementById('profileSkillRating').value),
         status: status,
-        // NEW/RENAMED FIELDS
+        // Game/Role Fields
         gameCategory: document.getElementById('profileGameCategory').value,
         gameRole: document.getElementById('profileGameRole').value,
     };
@@ -1110,7 +1109,7 @@ async function saveProfile() {
     } catch(e) {
         console.error("Profile update failed:", e);
         // This is where security rule errors for profile updates would appear
-        messageEl.textContent = `Error: ${e.message}`;
+        messageEl.textContent = `Error: Missing or insufficient permissions. Check Firestore Rules. ${e.message}`;
         messageEl.style.color = 'red';
     }
 }
@@ -1153,4 +1152,3 @@ auth.onAuthStateChanged(async user=>{
 
 </body>
 </html>
-
