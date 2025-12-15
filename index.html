@@ -3,93 +3,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DUO UP Profiles & Messaging</title>
+<title>DuoUp Social Platform</title>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+
 <style>
 body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:white; }
 .container { width:90%; max-width:1000px; margin:auto; padding:20px; }
-.hidden { display:none !important; }
-.header { background:#111; border-bottom:3px solid cyan; box-shadow:0 0 20px rgba(0,255,255,0.5); padding:10px 0; display:flex; align-items:center; justify-content:center; }
-.header h1 { font-size:2.5em; color:#fff; text-shadow:0 0 5px cyan,0 0 10px cyan,0 0 15px magenta; margin:0; }
-.icon-container { margin-right:15px; font-size:2.5em; color:cyan; text-shadow:0 0 5px cyan,0 0 10px magenta; }
-.neon-btn { border:2px solid cyan; background:transparent; color:white; padding:8px 14px; margin:5px; border-radius:6px; cursor:pointer; box-shadow:0 0 10px cyan; transition:all 0.2s ease-in-out; text-transform:uppercase; font-family:'Orbitron',sans-serif; white-space: nowrap; }
+.hidden { display:none; }
+.header { background:#111; border-bottom:3px solid cyan; padding:10px 0; display:flex; justify-content:center; align-items:center; }
+.header h1 { font-size:2.5em; color:#fff; text-shadow:0 0 5px cyan; margin:0; }
+.neon-btn { border:2px solid cyan; background:transparent; color:white; padding:8px 14px; margin:5px; border-radius:6px; cursor:pointer; box-shadow:0 0 10px cyan; text-transform:uppercase; font-family:'Orbitron',sans-serif; transition:all 0.2s; }
 .neon-btn:hover { border-color:magenta; box-shadow:0 0 15px magenta; }
-.neon-btn:disabled { border-color: #555; box-shadow: none; color: #555; cursor: not-allowed; }
-.neon-btn.remove { border-color:red; box-shadow:0 0 10px red; }
-.neon-btn.remove:hover { border-color:orange; box-shadow:0 0 15px orange; }
-.neon-btn.add { border-color:lime; box-shadow:0 0 10px lime; }
-.neon-btn.add:hover { border-color:green; box-shadow:0 0 15px green; }
-#messageInput, #profileBio, #profileSkillRating, #profileStatus, #searchInput, #statusFilter, #skillFilter, #profileNickname, #newUsernameInput { flex-grow:1; padding:10px; border:1px solid cyan; background:#181818; color:white; border-radius:6px; font-family:inherit; outline:none; }
-#profileBio { resize: vertical; }
-.flex { display:flex; gap:15px; flex-wrap:wrap; justify-content:center; }
 .card-container { display:flex; flex-wrap:wrap; gap:15px; justify-content:center; }
-.card {
-    width: 100%;
-    max-width: 320px; 
-    padding: 15px;
-    border: 3px solid transparent; 
-    border-radius: 6px;
-    background: #181818; 
-    box-shadow: 0 0 15px rgba(0, 255, 255, 0.4), inset 0 0 5px rgba(0, 255, 255, 0.2);
-    border-image-source: linear-gradient(45deg, cyan, magenta, cyan);
-    border-image-slice: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-bottom: 15px;
-    cursor: pointer;
-    overflow: hidden;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-.card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0 25px magenta, inset 0 0 10px rgba(255, 0, 255, 0.5); 
-}
-.card-content-box { 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    margin-bottom: 10px; 
-    padding-bottom: 10px;
-    border-bottom: 1px dashed #333; 
-}
+.card { width:100%; max-width:320px; background:#181818; border-radius:6px; padding:10px; display:flex; flex-direction:column; align-items:center; box-shadow:0 0 15px rgba(0,255,255,0.4); cursor:pointer; transition:0.2s; }
+.card:hover { transform:translateY(-3px); box-shadow:0 0 25px magenta; }
 .avatar { width:60px; height:60px; border-radius:50%; border:3px solid magenta; object-fit:cover; margin-bottom:10px; }
-.owner-badge-box { display:inline-block; padding:2px 6px; margin-left:8px; font-size:0.8em; font-weight:bold; letter-spacing:1px; border-radius:4px; text-transform:uppercase; background:#3a005c; color:#ffccff; border:1px solid #ff00ff; box-shadow:0 0 5px #ff00ff,0 0 10px #cc33ff,inset 0 0 5px #ff00ff; vertical-align:middle; }
-.skill-rating { color:gold; font-size:1.2em; margin-bottom:5px; }
-.status-indicator { font-size:0.8em; padding:3px 8px; border-radius:4px; font-weight:bold; margin-bottom:10px; }
-.status-online { background-color:#00cc00; color:#0b0b0b; box-shadow:0 0 5px #00ff00; }
-.status-ingame { background-color:#ffaa00; color:#0b0b0b; box-shadow:0 0 5px #ffaa00; }
-.status-lfd { background-color:#00aaff; color:#0b0b0b; box-shadow:0 0 5px #00aaff; }
-.game-badge { display: inline-block; background: #004444; color: #ccffff; padding: 3px 8px; border-radius: 4px; margin: 4px; font-weight: bold; font-size: 0.85em; border: 1px solid cyan; }
+.status-indicator { font-size:0.8em; padding:3px 8px; border-radius:4px; margin-bottom:5px; font-weight:bold; }
+.status-online { background-color:#00cc00; color:#0b0b0b; }
+.status-ingame { background-color:#ffaa00; color:#0b0b0b; }
+.status-lfd { background-color:#00aaff; color:#0b0b0b; }
 
-/* --- MESSAGING STYLES --- */
-#messagingTab { display: flex; gap: 20px; height: 70vh; }
-#chatList { width: 300px; padding: 15px; border: 2px solid cyan; border-radius: 8px; background: #1a1a1a; overflow-y: auto; }
-#activeDuoList { margin-top: 10px; }
-.chat-entry { padding: 10px; border-bottom: 1px dashed #333; cursor: pointer; transition: background 0.2s; }
-.chat-entry:hover { background: #2a2a2a; }
-.chat-entry.active { background: #004444; border-left: 5px solid lime; font-weight: bold; }
-.last-message-snippet { font-size: 0.8em; color: #bbb; }
-#chatWindow { flex-grow: 1; display: flex; flex-direction: column; border: 2px solid magenta; border-radius: 8px; background: #1a1a1a; }
-#chatHeader { padding: 10px; border-bottom: 2px solid magenta; margin: 0; background: #330033; }
-#messageDisplay { flex-grow: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-.message { max-width: 70%; padding: 8px 12px; border-radius: 15px; font-size: 0.9em; word-wrap: break-word; }
-.message.sent { background: #005555; align-self: flex-end; border-bottom-right-radius: 5px; }
-.message.received { background: #333333; align-self: flex-start; border-bottom-left-radius: 5px; }
-#messageInputArea { padding: 10px; border-top: 2px solid magenta; background: #0b0b0b; display: flex; gap: 10px; }
+/* Messaging */
+#messagingTab { display:flex; gap:20px; height:70vh; }
+#chatList { width:300px; padding:15px; border:2px solid cyan; border-radius:8px; background:#1a1a1a; overflow-y:auto; }
+.chat-entry { padding:8px; border-bottom:1px dashed #333; cursor:pointer; }
+.chat-entry.active { background:#004444; border-left:5px solid lime; font-weight:bold; }
+#chatWindow { flex-grow:1; display:flex; flex-direction:column; border:2px solid magenta; border-radius:8px; background:#1a1a1a; }
+#chatHeader { padding:10px; border-bottom:2px solid magenta; }
+#messageDisplay { flex-grow:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:10px; }
+.message { max-width:70%; padding:8px 12px; border-radius:15px; font-size:0.9em; }
+.message.sent { background:#005555; align-self:flex-end; border-bottom-right-radius:5px; }
+.message.received { background:#333; align-self:flex-start; border-bottom-left-radius:5px; }
+#messageInputArea { padding:10px; border-top:2px solid magenta; background:#0b0b0b; display:flex; gap:10px; }
+#messageInput { flex-grow:1; padding:10px; border-radius:6px; border:1px solid cyan; background:#181818; color:white; outline:none; }
 </style>
 </head>
 <body>
 
-<div class="header"><div class="icon-container">⚡</div><h1>DUO UP (Direct)</h1></div>
+<div class="header"><h1>DuoUp Social</h1></div>
 
 <div id="loginPage" class="container">
-<p style="text-align:center;">Find your perfect partner and dominate the cyber-arena.</p>
+<p style="text-align:center;">Log in to find your perfect duo!</p>
 <div style="text-align:center;">
 <button class="neon-btn" onclick="login()">Login with Google</button>
 </div>
@@ -97,254 +57,240 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 
 <div id="dashboard" class="container hidden">
 <h2 id="welcome"></h2>
-
 <div id="navigationBar" style="margin-bottom:20px;">
-    <button class="neon-btn" onclick="showTab('allUsers')">Suggested</button>
-    <button class="neon-btn" onclick="showTab('search')">Find Players</button>
-    <button id="friendsBtn" class="neon-btn" onclick="showTab('friends')">Duos</button>
-    <button class="neon-btn" onclick="showTab('messaging')">Messaging</button>
-    <button class="neon-btn" onclick="showTab('profile')">Profile</button>
-    <button class="neon-btn" onclick="logout()">Logout</button>
+<button class="neon-btn" onclick="showTab('allUsers')">Suggested</button>
+<button class="neon-btn" onclick="showTab('search')">Search</button>
+<button class="neon-btn" onclick="showTab('friends')">Duos</button>
+<button class="neon-btn" onclick="showTab('messaging')">Messaging</button>
+<button class="neon-btn" onclick="showTab('profile')">Profile</button>
+<button class="neon-btn" onclick="logout()">Logout</button>
 </div>
 
+<!-- Suggested Users -->
 <div id="allUsersTab" class="card-container"></div>
 
+<!-- Search/Filter -->
 <div id="searchTab" class="hidden container">
-<h2>Player Search Filter</h2>
-<div id="searchControls" style="display:flex; gap:15px; margin-bottom:20px; align-items:center;">
-    <input type="text" id="searchInput" placeholder="Search by Nickname or Bio..." onkeyup="filterSearchResults()">
-    <label style="color:cyan;">Filter Status:</label>
-    <select id="statusFilter" onchange="filterSearchResults()">
-        <option value="">Any Status</option>
-        <option value="Online">Online</option>
-        <option value="In Game">In Game</option>
-        <option value="LFD">Looking For Duo (LFD)</option>
-    </select>
-    <label style="color:cyan;">Min Skill:</label>
-    <select id="skillFilter" onchange="filterSearchResults()">
-        <option value="0">Any Skill</option>
-        <option value="1">⭐ 1+</option>
-        <option value="2">⭐⭐ 2+</option>
-        <option value="3">⭐⭐⭐ 3+</option>
-        <option value="4">⭐⭐⭐⭐ 4+</option>
-        <option value="5">⭐⭐⭐⭐⭐ 5</option>
-    </select>
-</div>
+<h2>Search Players</h2>
+<input type="text" id="searchInput" placeholder="Search by nickname or bio..." onkeyup="filterSearchResults()">
+<select id="statusFilter" onchange="filterSearchResults()">
+<option value="">Any Status</option>
+<option value="Online">Online</option>
+<option value="In Game">In Game</option>
+<option value="LFD">Looking For Duo</option>
+</select>
 <div id="searchResults" class="card-container"></div>
 </div>
 
-<div id="friendsTab" class="flex hidden" style="flex-direction: column;"></div>
+<!-- Duos/Friends -->
+<div id="friendsTab" class="hidden"></div>
 
+<!-- Messaging -->
 <div id="messagingTab" class="hidden">
-    <div id="chatList">
-        <h3>Active Duos</h3>
-        <div id="activeDuoList">No Duos to chat with.</div>
-    </div>
-    <div id="chatWindow">
-        <h3 id="chatHeader">Select a Duo</h3>
-        <div id="messageDisplay"></div>
-        <div id="messageInputArea" class="hidden">
-            <input type="text" id="messageInput" placeholder="Type your message...">
-            <button class="neon-btn" id="sendMessageBtn">Send</button>
-        </div>
-    </div>
+<div id="chatList">
+<h3>Active Duos</h3>
+<div id="activeDuoList">No Duos yet.</div>
+</div>
+<div id="chatWindow">
+<h3 id="chatHeader">Select a Duo</h3>
+<div id="messageDisplay"></div>
+<div id="messageInputArea" class="hidden">
+<input type="text" id="messageInput" placeholder="Type your message...">
+<button class="neon-btn" onclick="sendMessage()">Send</button>
+</div>
+</div>
 </div>
 
-<div id="profileTab" class="hidden">
-<!-- Profile editor omitted for brevity -->
+<!-- Profile -->
+<div id="profileTab" class="hidden container">
+<h2>Profile Editor</h2>
+<img id="profileAvatar" src="" class="avatar">
+<p>Nickname: <input id="profileNickname" disabled></p>
+<p>Bio:</p><textarea id="profileBio"></textarea>
+<p>Skill Rating: <input id="profileSkillRating" type="number" min="1" max="5"></p>
+<p>Status: 
+<select id="profileStatus">
+<option>Online</option>
+<option>In Game</option>
+<option>LFD</option>
+</select>
+</p>
+<button class="neon-btn" onclick="saveProfile()">Save Profile</button>
+<div id="saveMessage"></div>
 </div>
 
 <script>
+// --- Firebase Web Init ---
 const firebaseConfig = {
-    apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
-    authDomain: "duoup-cfae6.firebaseapp.com",
-    projectId: "duoup-cfae6",
-    storageBucket: "duoup-cfae6.appspot.com",
-    messagingSenderId: "812263060524",
-    appId: "1:812263060524:web:ac09c3ae610db1cd110d89"
+  apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
+  authDomain: "duoup-cfae6.firebaseapp.com",
+  projectId: "duoup-cfae6",
+  storageBucket: "duoup-cfae6.appspot.com",
+  messagingSenderId: "812263060524",
+  appId: "1:812263060524:web:ac09c3ae610db1cd110d89"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 const storage = firebase.storage();
 
-const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-
+// --- Global State ---
 let currentUser = null;
 let currentProfileData = {};
 let allUsersCache = [];
 let friendProfiles = {};
-let currentChatUnsub = null;
+let currentChatUid = null;
+let chatListener = null;
 
-// ---------- AUTH ----------
-function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).catch(e=>alert(e.message)); }
-function logout(){ auth.signOut(); }
+// --- Authentication ---
+function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+function logout(){ if(chatListener) chatListener(); auth.signOut(); }
 
-// ---------- TABS ----------
+// --- Tab Management ---
 function showTab(tab){
-    document.querySelectorAll('#allUsersTab, #searchTab, #friendsTab, #messagingTab, #profileTab').forEach(el=>el.classList.add('hidden'));
-    document.getElementById(tab+'Tab')?.classList.remove('hidden');
+document.querySelectorAll('#allUsersTab,#searchTab,#friendsTab,#messagingTab,#profileTab').forEach(e=>e.classList.add('hidden'));
+if(tab==='allUsers') loadAllUsers();
+if(tab==='search') filterSearchResults();
+if(tab==='friends') loadFriends();
+if(tab==='messaging') loadChatList();
+if(tab==='profile') loadUserProfile();
+document.getElementById(tab+'Tab')?.classList.remove('hidden');
 }
 
-// ---------- RENDER USER CARD ----------
-function renderUserCard(user, container){
-    const isFriend = Array.isArray(currentProfileData.friends) && currentProfileData.friends.includes(user.id);
-    const action = isFriend ? "Remove Duo" : "Send Request";
-    const card = document.createElement("div");
-    card.className = "card";
-    card.innerHTML = `
-        <div class="card-content-box">
-            <img src="${user.profileImageUrl || DEFAULT_AVATAR}" class="avatar">
-            <h3>${user.username || user.nickname}</h3>
-            <button class="neon-btn" onclick="${isFriend?'removeFriend(\''+user.id+'\')':'sendFriendRequest(\''+user.id+'\')'}">${action}</button>
-        </div>
-    `;
-    container.appendChild(card);
-}
-
-// ---------- LOAD ALL USERS ----------
+// --- Load Users ---
 async function loadAllUsers(){
-    if(!currentUser) return;
-    const allUsersTab = document.getElementById("allUsersTab");
-    allUsersTab.innerHTML = "<h3>Suggested Players</h3>";
-    const snapshot = await db.collection("users").get();
-    allUsersCache = snapshot.docs.map(d=>({id:d.id,...d.data()}));
-    allUsersCache.forEach(user=>{
-        if(user.id!==currentUser.uid) renderUserCard(user, allUsersTab);
-    });
+if(!currentUser) return;
+const container=document.getElementById('allUsersTab');
+container.innerHTML="<h3>Suggested Players</h3>";
+const snapshot=await db.collection('users').get();
+allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
+allUsersCache.forEach(user=>{
+if(user.id===currentUser.uid) return;
+container.appendChild(renderUserCard(user.id,user));
+});
 }
 
-// ---------- FRIENDS / DUOS ----------
-async function loadFriends(){
-    if(!currentUser) return;
-    const friendsTab = document.getElementById("friendsTab");
-    friendsTab.innerHTML = "";
-    const friends = Array.isArray(currentProfileData.friends) ? currentProfileData.friends : [];
-    if(friends.length===0){friendsTab.innerHTML="<p>No Duos yet.</p>"; return;}
-    const friendDocs = await Promise.all(friends.map(uid=>db.collection("users").doc(uid).get()));
-    friendDocs.forEach(doc=>{
-        if(!doc.exists) return;
-        friendProfiles[doc.id] = doc.data();
-        renderUserCard({...doc.data(),id:doc.id}, friendsTab);
-    });
+// --- Render Card ---
+function renderUserCard(uid,data){
+const card=document.createElement('div'); card.className='card';
+card.innerHTML=`<img src="${data.profileImageUrl||'https://cdn-icons-png.flaticon.com/512/149/149071.png'}" class="avatar">
+<h3>${data.username||data.nickname||'Unknown'}</h3>
+<p>${data.bio||''}</p>
+<button class="neon-btn" onclick="sendFriendRequest('${uid}')">Send Request</button>`;
+return card;
 }
 
-// ---------- FRIEND REQUESTS ----------
-async function sendFriendRequest(uid){
-    if(!currentUser) return;
-    const requestId = `${currentUser.uid}_${uid}`;
-    await db.collection("requests").doc(requestId).set({
-        senderId: currentUser.uid,
-        receiverId: uid,
-        status: "pending",
-        sentAt: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    alert("Duo request sent!");
-}
-async function removeFriend(uid){
-    if(!currentUser) return;
-    await db.collection("users").doc(currentUser.uid).update({friends:firebase.firestore.FieldValue.arrayRemove(uid)});
-    await db.collection("users").doc(uid).update({friends:firebase.firestore.FieldValue.arrayRemove(currentUser.uid)});
-    alert("Duo removed.");
-    loadFriends();
-}
-
-// ---------- MESSAGING ----------
-function getChatId(uid1, uid2){ return [uid1,uid2].sort().join("_"); }
-function loadChatList(){
-    const activeDuoList = document.getElementById("activeDuoList");
-    activeDuoList.innerHTML="";
-    const friends = Array.isArray(currentProfileData.friends)?currentProfileData.friends:[];
-    if(friends.length===0){activeDuoList.innerHTML="<p>No Duos to chat with.</p>"; return;}
-    friends.forEach(uid=>{
-        const f = friendProfiles[uid]; if(!f) return;
-        const entry = document.createElement("div");
-        entry.className="chat-entry";
-        entry.textContent=f.username||f.nickname;
-        entry.onclick=()=>startChat(uid,f);
-        activeDuoList.appendChild(entry);
-    });
-}
-
-async function startChat(friendUid, friendData){
-    if(currentChatUnsub) currentChatUnsub();
-    const chatId = getChatId(currentUser.uid,friendUid);
-    const display = document.getElementById("messageDisplay");
-    display.innerHTML="";
-    document.getElementById("messageInputArea").classList.remove("hidden");
-    document.getElementById("chatHeader").textContent = friendData.username||friendData.nickname;
-
-    const ref = db.collection("chats").doc(chatId).collection("messages").orderBy("createdAt");
-    currentChatUnsub = ref.onSnapshot(snapshot=>{
-        display.innerHTML="";
-        snapshot.docs.forEach(d=>{
-            const m = d.data();
-            const div = document.createElement("div");
-            div.className = "message " + (m.senderId===currentUser.uid?"sent":"received");
-            div.textContent = m.text;
-            display.appendChild(div);
-        });
-        display.scrollTop = display.scrollHeight;
-    });
-
-    document.getElementById("sendMessageBtn").onclick = async ()=>{
-        const input = document.getElementById("messageInput");
-        const text = input.value.trim(); if(!text) return;
-        await db.collection("chats").doc(chatId).collection("messages").add({
-            senderId: currentUser.uid,
-            text,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            participants:[currentUser.uid,friendUid]
-        });
-        input.value="";
-    };
-}
-
-// ---------- SEARCH FILTER ----------
+// --- Filter Search ---
 function filterSearchResults(){
-    const query = document.getElementById("searchInput").value.toLowerCase();
-    const status = document.getElementById("statusFilter").value;
-    const minSkill = parseInt(document.getElementById("skillFilter").value)||0;
-    const resultsContainer = document.getElementById("searchResults");
-    resultsContainer.innerHTML="";
-    allUsersCache.forEach(user=>{
-        if(user.id===currentUser.uid) return;
-        const matchesQuery = (user.nickname||user.username||"").toLowerCase().includes(query) || (user.bio||"").toLowerCase().includes(query);
-        const matchesStatus = !status || user.status===status;
-        const matchesSkill = !minSkill || (user.skillRating||0)>=minSkill;
-        if(matchesQuery && matchesStatus && matchesSkill){
-            renderUserCard(user, resultsContainer);
-        }
-    });
+const q=document.getElementById('searchInput').value.toLowerCase();
+const status=document.getElementById('statusFilter').value;
+const results=document.getElementById('searchResults'); results.innerHTML='';
+allUsersCache.forEach(u=>{
+if(u.id===currentUser.uid) return;
+if(!u.nickname?.toLowerCase().includes(q)&&!u.bio?.toLowerCase().includes(q)) return;
+if(status&&u.status!==status) return;
+results.appendChild(renderUserCard(u.id,u));
+});
 }
 
-// ---------- AUTH STATE ----------
+// --- Friends/Duos ---
+async function loadFriends(){
+if(!currentUser) return;
+const container=document.getElementById('friendsTab'); container.innerHTML="<h3>Your Duos</h3>";
+const doc=await db.collection('users').doc(currentUser.uid).get();
+currentProfileData=doc.data();
+const friends=currentProfileData.friends||[];
+if(friends.length===0){container.innerHTML+="<p>No duos yet.</p>"; return;}
+for(const uid of friends){
+const d=await db.collection('users').doc(uid).get();
+friendProfiles[uid]=d.data();
+container.appendChild(renderUserCard(uid,d.data()));
+}
+}
+
+// --- Friend Request ---
+async function sendFriendRequest(uid){
+if(!currentUser) return;
+const id=`${currentUser.uid}_${uid}`;
+await db.collection('requests').doc(id).set({senderId:currentUser.uid,receiverId:uid,status:'pending',sentAt:firebase.firestore.FieldValue.serverTimestamp()});
+alert("Request sent!");
+}
+
+// --- Profile ---
+async function loadUserProfile(){
+if(!currentUser) return;
+const doc=await db.collection('users').doc(currentUser.uid).get();
+currentProfileData=doc.data();
+document.getElementById('profileAvatar').src=currentProfileData.profileImageUrl||'https://cdn-icons-png.flaticon.com/512/149/149071.png';
+document.getElementById('profileNickname').value=currentProfileData.nickname;
+document.getElementById('profileBio').value=currentProfileData.bio;
+document.getElementById('profileSkillRating').value=currentProfileData.skillRating;
+document.getElementById('profileStatus').value=currentProfileData.status;
+}
+async function saveProfile(){
+if(!currentUser) return;
+await db.collection('users').doc(currentUser.uid).update({
+bio:document.getElementById('profileBio').value,
+skillRating:Number(document.getElementById('profileSkillRating').value),
+status:document.getElementById('profileStatus').value
+});
+alert("Profile saved!");
+}
+
+// --- Messaging ---
+function getChatId(u1,u2){return [u1,u2].sort().join('_');}
+async function loadChatList(){
+const list=document.getElementById('activeDuoList'); list.innerHTML='';
+const friends=currentProfileData.friends||[];
+if(friends.length===0){list.innerHTML="<p>No duos.</p>"; return;}
+for(const uid of friends){
+const friend=friendProfiles[uid];
+if(!friend) continue;
+const entry=document.createElement('div'); entry.className='chat-entry';
+entry.textContent=friend.username||friend.nickname;
+entry.onclick=()=>startChat(uid);
+list.appendChild(entry);
+}
+}
+function startChat(uid){
+if(chatListener) chatListener();
+currentChatUid=uid;
+const header=document.getElementById('chatHeader');
+const friend=friendProfiles[uid];
+header.textContent="Chat with "+(friend.username||friend.nickname);
+const display=document.getElementById('messageDisplay'); display.innerHTML='';
+document.getElementById('messageInputArea').classList.remove('hidden');
+const chatId=getChatId(currentUser.uid,uid);
+const ref=db.collection('messages').doc(chatId).collection('history').orderBy('timestamp','asc');
+chatListener=ref.onSnapshot(snapshot=>{
+display.innerHTML='';
+snapshot.forEach(d=>{
+const m=d.data();
+const div=document.createElement('div');
+div.className='message '+(m.senderId===currentUser.uid?'sent':'received');
+div.textContent=m.text;
+display.appendChild(div);
+});
+display.scrollTop=display.scrollHeight;
+});
+}
+async function sendMessage(){
+if(!currentUser||!currentChatUid) return;
+const input=document.getElementById('messageInput');
+const text=input.value.trim(); if(!text) return;
+const chatId=getChatId(currentUser.uid,currentChatUid);
+await db.collection('messages').doc(chatId).collection('history').add({senderId:currentUser.uid,receiverId:currentChatUid,text,timestamp:firebase.firestore.FieldValue.serverTimestamp()});
+input.value='';
+}
+
+// --- Auth Listener ---
 auth.onAuthStateChanged(async user=>{
-    if(user){
-        currentUser=user;
-        document.getElementById("loginPage").classList.add("hidden");
-        document.getElementById("dashboard").classList.remove("hidden");
-        document.getElementById("welcome").textContent = `Welcome, ${user.displayName}`;
-        const doc = await db.collection("users").doc(user.uid).get();
-        if(!doc.exists){
-            await db.collection("users").doc(user.uid).set({
-                username:user.displayName,
-                profileImageUrl:user.photoURL,
-                friends:[],
-                bio:"",
-                skillRating:0,
-                status:"Online"
-            });
-        }
-        const profileDoc = await db.collection("users").doc(user.uid).get();
-        currentProfileData = profileDoc.data();
-        await loadAllUsers();
-        await loadFriends();
-        loadChatList();
-    }else{
-        document.getElementById("loginPage").classList.remove("hidden");
-        document.getElementById("dashboard").classList.add("hidden");
-    }
+if(!user){document.getElementById('loginPage').classList.remove('hidden');document.getElementById('dashboard').classList.add('hidden'); return;}
+document.getElementById('loginPage').classList.add('hidden'); document.getElementById('dashboard').classList.remove('hidden');
+currentUser=user;
+const uRef=db.collection('users').doc(user.uid); const uDoc=await uRef.get();
+if(!uDoc.exists){await uRef.set({nickname:user.displayName,profileImageUrl:user.photoURL,friends:[],bio:'',skillRating:3,status:'Online'});}
+await loadUserProfile(); await loadAllUsers(); await loadFriends();
 });
 </script>
 
