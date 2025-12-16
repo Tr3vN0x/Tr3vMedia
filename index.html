@@ -218,9 +218,9 @@ textarea { resize: vertical; }
 <div id="pendingRequestsList" class="card-container"></div>
 <h2 style="margin-top:40px;">Your Accepted Duos</h2>
 <div id="friendList" class="card-container">
-    <p style="width:100%; text-align:center; color:magenta;">
-    Loading accepted duos...
-    </p>
+    <p style="width:100%; text-align:center; color:magenta;">
+    Loading accepted duos...
+    </p>
 </div>
 </div>
 
@@ -248,16 +248,16 @@ textarea { resize: vertical; }
 <h2>Gamer-Profile Editor</h2>
 <div style="padding:20px; border:2px solid magenta; border-radius:10px; background:#1a1a1a;">
 <div style="display:flex; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
-    <div style="margin-right:20px; display:flex; flex-direction:column; align-items:center;">
-        <img id="profileAvatar" class="avatar" src="" style="width:100px;height:100px;border-color:cyan;">
-        <p style="font-size:0.8em; margin:5px 0 0 0;">Upload New:</p>
-        <input type="file" id="avatarFile" accept="image/*" style="width:150px; font-size:0.8em; border:none;" onchange="previewAvatar(event)">
-    </div>
-    <div style="flex-grow:1; min-width:200px;">
-        <label style="color: cyan; display:block; margin-bottom:5px;">Unique Identifier:</label>
-        <input type="text" id="profileNickname" value="User Nickname" placeholder="Your Unique Nickname">
-        <p id="nicknameChangeInfo" style="color:yellow; font-size:0.8em; margin:5px 0 0 0;">(You get one free nickname change.)</p>
-    </div>
+    <div style="margin-right:20px; display:flex; flex-direction:column; align-items:center;">
+        <img id="profileAvatar" class="avatar" src="" style="width:100px;height:100px;border-color:cyan;">
+        <p style="font-size:0.8em; margin:5px 0 0 0;">Upload New:</p>
+        <input type="file" id="avatarFile" accept="image/*" style="width:150px; font-size:0.8em; border:none;" onchange="previewAvatar(event)">
+    </div>
+    <div style="flex-grow:1; min-width:200px;">
+        <label style="color: cyan; display:block; margin-bottom:5px;">Unique Identifier:</label>
+        <input type="text" id="profileNickname" value="User Nickname" placeholder="Your Unique Nickname">
+        <p id="nicknameChangeInfo" style="color:yellow; font-size:0.8em; margin:5px 0 0 0;">(You get one free nickname change.)</p>
+    </div>
 </div>
 <div style="margin-bottom:15px;">
 <label style="color: cyan; display:block; margin-bottom:5px;">Bio/Tagline:</label>
@@ -265,51 +265,51 @@ textarea { resize: vertical; }
 </div>
 <div style="display:flex; gap:30px; margin-bottom:20px; flex-wrap:wrap;">
 <div>
-    <label style="color: cyan; display:block; margin-bottom:5px;">Skill Rating (1-5):</label>
-    <input id="profileSkillRating" type="number" min="1" max="5">
+    <label style="color: cyan; display:block; margin-bottom:5px;">Skill Rating (1-5):</label>
+    <input id="profileSkillRating" type="number" min="1" max="5">
 </div>
 <div>
-    <label style="color: cyan; display:block; margin-bottom:5px;">Primary Game/Category:</label>
-    <select id="profileGameCategory">
-        <option value="LeagueOfLegends">League of Legends</option>
-        <option value="Fortnite">Fortnite</option>
-        <option value="Valorant">Valorant</option>
-        <option value="CyberSecurity">Cyber Security</option>
-        <option value="Other">Other</option>
-    </select>
+    <label style="color: cyan; display:block; margin-bottom:5px;">Primary Game/Category:</label>
+    <select id="profileGameCategory">
+        <option value="LeagueOfLegends">League of Legends</option>
+        <option value="Fortnite">Fortnite</option>
+        <option value="Valorant">Valorant</option>
+        <option value="CyberSecurity">Cyber Security</option>
+        <option value="Other">Other</option>
+    </select>
 </div>
 </div>
 <div style="display:flex; gap:30px; margin-bottom:20px; flex-wrap:wrap;">
-    <div>
-        <label style="color: cyan; display:block; margin-bottom:5px;">Game Role/Mode:</label>
-        <select id="profileGameRole">
-            <option value="TopTank">Top Tank (LoL)</option>
-            <option value="JungleCarry">Jungle Carry (LoL)</option>
-            <option value="Duo">Duo (Fortnite/Valorant)</option>
-            <option value="Squad">Squad (Fortnite)</option>
-            <option value="Support">Support (LoL/Valorant)</option>
-            <option value="ExploitDev">Exploit Dev (Cyber)</option>
-            <option value="RedTeamOp">Red Team Op (Cyber)</option>
-            <option value="Generalist">Generalist/Flex</option>
-        </select>
-    </div>
-    <div>
-        <label style="color: cyan; display:block; margin-bottom:5px;">Current Status:</label>
-        <select id="profileStatus" onchange="toggleLfdCategory()">
-            <option value="Online">Online</option>
-            <option value="In Game">In Game</option>
-            <option value="LFD">Looking For Duo (LFD)</option>
-        </select>
-    </div>
-    <div id="lfdCategoryGroup" class="hidden">
-        <label style="color: cyan; display:block; margin-bottom:5px;">LFD Goal:</label>
-        <select id="profileLfdCategory">
-            <option value="Duo">Duo (2-person team)</option>
-            <option value="Squad">Squad (3+ person team)</option>
-            <option value="Team">Full Team (Permanent)</option>
-            <option value="Mentor">Mentor/Mentee</option>
-        </select>
-    </div>
+    <div>
+        <label style="color: cyan; display:block; margin-bottom:5px;">Game Role/Mode:</label>
+        <select id="profileGameRole">
+            <option value="TopTank">Top Tank (LoL)</option>
+            <option value="JungleCarry">Jungle Carry (LoL)</option>
+            <option value="Duo">Duo (Fortnite/Valorant)</option>
+            <option value="Squad">Squad (Fortnite)</option>
+            <option value="Support">Support (LoL/Valorant)</option>
+            <option value="ExploitDev">Exploit Dev (Cyber)</option>
+            <option value="RedTeamOp">Red Team Op (Cyber)</option>
+            <option value="Generalist">Generalist/Flex</option>
+        </select>
+    </div>
+    <div>
+        <label style="color: cyan; display:block; margin-bottom:5px;">Current Status:</label>
+        <select id="profileStatus" onchange="toggleLfdCategory()">
+            <option value="Online">Online</option>
+            <option value="In Game">In Game</option>
+            <option value="LFD">Looking For Duo (LFD)</option>
+        </select>
+    </div>
+    <div id="lfdCategoryGroup" class="hidden">
+        <label style="color: cyan; display:block; margin-bottom:5px;">LFD Goal:</label>
+        <select id="profileLfdCategory">
+            <option value="Duo">Duo (2-person team)</option>
+            <option value="Squad">Squad (3+ person team)</option>
+            <option value="Team">Full Team (Permanent)</option>
+            <option value="Mentor">Mentor/Mentee</option>
+        </select>
+    </div>
 </div>
 <button class="neon-btn" style="border-color:#00ff00; box-shadow:0 0 10px #00ff00;" onclick="saveProfile()">Save Profile</button>
 <p id="saveMessage" style="color:#00ff00; margin-top:10px;"></p>
@@ -348,9 +348,37 @@ const firebaseConfig = {
 };
 
 const CO_FOUNDER_UIDS = [
-    // Add UIDs for co-founder badges here
+    // UIDs for Co-Founder / Developer Badge (Gold/Orange)
     "GmH4xJp92vY8sbwIWgJWjFw9MOQ2",
 ];
+
+// --- NEW CUSTOM BADGE MAPPING ---
+const CUSTOM_BADGE_MAP = {
+    // UID: { title: "Pilex6", color: "neon-green" }
+    "kHsYFJVHCGfQzI16nJH0mg1rv7u1": { title: "Pilex6", color: "pilex6" }, 
+};
+// -----------------------------------
+
+function getCustomBadge(uid) {
+    const customData = CUSTOM_BADGE_MAP[uid];
+    if (customData) {
+        // Using inline styles for quick implementation of the neon green look
+        const style = `
+            background: linear-gradient(45deg, #00ff00, #009900); 
+            color: #0b0b0b; 
+            font-size: 0.75em; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-left: 8px;
+            box-shadow: 0 0 8px #00ff00;
+        `;
+        return `<div style="${style}">${customData.title}</div>`;
+    }
+    return '';
+}
+
 
 function getCoFounderBadge(uid) {
     if (CO_FOUNDER_UIDS.includes(uid)) {
@@ -381,7 +409,10 @@ function initFirebase() {
         if (currentUser) {
             loginPage.classList.add('hidden');
             dashboard.classList.remove('hidden');
-            document.getElementById('welcome').textContent = `Welcome, ${currentUser.displayName || 'Cyber Warrior'}!`;
+            
+            // --- WELCOME MESSAGE CHANGE ---
+            document.getElementById('welcome').textContent = `WELCONE TO ${currentUser.displayName || 'Cyber Warrior'}!`;
+            // ------------------------------
             
             // CRITICAL: Initialize the dashboard view *after* authentication is confirmed
             showTab('allUsers'); 
@@ -407,6 +438,8 @@ async function checkAndCreateUserProfile() {
             status: 'Online',
             bio: 'Ready to connect!',
             skillRating: 3,
+            gameCategory: 'Other',
+            gameRole: 'Generalist',
             nicknameChangeUsed: false
         });
         // New users start on the profile tab to set things up
@@ -417,12 +450,12 @@ async function checkAndCreateUserProfile() {
 // ---------------------------
 // Utility Functions
 function getChatId(otherUid) {
-    // Standardized Chat ID format: UID1_UID2 (alphabetically sorted)
-    return [currentUser.uid, otherUid].sort().join('_');
+    // Standardized Chat ID format: UID1_UID2 (alphabetically sorted)
+    return [currentUser.uid, otherUid].sort().join('_');
 }
 
 function findUserInCache(uid) {
-    return allUsersCache.find(user => user.id === uid);
+    return allUsersCache.find(user => user.id === uid);
 }
 
 // ---------------------------
@@ -436,78 +469,78 @@ function logout(){
 // ---------------------------
 // Tab switching
 function showTab(tab){
-    document.querySelectorAll('#allUsersTab,#searchTab,#friendsTab,#messagingTab,#profileTab,#viewProfileTab').forEach(e=>e.classList.add('hidden'));
+    document.querySelectorAll('#allUsersTab,#searchTab,#friendsTab,#messagingTab,#profileTab,#viewProfileTab').forEach(e=>e.classList.add('hidden'));
 
     // Reset Chat Listener if not navigating to messaging
-    if(tab!=='messaging' && chatListener){
-        chatListener();
-        chatListener=null;
-        currentChatId=null;
+    if(tab!=='messaging' && chatListener){
+        chatListener();
+        chatListener=null;
+        currentChatId=null;
         currentChatPartnerId = null;
-        document.getElementById('messageDisplay').innerHTML = '';
-        document.getElementById('chatHeader').textContent = 'Select a Duo to start messaging';
-        document.getElementById('messageInputArea').classList.add('hidden');
-    }
+        document.getElementById('messageDisplay').innerHTML = '';
+        document.getElementById('chatHeader').textContent = 'Select a Duo to start messaging';
+        document.getElementById('messageInputArea').classList.add('hidden');
+    }
 
     // Highlight active navigation button
     document.querySelectorAll('#navigationBar button').forEach(btn => btn.classList.remove('active'));
     document.getElementById('tab-' + tab)?.classList.add('active');
 
 
-    switch(tab){
-        case 'allUsers': loadAllUsers(); break;
-        case 'search': filterSearchResults(); break;
-        case 'friends': loadFriends(); break;
-        case 'messaging': loadChatList(); break;
-        case 'profile': loadUserProfile(); toggleLfdCategory(); break;
-        default: break;
-    }
-    document.getElementById(tab+'Tab')?.classList.remove('hidden'); 
+    switch(tab){
+        case 'allUsers': loadAllUsers(); break;
+        case 'search': filterSearchResults(); break;
+        case 'friends': loadFriends(); break;
+        case 'messaging': loadChatList(); break;
+        case 'profile': loadUserProfile(); toggleLfdCategory(); break;
+        default: break;
+    }
+    document.getElementById(tab+'Tab')?.classList.remove('hidden'); 
 }
 
 // ---------------------------
 // CORE DATA LOADING (Fixed LoadAllUsers Query)
 // ---------------------------
 async function loadAllUsers(){
-    if(!currentUser) return;
-    const container=document.getElementById('allUsersTab');
-    container.innerHTML="<h3>Loading Suggested Players...</h3>";
+    if(!currentUser) return;
+    const container=document.getElementById('allUsersTab');
+    container.innerHTML="<h3>Loading Suggested Players...</h3>";
     
-    try{
-        // 1. Load ALL users 
-        const snapshot=await db.collection('users').get();
-        allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
-        
-        // 2. Load all friend requests involving the current user (FIXED QUERY)
+    try{
+        // 1. Load ALL users 
+        const snapshot=await db.collection('users').get();
+        allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
+        
+        // 2. Load all friend requests involving the current user (FIXED QUERY)
         // Uses the 'participants' array field which is enforced by security rules.
-        const requestsSnap = await db.collection('friendRequests')
-            .where('participants', 'array-contains', currentUser.uid) 
-            .get();
-            
-        requestCache = {};
-        requestsSnap.forEach(doc => {
-            const data = doc.data();
+        const requestsSnap = await db.collection('friendRequests')
+            .where('participants', 'array-contains', currentUser.uid) 
+            .get();
+            
+        requestCache = {};
+        requestsSnap.forEach(doc => {
+            const data = doc.data();
             const otherUid = data.participants.find(uid => uid !== currentUser.uid);
 
             if (otherUid) {
-                requestCache[otherUid] = { 
-                    id: doc.id, 
-                    status: data.status, 
+                requestCache[otherUid] = { 
+                    id: doc.id, 
+                    status: data.status, 
                     senderId: data.senderId,
                     receiverId: data.receiverId
                 };
             }
-        });
+        });
 
-        container.innerHTML=""; 
+        container.innerHTML=""; 
 
-        allUsersCache.forEach(user=>{
-            if(user.id===currentUser.uid) return;
-            const card=renderUserCard(user.id, user, requestCache[user.id]);
-            if(card) container.appendChild(card);
-        });
+        allUsersCache.forEach(user=>{
+            if(user.id===currentUser.uid) return;
+            const card=renderUserCard(user.id, user, requestCache[user.id]);
+            if(card) container.appendChild(card);
+        });
 
-    }catch(e){ 
+    }catch(e){ 
         container.innerHTML=`<p style="width:100%; text-align:center; color:red;">
             ACCESS DENIED [UID: ${currentUser?.uid || 'NONE'}] - 
             Error loading users: ${e.message}</p>
@@ -526,7 +559,10 @@ function renderUserCard(uid, data, requestInfo){
     card.className='card';
     card.onclick=()=>viewProfile(uid, data);
     const statusClass=(data.status||'Online').replace(/\s/g,'').toLowerCase();
-    const badge = getCoFounderBadge(uid);
+    
+    // --- COMBINE BADGES ---
+    const badge = getCoFounderBadge(uid) + getCustomBadge(uid);
+    // ----------------------
     
     const gameCategory = data.gameCategory || 'Other';
     const gameCategoryClass = `game-category-${gameCategory.toLowerCase().replace(/\s/g, '')}`;
@@ -544,7 +580,7 @@ function renderUserCard(uid, data, requestInfo){
                                <button class="neon-btn remove" onclick="event.stopPropagation(); rejectFriendRequest('${requestInfo.id}')">Reject</button>`;
             }
         } else if (requestInfo.status === 'accepted') {
-            cardButtons = `<button class="neon-btn" style="border-color:lime; color:lime;" onclick="event.stopPropagation(); showTab('messaging'); selectChat('${requestInfo.id}', '${uid}')">Duo Active</button>`;
+            cardButtons = `<button class="neon-btn" style="border-color:lime; color:lime;" onclick="event.stopPropagation(); showTab('messaging'); selectChat('${getChatId(uid)}', '${uid}')">Duo Active</button>`;
         } else {
             // Rejected or other state, allow new request
             cardButtons = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
@@ -584,7 +620,11 @@ function renderDuoCard(uid, data) {
     card.onclick = () => viewProfile(uid, data); 
 
     const statusClass = (data.status || 'Online').replace(/\s/g,'').toLowerCase();
-    const badge = getCoFounderBadge(uid);
+    
+    // --- COMBINE BADGES ---
+    const badge = getCoFounderBadge(uid) + getCustomBadge(uid);
+    // ----------------------
+    
     const chatId = getChatId(uid);
 
     card.innerHTML = `
@@ -605,293 +645,9 @@ function renderDuoCard(uid, data) {
     return card;
 }
 
-
 // ---------------------------
-// Duos/Requests Logic 
+// PROFILE EDITOR FUNCTIONS
 // ---------------------------
-
-async function loadFriends() {
-    if (!currentUser) return;
-    const pendingContainer = document.getElementById('pendingRequestsList');
-    const acceptedContainer = document.getElementById('friendList');
-    pendingContainer.innerHTML = '<h3>Scanning for Incoming Requests...</h3>';
-    acceptedContainer.innerHTML = '<h3>Establishing Connection to Accepted Duos...</h3>';
-
-    // Reload users/requests cache to ensure fresh data
-    await loadAllUsers(); 
-
-    const pendingRequests = [];
-    const acceptedDuos = [];
-    
-    // Iterate through the request cache
-    for (const otherUid in requestCache) {
-        const req = requestCache[otherUid];
-        const partner = findUserInCache(otherUid);
-
-        if (!partner) continue; 
-
-        if (req.status === 'pending' && req.receiverId === currentUser.uid) {
-            // Incoming pending request
-            pendingRequests.push(partner);
-        } else if (req.status === 'accepted') {
-            // Accepted duo
-            acceptedDuos.push(partner);
-        }
-    }
-    
-    // Render Pending Requests
-    pendingContainer.innerHTML = pendingRequests.length > 0 
-        ? '' 
-        : '<p style="width:100%; text-align:center;">No incoming requests.</p>';
-
-    pendingRequests.forEach(user => {
-        const card = renderUserCard(user.id, user, requestCache[user.id]);
-        if (card) pendingContainer.appendChild(card);
-    });
-
-    // Render Accepted Duos
-    acceptedContainer.innerHTML = acceptedDuos.length > 0 
-        ? '' 
-        : '<p style="width:100%; text-align:center; color:magenta;">You have no active Duos. Send a request from the Suggested tab!</p>';
-
-    acceptedDuos.forEach(user => {
-        const card = renderDuoCard(user.id, user);
-        if (card) acceptedContainer.appendChild(card);
-    });
-}
-
-// ---------------------------
-// Friend Request Actions
-// ---------------------------
-
-async function sendFriendRequest(otherUid) {
-    if (!currentUser) return alert("Please log in first.");
-
-    const requestId = getChatId(otherUid); // UID1_UID2 format
-    const senderId = currentUser.uid;
-    
-    if (requestCache[otherUid] && requestCache[otherUid].status !== 'rejected' && requestCache[otherUid].status !== 'deleted') {
-        return alert(`A request status is already: ${requestCache[otherUid].status}.`);
-    }
-
-    try {
-        await db.collection('friendRequests').doc(requestId).set({
-            senderId: senderId,
-            receiverId: otherUid,
-            status: 'pending',
-            // CRITICAL: The array field needed for security rules and queries
-            participants: [senderId, otherUid].sort(), 
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-        alert("Friend request sent successfully!");
-        // Reload the current view to update button status
-        showTab('allUsers'); 
-
-    } catch (e) {
-        console.error("Error sending request:", e);
-        alert(`Error: Could not send request. Check console. Error: ${e.message}`);
-    }
-}
-
-async function acceptFriendRequest(requestId) {
-    if (!currentUser) return;
-    try {
-        await db.collection('friendRequests').doc(requestId).update({
-            status: 'accepted',
-            acceptedAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alert("Request Accepted! Duo connection established.");
-        loadFriends();
-    } catch (e) {
-        console.error("Error accepting request:", e);
-        alert("Error accepting request. Check Firestore Rules/Permissions.");
-    }
-}
-
-async function rejectFriendRequest(requestId) {
-    if (!currentUser) return;
-    try {
-        // We delete the document to keep the database clean
-        await db.collection('friendRequests').doc(requestId).delete();
-        alert("Request Rejected/Canceled.");
-        loadFriends();
-    } catch (e) {
-        console.error("Error rejecting request:", e);
-        alert("Error rejecting request. Check Firestore Rules/Permissions.");
-    }
-}
-
-// ---------------------------
-// Messaging Functions
-// ---------------------------
-
-async function loadChatList() {
-    if (!currentUser) return;
-    const container = document.getElementById('activeDuoList');
-    container.innerHTML = 'Retrieving active duos...';
-    
-    try {
-        // Query accepted requests where current user is a participant
-        // This query relies on the 'participants' array and 'status' fields.
-        const duoSnap = await db.collection('friendRequests')
-            .where('participants', 'array-contains', currentUser.uid)
-            .where('status', '==', 'accepted')
-            .get();
-
-        container.innerHTML = '';
-        if (duoSnap.empty) {
-            container.innerHTML = '<p>No active duos. Accept a request or send one!</p>';
-            return;
-        }
-
-        // --- Active Chat Entry Rendering ---
-        duoSnap.docs.forEach(doc => {
-            const duoData = doc.data();
-            const chatId = doc.id;
-            const otherUid = duoData.participants.find(uid => uid !== currentUser.uid);
-            const partner = findUserInCache(otherUid);
-            if (!partner) return;
-
-            const chatEntry = document.createElement('div');
-            chatEntry.className = 'chat-entry';
-            chatEntry.textContent = partner.nickname || partner.id;
-            // Pass the canonical chatId and the partner's UID
-            chatEntry.onclick = () => selectChat(chatId, otherUid);
-            container.appendChild(chatEntry);
-        });
-
-    } catch (e) {
-        console.error("Error loading chat list:", e);
-        container.innerHTML = `<p style="color:red;">Error loading chats: ${e.message}. Check Firestore Rules/Index.</p>`;
-    }
-}
-
-async function selectChat(chatId, otherUid) {
-    if (chatListener) chatListener(); // Stop previous listener
-
-    currentChatId = chatId;
-    currentChatPartnerId = otherUid;
-    const partner = findUserInCache(otherUid);
-    const partnerNickname = partner?.nickname || 'Unknown Duo';
-
-    document.getElementById('chatHeader').textContent = `Chatting with: ${partnerNickname}`;
-    document.getElementById('messageDisplay').innerHTML = '';
-    document.getElementById('messageInputArea').classList.remove('hidden');
-
-    // Add 'active' class to the selected chat entry
-    document.querySelectorAll('.chat-entry').forEach(e => e.classList.remove('active'));
-    // Simple way to find the corresponding entry (may need refinement if names aren't unique)
-    document.querySelector(`#activeDuoList div:contains(${partnerNickname})`)?.classList.add('active');
-
-
-    const messageRef = db.collection('chats').doc(chatId).collection('messages');
-    
-    // Start the real-time listener for messages
-    chatListener = messageRef.orderBy('timestamp', 'asc').limit(50).onSnapshot(snapshot => {
-        const display = document.getElementById('messageDisplay');
-        display.innerHTML = ''; // Clear display
-
-        snapshot.forEach(doc => {
-            const msg = doc.data();
-            const messageElement = document.createElement('div');
-            // Check if timestamp exists and convert it for display
-            const timeString = msg.timestamp ? new Date(msg.timestamp.toDate()).toLocaleTimeString() : 'now';
-
-            messageElement.className = `message ${msg.senderId === currentUser.uid ? 'sent' : 'received'}`;
-            messageElement.innerHTML = `${msg.text}<span>${timeString}</span>`;
-            display.appendChild(messageElement);
-        });
-        display.scrollTop = display.scrollHeight; // Scroll to bottom
-    }, error => {
-        console.error("Message listener failed (Check Firestore rules for /chats/{chatId}/messages read permission):", error);
-        document.getElementById('messageDisplay').innerHTML = `<p style="color:red;">Failed to load messages. Duo status required.</p>`;
-    });
-}
-
-// *** FINAL CORRECTED SEND MESSAGE FUNCTION ***
-async function sendMessage() {
-    const inputElement = document.getElementById('messageInput');
-    const text = inputElement.value.trim();
-
-    if (!text || !currentChatId) return; // Must have content and a selected chat
-
-    try {
-        const chatDocRef = db.collection('chats').doc(currentChatId);
-        
-        // 1. Ensure the parent chat document exists (Lazy creation)
-        const chatDoc = await chatDocRef.get();
-        if (!chatDoc.exists) {
-            // This set operation is protected by the 'allow create' rule for /chats/{chatId}
-            await chatDocRef.set({
-                participants: [currentUser.uid, currentChatPartnerId].sort(),
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-
-        // 2. Send the message
-        // This add operation is protected by the 'allow create' rule for /messages
-        await chatDocRef.collection('messages').add({
-            text: text,
-            senderId: currentUser.uid,
-            timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            // CRITICAL: Include chatId in the message document to satisfy security rules
-            chatId: currentChatId 
-        });
-        
-        inputElement.value = ''; // Clear input
-
-    } catch (e) {
-        console.error("Error sending message (Check Firestore rules or Duo Status):", e);
-        alert("Failed to send message. Duo status must be 'accepted' and chat rules correct.");
-    }
-}
-
-
-// ---------------------------
-// Profile/Search Logic
-// ---------------------------
-
-function toggleLfdCategory() {
-    const status = document.getElementById('profileStatus').value;
-    const group = document.getElementById('lfdCategoryGroup');
-    if (status === 'LFD') {
-        group.classList.remove('hidden');
-    } else {
-        group.classList.add('hidden');
-    }
-}
-
-async function loadUserProfile() {
-    if (!currentUser) return;
-    // Reload data for the current user to get the latest profile
-    const doc = await db.collection('users').doc(currentUser.uid).get();
-    const profile = doc.data() || {};
-    currentProfileData = profile;
-
-    document.getElementById('profileAvatar').src = profile.profileImageUrl || DEFAULT_AVATAR;
-    document.getElementById('profileNickname').value = profile.nickname || '';
-    document.getElementById('profileBio').value = profile.bio || '';
-    document.getElementById('profileSkillRating').value = profile.skillRating || 3;
-    document.getElementById('profileGameCategory').value = profile.gameCategory || 'Other';
-    document.getElementById('profileGameRole').value = profile.gameRole || 'Generalist';
-    document.getElementById('profileStatus').value = profile.status || 'Online';
-    document.getElementById('profileLfdCategory').value = profile.lfdCategory || 'Duo';
-    
-    // Disable nickname editing if already used
-    const nicknameInput = document.getElementById('profileNickname');
-    const changeInfo = document.getElementById('nicknameChangeInfo');
-    if (profile.nicknameChangeUsed === true) {
-        nicknameInput.disabled = true;
-        changeInfo.textContent = "(Nickname change already used.)";
-        changeInfo.style.color = 'red';
-    } else {
-        nicknameInput.disabled = false;
-        changeInfo.textContent = "(You get one free nickname change.)";
-        changeInfo.style.color = 'yellow';
-    }
-
-}
 
 function previewAvatar(event) {
     const file = event.target.files[0];
@@ -900,125 +656,348 @@ function previewAvatar(event) {
     }
 }
 
+async function uploadAvatar(file) {
+    if (!file) return currentProfileData.profileImageUrl;
+
+    const storageRef = storage.ref();
+    const fileExtension = file.name.split('.').pop();
+    const filename = `${currentUser.uid}/avatar.${fileExtension}`;
+    const avatarRef = storageRef.child(filename);
+
+    const snapshot = await avatarRef.put(file);
+    const downloadURL = await snapshot.ref.getDownloadURL();
+    return downloadURL;
+}
+
 async function saveProfile() {
     if (!currentUser) return;
-    const saveMessage = document.getElementById('saveMessage');
-    saveMessage.textContent = 'Saving...';
+    document.getElementById('saveMessage').textContent = 'Saving profile...';
     
-    const nickname = document.getElementById('profileNickname').value;
-    const nicknameChangeUsed = currentProfileData.nicknameChangeUsed || false;
-    
-    const updates = {
-        nickname: nickname,
-        bio: document.getElementById('profileBio').value,
-        skillRating: parseInt(document.getElementById('profileSkillRating').value),
-        gameCategory: document.getElementById('profileGameCategory').value,
-        gameRole: document.getElementById('profileGameRole').value,
-        status: document.getElementById('profileStatus').value,
-        lfdCategory: document.getElementById('profileLfdCategory').value,
-        lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
-    };
-    
-    // Handle nickname change logic
-    if (!nicknameChangeUsed && currentProfileData.nickname !== nickname) {
-        updates.nicknameChangeUsed = true;
-    } else if (nicknameChangeUsed && currentProfileData.nickname !== nickname) {
-        saveMessage.textContent = 'Error: Nickname change is locked.';
-        saveMessage.style.color = 'red';
-        return;
-    }
-
     try {
-        // 1. Handle Avatar Upload (If new file is selected)
+        const nicknameInput = document.getElementById('profileNickname');
+        const nickname = nicknameInput.value.trim();
+        const bio = document.getElementById('profileBio').value.trim();
+        const skillRating = parseInt(document.getElementById('profileSkillRating').value);
+        const gameCategory = document.getElementById('profileGameCategory').value;
+        const gameRole = document.getElementById('profileGameRole').value;
+        const status = document.getElementById('profileStatus').value;
+        const lfdCategory = document.getElementById('profileLfdCategory').value;
         const avatarFile = document.getElementById('avatarFile').files[0];
+        
+        let profileImageUrl = currentProfileData.profileImageUrl || DEFAULT_AVATAR;
+
+        // 1. Handle Avatar Upload
         if (avatarFile) {
-            const storageRef = storage.ref(`avatars/${currentUser.uid}/${avatarFile.name}`);
-            await storageRef.put(avatarFile);
-            updates.profileImageUrl = await storageRef.getDownloadURL();
+            profileImageUrl = await uploadAvatar(avatarFile);
         }
 
-        // 2. Update Firestore
-        await db.collection('users').doc(currentUser.uid).update(updates);
-        saveMessage.textContent = 'Profile Updated Successfully!';
-        saveMessage.style.color = 'lime';
-        
-        // Refresh profile view
-        loadUserProfile();
+        const updateData = {
+            bio,
+            skillRating,
+            gameCategory,
+            gameRole,
+            status,
+            profileImageUrl: profileImageUrl,
+            lfdCategory: status === 'LFD' ? lfdCategory : null,
+        };
+
+        // 2. Handle Nickname Change (if allowed)
+        if (nickname !== currentProfileData.nickname) {
+            if (currentProfileData.nicknameChangeUsed === true) {
+                 alert('You have already used your one-time nickname change.');
+                 nicknameInput.value = currentProfileData.nickname; // Revert change
+                 document.getElementById('saveMessage').textContent = 'Error: Nickname change limit reached.';
+                 return;
+            }
+            updateData.nickname = nickname;
+            updateData.nicknameChangeUsed = true;
+        }
+
+        // 3. Update Firestore
+        await db.collection('users').doc(currentUser.uid).update(updateData);
+
+        // Update local cache and UI
+        currentProfileData = { ...currentProfileData, ...updateData };
+        document.getElementById('saveMessage').textContent = 'Profile saved successfully! Reloading data...';
+        document.getElementById('nicknameChangeInfo').textContent = '(Nickname change is now used.)';
+
+        // Re-load to refresh all UI components
+        setTimeout(() => {
+            showTab('profile'); // Keep user on profile page
+            loadAllUsers(); // Refresh the main user list/cache
+        }, 1000);
 
     } catch (e) {
-        console.error("Error saving profile:", e);
-        saveMessage.textContent = `Error saving: ${e.message}`;
-        saveMessage.style.color = 'red';
+        console.error("Error saving profile: ", e);
+        document.getElementById('saveMessage').textContent = `Error saving profile: ${e.message}`;
     }
 }
 
+async function loadUserProfile() {
+    if (!currentUser) return;
 
-async function viewProfile(uid, data) {
-    // Basic implementation to switch to the viewProfileTab
-    document.getElementById('viewProfileTab').classList.remove('hidden');
-    document.getElementById('allUsersTab').classList.add('hidden'); // Hide where we came from
+    try {
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
+        if (!userDoc.exists) {
+            // Should not happen if checkAndCreateUserProfile ran, but handle gracefully
+            document.getElementById('profileTab').innerHTML = '<p style="color:red;">Profile not found. Please log out and back in.</p>';
+            return;
+        }
 
-    const content = document.getElementById('viewProfileContent');
-    const badge = getCoFounderBadge(uid);
-    const statusClass = (data.status||'Online').replace(/\s/g,'').toLowerCase();
-    const gameCategoryClass = `game-category-${(data.gameCategory||'Other').toLowerCase().replace(/\s/g, '')}`;
+        const data = userDoc.data();
+        currentProfileData = data;
+
+        // Update editor fields
+        document.getElementById('profileAvatar').src = data.profileImageUrl || DEFAULT_AVATAR;
+        document.getElementById('profileNickname').value = data.nickname || '';
+        document.getElementById('profileBio').value = data.bio || '';
+        document.getElementById('profileSkillRating').value = data.skillRating || 3;
+        document.getElementById('profileGameCategory').value = data.gameCategory || 'Other';
+        document.getElementById('profileGameRole').value = data.gameRole || 'Generalist';
+        document.getElementById('profileStatus').value = data.status || 'Online';
+        document.getElementById('profileLfdCategory').value = data.lfdCategory || 'Duo';
+
+        // Update nickname info message
+        if (data.nicknameChangeUsed) {
+            document.getElementById('profileNickname').disabled = true;
+            document.getElementById('nicknameChangeInfo').textContent = '(Nickname change has been used. Contact support for further changes.)';
+            document.getElementById('nicknameChangeInfo').style.color = 'red';
+        } else {
+            document.getElementById('profileNickname').disabled = false;
+            document.getElementById('nicknameChangeInfo').textContent = '(You get one free nickname change.)';
+            document.getElementById('nicknameChangeInfo').style.color = 'yellow';
+        }
+
+        toggleLfdCategory();
+        document.getElementById('saveMessage').textContent = ''; // Clear previous save messages
+
+    } catch (e) {
+        console.error("Error loading user profile:", e);
+    }
+}
+
+function toggleLfdCategory() {
+    const status = document.getElementById('profileStatus').value;
+    const lfdGroup = document.getElementById('lfdCategoryGroup');
+    if (status === 'LFD') {
+        lfdGroup.classList.remove('hidden');
+    } else {
+        lfdGroup.classList.add('hidden');
+    }
+}
+
+// ---------------------------
+// DUO/FRIENDS/MESSAGING FUNCTIONS (STUBS)
+// ---------------------------
+
+// Placeholder functions for Friend Requests (Implement Firebase rules and logic here)
+async function sendFriendRequest(receiverId) {
+    if (receiverId === currentUser.uid) return alert("Cannot send request to yourself.");
+    alert(`Sending request to ${findUserInCache(receiverId)?.nickname || 'Unknown'}... (Not yet implemented)`);
+    // Logic: Create a new document in 'friendRequests' collection
+    // { status: 'pending', senderId: currentUser.uid, receiverId: receiverId, participants: [currentUser.uid, receiverId] }
+    // After success, re-load the current tab to refresh buttons
+    // loadAllUsers(); 
+}
+
+async function acceptFriendRequest(requestId) {
+    alert(`Accepting request ${requestId}... (Not yet implemented)`);
+    // Logic: Update the request document in 'friendRequests' to { status: 'accepted' }
+    // After success, re-load the friends tab
+    // loadFriends(); 
+}
+
+async function rejectFriendRequest(requestId) {
+    alert(`Rejecting request ${requestId}... (Not yet implemented)`);
+    // Logic: Delete the request document from 'friendRequests'
+    // After success, re-load the friends tab
+    // loadFriends(); 
+}
+
+async function loadFriends() {
+    document.getElementById('pendingRequestsList').innerHTML = '<h3>Loading requests...</h3>';
+    document.getElementById('friendList').innerHTML = '<p style="width:100%; text-align:center; color:magenta;">Loading accepted duos...</p>';
     
-    content.innerHTML = `
-        <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar" style="width:150px; height:150px; margin-bottom: 20px;">
-        <div class="nickname-group">
-            <h2 style="margin:0;">${data.nickname||'Unknown'}</h2>
+    // Logic: Filter requestCache for 'pending' where receiverId === currentUser.uid
+    // And filter requestCache for 'accepted'
+    // Then use findUserInCache() and renderUserCard() or renderDuoCard()
+}
+
+function loadChatList() {
+    document.getElementById('activeDuoList').innerHTML = '<p>Loading Duos...</p>';
+    // Logic: Get list of accepted Duos (from friendList logic), then populate #activeDuoList with .chat-entry divs.
+}
+
+function selectChat(chatId, partnerUid) {
+    // 1. Stop previous listener
+    if (chatListener) chatListener(); 
+    
+    // 2. Set new chat info
+    currentChatId = chatId;
+    currentChatPartnerId = partnerUid;
+    const partner = findUserInCache(partnerUid);
+    
+    document.getElementById('chatHeader').textContent = `Chatting with: ${partner ? partner.nickname : 'Unknown Duo'}`;
+    document.getElementById('messageDisplay').innerHTML = 'Connecting...';
+    document.getElementById('messageInputArea').classList.remove('hidden');
+    
+    // 3. Start new listener
+    chatListener = db.collection('chats').doc(chatId).collection('messages')
+        .orderBy('timestamp', 'asc')
+        .onSnapshot(snapshot => {
+            document.getElementById('messageDisplay').innerHTML = ''; // Clear display
+            snapshot.docChanges().forEach(change => {
+                if (change.type === 'added') {
+                    const messageData = change.doc.data();
+                    displayMessage(messageData);
+                }
+            });
+            // Auto-scroll to bottom
+            const display = document.getElementById('messageDisplay');
+            display.scrollTop = display.scrollHeight;
+        }, error => {
+            console.error("Chat listener error:", error);
+            document.getElementById('messageDisplay').innerHTML = '<p style="color:red;">Error loading messages.</p>';
+        });
+}
+
+function displayMessage(messageData) {
+    const display = document.getElementById('messageDisplay');
+    const msgDiv = document.createElement('div');
+    const isSent = messageData.senderId === currentUser.uid;
+    msgDiv.className = `message ${isSent ? 'sent' : 'received'}`;
+    
+    const time = messageData.timestamp ? new Date(messageData.timestamp.toMillis()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '...';
+    
+    msgDiv.innerHTML = `
+        ${messageData.text}
+        <span>${isSent ? 'You' : findUserInCache(messageData.senderId)?.nickname || 'Duo'} - ${time}</span>
+    `;
+    display.appendChild(msgDiv);
+}
+
+async function sendMessage() {
+    const input = document.getElementById('messageInput');
+    const text = input.value.trim();
+    if (!text || !currentChatId) return;
+
+    try {
+        await db.collection('chats').doc(currentChatId).collection('messages').add({
+            text: text,
+            senderId: currentUser.uid,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        input.value = ''; // Clear input field
+    } catch (e) {
+        alert("Failed to send message: " + e.message);
+        console.error("Error sending message:", e);
+    }
+}
+
+function viewProfile(uid, data) {
+    // This is the viewing logic, not the editing logic
+    showTab('viewProfile'); 
+    
+    const container = document.getElementById('viewProfileContent');
+    container.innerHTML = 'Loading profile details...';
+    
+    const statusClass = (data.status || 'Online').replace(/\s/g,'').toLowerCase();
+    const gameCategory = data.gameCategory || 'Other';
+    const gameCategoryDisplay = gameCategory.replace(/([A-Z])/g, ' $1').trim();
+    const gameRoleDisplay = (data.gameRole || 'Generalist').replace(/([A-Z])/g, ' $1').trim();
+    const lfdCategory = data.lfdCategory || 'N/A';
+    
+    // --- COMBINE BADGES ---
+    const badge = getCoFounderBadge(uid) + getCustomBadge(uid);
+    // ----------------------
+
+    let profileActions = '';
+    const requestInfo = requestCache[uid];
+
+    if (requestInfo && requestInfo.status === 'accepted') {
+        profileActions = `<button class="neon-btn" style="border-color:lime; color:lime;" onclick="event.stopPropagation(); showTab('messaging'); selectChat('${getChatId(uid)}', '${uid}')">Message Duo</button>`;
+    } else if (requestInfo && requestInfo.status === 'pending') {
+        profileActions = `<button class="neon-btn pending" disabled>Pending Request</button>`;
+    } else {
+        profileActions = `<button class="neon-btn add" onclick="event.stopPropagation(); sendFriendRequest('${uid}')">Send Request</button>`;
+    }
+
+    container.innerHTML = `
+        <img src="${data.profileImageUrl||DEFAULT_AVATAR}" class="avatar" style="width:120px; height:120px; border-color:cyan;">
+        <div class="nickname-group" style="margin-bottom:15px;">
+            <h2 style="margin:0;">${data.nickname||'Unknown Duo'}</h2>
             ${badge}
         </div>
-        <div class="status-indicator status-${statusClass}">${data.status||'Online'}</div>
-        <p style="color:#ccc; max-width: 400px; text-align: center; margin-bottom: 30px;">"${data.bio||'No bio provided.'}"</p>
+        <p style="font-style:italic; color:#aaa; margin-bottom:20px; text-align:center;">"${data.bio||'No bio provided.'}"</p>
         
         <div class="profile-stat">
-            <span>Skill Rating</span>
+            <span>Skill Rating:</span>
             <span>${'⭐'.repeat(data.skillRating||3)}</span>
         </div>
         <div class="profile-stat">
-            <span>Primary Category</span>
-            <span class="game-category ${gameCategoryClass}" style="margin:0;">${(data.gameCategory||'Other').replace(/([A-Z])/g, ' $1').trim()}</span>
+            <span>Primary Game:</span>
+            <span>${gameCategoryDisplay}</span>
         </div>
         <div class="profile-stat">
-            <span>Preferred Role/Mode</span>
-            <span class="game-role" style="margin:0;">${(data.gameRole||'Generalist').replace(/([A-Z])/g, ' $1').trim()}</span>
+            <span>Role/Mode:</span>
+            <span>${gameRoleDisplay}</span>
         </div>
-        ${data.status === 'LFD' && data.lfdCategory ? 
-        `<div class="profile-stat">
-            <span>LFD Goal</span>
-            <span class="lfd-category" style="margin:0;">${data.lfdCategory}</span>
-        </div>` : ''}
+        <div class="profile-stat">
+            <span>Status:</span>
+            <span class="status-indicator status-${statusClass}">${data.status||'Online'}</span>
+        </div>
+        ${data.status === 'LFD' ? `<div class="profile-stat"><span>LFD Goal:</span><span>${lfdCategory}</span></div>` : ''}
 
-        <button class="neon-btn add" style="margin-top: 20px;" onclick="sendFriendRequest('${uid}')">Send Duo Request</button>
+        <div style="margin-top:30px;">
+            ${profileActions}
+        </div>
     `;
-
 }
 
-function filterSearchResults() {
-    // This is a client-side filter since all users are loaded into allUsersCache
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    const status = document.getElementById('statusFilter').value;
-    const category = document.getElementById('gameCategoryFilter').value;
-    const role = document.getElementById('gameRoleFilter').value;
-    const lfd = document.getElementById('lfdCategoryFilter').value;
+// ----------------------------------------------------
+// 3. SEARCH FILTER LOGIC
+// ----------------------------------------------------
 
+function filterSearchResults() {
     const resultsContainer = document.getElementById('searchResults');
     resultsContainer.innerHTML = '';
+    if (allUsersCache.length === 0) {
+        resultsContainer.innerHTML = '<p style="width:100%; text-align:center;">Loading users...</p>';
+        return;
+    }
+
+    const searchInput = document.getElementById('searchInput').value.toLowerCase();
+    const statusFilter = document.getElementById('statusFilter').value;
+    const gameCategoryFilter = document.getElementById('gameCategoryFilter').value;
+    const gameRoleFilter = document.getElementById('gameRoleFilter').value;
+    const lfdCategoryFilter = document.getElementById('lfdCategoryFilter').value;
 
     const filteredUsers = allUsersCache.filter(user => {
         if (user.id === currentUser.uid) return false;
-        
-        const matchesQuery = !query || 
-                             (user.nickname && user.nickname.toLowerCase().includes(query)) ||
-                             (user.bio && user.bio.toLowerCase().includes(query));
 
-        const matchesStatus = !status || user.status === status;
-        const matchesCategory = !category || user.gameCategory === category;
-        const matchesRole = !role || user.gameRole === role;
-        const matchesLfd = !lfd || user.lfdCategory === lfd;
-        
-        return matchesQuery && matchesStatus && matchesCategory && matchesRole && matchesLfd;
+        // Text Search (Nickname or Bio)
+        const matchesText = !searchInput || 
+                            user.nickname.toLowerCase().includes(searchInput) || 
+                            (user.bio && user.bio.toLowerCase().includes(searchInput));
+        if (!matchesText) return false;
+
+        // Status Filter
+        const matchesStatus = !statusFilter || user.status === statusFilter;
+        if (!matchesStatus) return false;
+
+        // Game/Category Filter
+        const matchesGameCategory = !gameCategoryFilter || user.gameCategory === gameCategoryFilter;
+        if (!matchesGameCategory) return false;
+
+        // Game Role Filter
+        const matchesGameRole = !gameRoleFilter || user.gameRole === gameRoleFilter;
+        if (!matchesGameRole) return false;
+
+        // LFD Category Filter (only applies if user status is LFD)
+        const matchesLfdCategory = !lfdCategoryFilter || (user.status === 'LFD' && user.lfdCategory === lfdCategoryFilter);
+        if (!matchesLfdCategory) return false;
+
+        return true;
     });
 
     if (filteredUsers.length === 0) {
@@ -1075,5 +1054,3 @@ initFirebase();
 
 </body>
 </html>
-
-
