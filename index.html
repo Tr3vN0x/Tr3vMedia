@@ -215,7 +215,7 @@ textarea { resize: vertical; }
 </div>
 
 <div id="friendsTab" class="container hidden">
-<h2>Incoming Friend Requests</h2>
+<h2>Incoming Duo Requests</h2>
 <div id="pendingRequestsList" class="card-container"></div>
 <h2 style="margin-top:40px;">Your Accepted Duos</h2>
 <div id="friendList" class="card-container">
@@ -411,13 +411,12 @@ function initFirebase() {
             loginPage.classList.add('hidden');
             dashboard.classList.remove('hidden');
             
-            // --- WELCOME MESSAGE CHANGE ---
-            document.getElementById('welcome').textContent = `WELCONE TO ${currentUser.displayName || 'Cyber Warrior'}!`;
-            // ------------------------------
+            // NOTE: The welcome message is now set in checkAndCreateUserProfile 
+            // once the user's nickname is retrieved/created.
             
             // CRITICAL: Initialize the dashboard view *after* authentication is confirmed
             showTab('allUsers'); 
-            checkAndCreateUserProfile(); // Ensure user document exists
+            checkAndCreateUserProfile(); // Ensure user document exists and sets the welcome message
         } else {
             loginPage.classList.remove('hidden');
             dashboard.classList.add('hidden');
@@ -432,8 +431,9 @@ async function checkAndCreateUserProfile() {
 
     if (!userDoc.exists) {
         // Create default profile for new user
+        const defaultNickname = currentUser.displayName || 'New Cyber Warrior';
         await userDocRef.set({
-            nickname: currentUser.displayName || 'New Cyber Warrior',
+            nickname: defaultNickname,
             profileImageUrl: currentUser.photoURL || DEFAULT_AVATAR,
             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
             status: 'Online',
@@ -443,8 +443,19 @@ async function checkAndCreateUserProfile() {
             gameRole: 'Generalist',
             nicknameChangeUsed: false
         });
+        
+        // SET WELCOME MESSAGE AFTER CREATION
+        document.getElementById('welcome').textContent = `WELCOME ${defaultNickname.toUpperCase()} TO DUO UP!`;
+
         // New users start on the profile tab to set things up
         showTab('profile'); 
+    } else {
+        // Profile exists, load nickname
+        const data = userDoc.data();
+        
+        // SET WELCOME MESSAGE AFTER LOADING
+        const nickname = data.nickname || currentUser.displayName || 'Cyber Warrior';
+        document.getElementById('welcome').textContent = `WELCOME ${nickname.toUpperCase()} TO DUO UP!`;
     }
 }
 
@@ -541,7 +552,7 @@ async function loadAllUsers(){
         allUsersCache.forEach(user=>{
             if(user.id===currentUser.uid) return;
             const card=renderUserCard(user.id, user, requestCache[user.id]);
-            if(card) {
+            if (card) {
                 container.appendChild(card);
                 renderedCount++;
             }
@@ -731,6 +742,9 @@ async function saveProfile() {
         document.getElementById('saveMessage').textContent = 'Profile saved successfully! Reloading data...';
         document.getElementById('nicknameChangeInfo').textContent = '(Nickname change is now used.)';
         
+        // Update the welcome message immediately with the new nickname
+        document.getElementById('welcome').textContent = `WELCOME ${nickname.toUpperCase()} TO DUO UP!`;
+
         // Re-load to refresh all UI components
         setTimeout(() => {
             showTab('profile'); // Keep user on profile page
