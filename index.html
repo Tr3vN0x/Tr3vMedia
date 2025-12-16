@@ -153,7 +153,7 @@ textarea { resize: vertical; }
 <div class="header"><div class="icon-container">⚡</div><h1>DUO UP</h1></div>
 
 <div id="loginPage" class="container hidden">
-<p style="text-align:center;">Log in to connect and find your next cyber-duo.</p>
+<p style="text-align:center;">WELCOME TO ⚡DUO UP!"</p>
 <div style="text-align:center;">
 <button class="neon-btn" onclick="login()">Login with Google</button>
 </div>
@@ -383,7 +383,7 @@ function initFirebase() {
         if (currentUser) {
             loginPage.classList.add('hidden');
             dashboard.classList.remove('hidden');
-            document.getElementById('welcome').textContent = `Welcome, ${currentUser.displayName || 'Cyber Warrior'}!`;
+            document.getElementById('welcome').textContent = `Welcome, ${currentUser.nickname || 'Cyber Warrior'}!`;
             
             // CRITICAL: Initialize the dashboard view *after* authentication is confirmed
             showTab('allUsers'); 
@@ -1077,6 +1077,7 @@ initFirebase();
 
 </body>
 </html>
+
 
 
 
