@@ -1,4 +1,3 @@
-
 <?php
 // index.php
 // This PHP file serves as the wrapper for the single-page application (SPA).
@@ -30,17 +29,28 @@
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-storage-compat.js"></script>
+
 <style>
 /* --- Base styles --- */
 body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:white; }
 .container { width:90%; max-width:1000px; margin:auto; padding:20px; }
 .hidden { display:none !important; }
-/* Header */
-.header { background:#111; border-bottom:3px solid cyan; box-shadow:0 0 20px rgba(0,255,255,0.5); padding:10px 0; margin-bottom:20px; display:flex; align-items:center; justify-content:center; }
+
+/* --- Header & Welcome Text (Updated for Welcome Message) --- */
+.header { background:#111; border-bottom:3px solid cyan; box-shadow:0 0 20px rgba(0,255,255,0.5); padding:10px 0; margin-bottom:20px; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.header-top { display:flex; align-items:center; justify-content:center; width: 100%; }
 .header h1 { font-size:2.5em; color:#fff; text-shadow:0 0 5px cyan,0 0 10px cyan,0 0 15px magenta; margin:0; }
-/* Icon Container for Lightning Bolt */
 .icon-container { margin-right:15px; font-size:2.5em; color:yellow; text-shadow:0 0 5px yellow,0 0 10px orange; }
-/* Buttons */
+/* Style for the dynamic Welcome message */
+.welcome-text { 
+    font-size:1em; 
+    color:lime; 
+    text-align:center; 
+    margin-top: 5px; 
+    text-shadow:0 0 5px lime; 
+}
+
+/* --- Buttons --- */
 .neon-btn { border:2px solid cyan; background:transparent; color:white; padding:8px 14px; margin:5px; border-radius:6px; cursor:pointer; box-shadow:0 0 10px cyan; transition:all 0.2s ease-in-out; text-transform:uppercase; font-family:'Orbitron',sans-serif; }
 .neon-btn:hover { border-color:magenta; box-shadow:0 0 15px magenta; transform: translateY(-1px); }
 .neon-btn:disabled { border-color:#555; box-shadow:none; color:#555; cursor:not-allowed; }
@@ -49,455 +59,124 @@ body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:wh
 .neon-btn.remove { border-color:red; box-shadow:0 0 10px red; }
 .neon-btn.remove:hover { border-color:orange; box-shadow:0 0 15px orange; }
 .neon-btn.pending { border-color:yellow; box-shadow:0 0 10px yellow; color:yellow; cursor:default; }
-/* Input fields */
-input[type="text"], input[type="number"], textarea, select { flex-grow:1; padding:10px; border:1px solid cyan; background:#181818; color:white; border-radius:6px; font-family:inherit; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
+
+/* --- Input fields (Updated to include file input styling) --- */
+input[type="text"], input[type="number"], textarea, select, input[type="file"] { flex-grow:1; padding:10px; border:1px solid cyan; background:#181818; color:white; border-radius:6px; font-family:inherit; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
 input:focus, textarea:focus, select:focus { border-color: magenta; box-shadow: 0 0 8px magenta; }
 textarea { resize: vertical; }
-/* Cards */
+
+/* --- Cards (Updated for badge positioning) --- */
 .card-container { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; padding-top: 10px; }
-.card { width: 100%; max-width:300px; padding:20px; border:3px solid transparent; border-radius:8px; background:#181818; box-shadow:0 0 15px rgba(0,255,255,0.4), inset 0 0 5px rgba(0,255,255,0.2); border-image-source: linear-gradient(45deg, cyan, magenta, cyan); border-image-slice:1; display:flex; flex-direction:column; align-items:center; cursor:pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.card { 
+    position:relative; /* Crucial for badge positioning */ 
+    width: 100%; max-width:300px; padding:20px; border:3px solid transparent; border-radius:8px; background:#181818; box-shadow:0 0 15px rgba(0,255,255,0.4), inset 0 0 5px rgba(0,255,255,0.2); 
+    border-image-source: linear-gradient(45deg, cyan, magenta, cyan); border-image-slice:1; 
+    display:flex; flex-direction:column; align-items:center; cursor:pointer; transition: transform 0.2s, box-shadow 0.2s; 
+}
 .card:hover { transform: translateY(-5px); box-shadow:0 0 30px magenta, inset 0 0 10px rgba(255,0,255,0.5); }
 .request-card { cursor:default; border:3px solid orange; box-shadow:0 0 15px orange; }
 .request-card:hover { transform:none; box-shadow:0 0 15px orange; }
 
 .card-content-box { display:flex; flex-direction:column; align-items:center; width:100%; margin-bottom:15px; padding-bottom:15px; border-bottom:1px dashed #333; }
+/* Avatar styling for profile picture */
 .avatar { width:80px; height:80px; border-radius:50%; border:4px solid magenta; object-fit:cover; margin-bottom:15px; }
 .skill-rating { color:gold; font-size:1.4em; margin-bottom:10px; }
 
-/* Game Category (formerly Discipline) styling */
-.game-category { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; color:#0b0b0b; }
-.game-category-leagueoflegends { background-color:#0077B6; color:white; }
-.game-category-fortnite { background-color:#5a189a; color:white; }
-.game-category-valorant { background-color:#FF4655; color:white; }
-.game-category-cybersecurity { background-color:lime; color:#0b0b0b; }
-.game-category-other { background-color:gray; color:white; }
-
-/* Game Role styling */
-.game-role { font-size:0.8em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; background-color:cyan; color:#0b0b0b;}
-
-/* Looking For Category styling */
-.lfd-category { font-size:0.8em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; background-color:#ff00ff; color:white; border:1px solid white;}
-
-
-.status-indicator { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; }
-.status-online { background-color:#00cc00; color:#0b0b0b; box-shadow:0 0 5px #00ff00; }
-.status-ingame { background-color:#ffaa00; color:#0b0b0b; box-shadow:0 0 5px #ffaa00; }
-.status-lfd { background-color:#ff00ff; color:white; box-shadow:0 0 5px #ff00ff; border:1px solid #ff00ff; }
-
-/* Co-Founder Badge Style */
-.nickname-group { display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
-.co-founder-badge { 
-    background: linear-gradient(45deg, #FFD700, #FFA500, #FFD700); 
-    color: #333; 
-    font-size: 0.75em; 
-    padding: 2px 8px; 
-    border-radius: 4px; 
-    font-weight: bold;
+/* --- Badge Styling --- */
+.badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75em;
+    font-weight: 700;
     text-transform: uppercase;
-    margin-left: 8px; /* Spacing next to nickname */
-    box-shadow: 0 0 5px #FF0000; /* changed to red */
+    font-family: 'Orbitron', sans-serif;
+    letter-spacing: 1px;
+    z-index: 10; /* Ensure badge is on top */
 }
 
-/* Nav */
-#navigationBar { display:flex; justify-content:center; flex-wrap:wrap; padding:10px; background:#151515; border-radius:8px; margin-bottom:30px; border:1px solid #333; }
-#navigationBar button.active { background:#00ffcc; color:#0b0b0b; box-shadow:0 0 15px #00ffcc; }
-#searchControls { display:flex; gap:15px; margin-bottom:20px; align-items:center; flex-wrap:wrap; background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #004444; }
-/* Messaging */
-#messagingTab { display:flex; gap:20px; height:75vh; }
-#chatList { width:300px; padding:15px; border:2px solid cyan; border-radius:8px; background:#1a1a1a; overflow-y:auto; }
-#activeDuoList { margin-top:10px; }
-.chat-entry { padding:10px; border-bottom:1px dashed #333; cursor:pointer; transition: background 0.2s; }
-.chat-entry:hover { background:#2a2a2a; }
-.chat-entry.active { background:#004444; border-left:5px solid lime; font-weight:bold; }
-#chatWindow { flex-grow:1; display:flex; flex-direction:column; border:2px solid magenta; border-radius:8px; background:#1a1a1a; }
-#chatHeader { padding:10px; border-bottom:2px solid magenta; margin:0; background:#330033; }
-#messageDisplay { flex-grow:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:15px; }
-/* Message Bubbles - Styling the chat */
-.message { max-width:70%; padding:10px 15px; border-radius:18px; font-size:0.95em; position:relative; }
-.message span { display:block; font-size:0.7em; opacity:0.6; text-align:right; margin-top:3px; }
-.message.sent { 
-    background:#005555; 
-    align-self:flex-end; 
-    border-bottom-right-radius:5px;
-    box-shadow: 0 0 5px #00ffff;
+/* Specific styling for the target user's badge (Pilex6 / kHsYFJVHCGfQzI16nJH0mg1rv7u1) */
+.badge.pilex6 {
+    background: rgba(0, 255, 0, 0.1); /* Subtle background */
+    color: #ccff00; /* Neon Green */
+    border: 2px solid #ccff00;
+    box-shadow: 0 0 8px #ccff00, inset 0 0 4px #ccff00;
 }
-.message.received { 
-    background:#333333; 
-    align-self:flex-start; 
-    border-bottom-left-radius:5px;
-    box-shadow: 0 0 5px #ff00ff;
+.badge.pilex6::before {
+    content: "Pilex6";
 }
-#messageInputArea { padding:10px; border-top:2px solid magenta; background:#0b0b0b; display:flex; gap:10px; }
-/* Profile view */
-#viewProfileTab { display:none; }
-/* Refined Profile Content Style */
-#viewProfileContent { padding:30px; border:3px solid magenta; border-radius:12px; background:#1a1a1a; margin-top:20px; display:flex; flex-direction:column; align-items:center; }
-.profile-stat { width:100%; max-width:400px; display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #333; margin-bottom:5px; }
-.profile-stat span:first-child { color: cyan; font-weight:bold; }
-.profile-stat span:last-child { text-align:right; }
 
-/* Loading State */
-#loadingOverlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 9999;
-    display: flex; justify-content: center; align-items: center;
-    font-size: 2em; color: lime; text-shadow: 0 0 10px lime;
+/* Example of a standard DEV/CO-FOUNDER badge for comparison (if applicable) */
+.badge.dev {
+    background: rgba(0, 255, 255, 0.1); 
+    color: cyan;
+    border: 2px solid cyan;
+    box-shadow: 0 0 8px cyan, inset 0 0 4px cyan;
 }
+
 </style>
 </head>
 <body>
 
-<div id="loadingOverlay">LOADING...</div>
-
-<div class="header"><div class="icon-container">⚡</div><h1>DUO UP</h1></div>
-
-<div id="loginPage" class="container hidden">
-<p style="text-align:center;">WELCOME TO ⚡DUO UP!"</p>
-<div style="text-align:center;">
-<button class="neon-btn" onclick="login()">Login with Google</button>
-</div>
-</div>
-
-<div id="dashboard" class="container hidden">
-<h2 id="welcome"></h2>
-<div id="navigationBar">
-<button class="neon-btn" id="tab-allUsers" onclick="showTab('allUsers')">Suggested</button>
-<button class="neon-btn" id="tab-search" onclick="showTab('search')">Find Players</button>
-<button class="neon-btn" id="tab-friends" onclick="showTab('friends')">Duos</button>
-<button class="neon-btn" id="tab-messaging" onclick="showTab('messaging')">Messaging</button>
-<button class="neon-btn" id="tab-profile" onclick="showTab('profile')">Profile</button>
-<button class="neon-btn remove" onclick="logout()">Logout</button>
-</div>
-
-<div id="allUsersTab" class="card-container"></div>
-
-<div id="searchTab" class="hidden container">
-<h2>Player Search Filter</h2>
-<div id="searchControls">
-<input type="text" id="searchInput" placeholder="Search by Nickname..." onkeyup="filterSearchResults()">
-<label style="color:cyan; margin-left:15px;">Status:</label>
-<select id="statusFilter" onchange="filterSearchResults()">
-<option value="">Any Status</option>
-<option value="Online">Online</option>
-<option value="In Game">In Game</option>
-<option value="LFD">Looking For Duo (LFD)</option>
-</select>
-<label style="color:cyan; margin-left:15px;">Game/Category:</label>
-<select id="gameCategoryFilter" onchange="filterSearchResults()">
-<option value="">Any Game/Category</option>
-<option value="LeagueOfLegends">League of Legends</option>
-<option value="Fortnite">Fortnite</option>
-<option value="Valorant">Valorant</option>
-<option value="CyberSecurity">Cyber Security</option>
-<option value="Other">Other</option>
-</select>
-<label style="color:cyan; margin-left:15px;">Game Role/Mode:</label>
-<select id="gameRoleFilter" onchange="filterSearchResults()">
-<option value="">Any Role/Mode</option>
-<option value="TopTank">Top Tank (LoL)</option>
-<option value="JungleCarry">Jungle Carry (LoL)</option>
-<option value="Duo">Duo (Fortnite/Valorant)</option>
-<option value="Squad">Squad (Fortnite)</option>
-<option value="Support">Support (LoL/Valorant)</option>
-<option value="ExploitDev">Exploit Dev (Cyber)</option>
-<option value="RedTeamOp">Red Team Op (Cyber)</option>
-</select>
-<label style="color:cyan; margin-left:15px;">Looking For:</label>
-<select id="lfdCategoryFilter" onchange="filterSearchResults()">
-<option value="">Any LFD Type</option>
-<option value="Duo">Duo (2-person team)</option>
-<option value="Squad">Squad (3+ person team)</option>
-<option value="Team">Full Team (Permanent)</option>
-<option value="Mentor">Mentor/Mentee</option>
-</select>
-</div>
-<div id="searchResults" class="card-container"></div>
-</div>
-
-<div id="friendsTab" class="container hidden">
-<h2>Incoming Friend Requests</h2>
-<div id="pendingRequestsList" class="card-container"></div>
-<h2 style="margin-top:40px;">Your Accepted Duos</h2>
-<div id="friendList" class="card-container">
-    <p style="width:100%; text-align:center; color:magenta;">
-    Loading accepted duos...
-    </p>
-</div>
-</div>
-
-<div id="messagingTab" class="hidden">
-<div id="chatList">
-<h3>Active Duos</h3>
-<div id="activeDuoList">No Duos yet.</div>
-</div>
-<div id="chatWindow">
-<h3 id="chatHeader">Select a Duo to start messaging</h3>
-<div id="messageDisplay"></div>
-<div id="messageInputArea" class="hidden">
-<input type="text" id="messageInput" placeholder="Type your message..." onkeyup="if(event.key==='Enter') sendMessage()">
-<button class="neon-btn" id="sendMessageBtn" onclick="sendMessage()">Send</button>
-</div>
-</div>
-</div>
-
-<div id="viewProfileTab" class="hidden container">
-<button class="neon-btn" onclick="showTab('allUsers')">← Back to Suggested</button>
-<div id="viewProfileContent"></div>
-</div>
-
-<div id="profileTab" class="hidden container">
-<h2>Gamer-Profile Editor</h2>
-<div style="padding:20px; border:2px solid magenta; border-radius:10px; background:#1a1a1a;">
-<div style="display:flex; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
-    <div style="margin-right:20px; display:flex; flex-direction:column; align-items:center;">
-        <img id="profileAvatar" class="avatar" src="" style="width:100px;height:100px;border-color:cyan;">
-        <p style="font-size:0.8em; margin:5px 0 0 0;">Upload New:</p>
-        <input type="file" id="avatarFile" accept="image/*" style="width:150px; font-size:0.8em; border:none;" onchange="previewAvatar(event)">
+<div class="header">
+    <div class="header-top">
+        <div class="icon-container">⚡</div>
+        <h1>DUO UP</h1>
     </div>
-    <div style="flex-grow:1; min-width:200px;">
-        <label style="color: cyan; display:block; margin-bottom:5px;">Unique Identifier:</label>
-        <input type="text" id="profileNickname" value="User Nickname" placeholder="Your Unique Nickname">
-        <p id="nicknameChangeInfo" style="color:yellow; font-size:0.8em; margin:5px 0 0 0;">(You get one free nickname change.)</p>
-    </div>
-</div>
-<div style="margin-bottom:15px;">
-<label style="color: cyan; display:block; margin-bottom:5px;">Bio/Tagline:</label>
-<textarea id="profileBio" rows="3" style="width:100%;"></textarea>
-</div>
-<div style="display:flex; gap:30px; margin-bottom:20px; flex-wrap:wrap;">
-<div>
-    <label style="color: cyan; display:block; margin-bottom:5px;">Skill Rating (1-5):</label>
-    <input id="profileSkillRating" type="number" min="1" max="5">
-</div>
-<div>
-    <label style="color: cyan; display:block; margin-bottom:5px;">Primary Game/Category:</label>
-    <select id="profileGameCategory">
-        <option value="LeagueOfLegends">League of Legends</option>
-        <option value="Fortnite">Fortnite</option>
-        <option value="Valorant">Valorant</option>
-        <option value="CyberSecurity">Cyber Security</option>
-        <option value="Other">Other</option>
-    </select>
-</div>
-</div>
-<div style="display:flex; gap:30px; margin-bottom:20px; flex-wrap:wrap;">
-    <div>
-        <label style="color: cyan; display:block; margin-bottom:5px;">Game Role/Mode:</label>
-        <select id="profileGameRole">
-            <option value="TopTank">Top Tank (LoL)</option>
-            <option value="JungleCarry">Jungle Carry (LoL)</option>
-            <option value="Duo">Duo (Fortnite/Valorant)</option>
-            <option value="Squad">Squad (Fortnite)</option>
-            <option value="Support">Support (LoL/Valorant)</option>
-            <option value="ExploitDev">Exploit Dev (Cyber)</option>
-            <option value="RedTeamOp">Red Team Op (Cyber)</option>
-            <option value="Generalist">Generalist/Flex</option>
-        </select>
-    </div>
-    <div>
-        <label style="color: cyan; display:block; margin-bottom:5px;">Current Status:</label>
-        <select id="profileStatus" onchange="toggleLfdCategory()">
-            <option value="Online">Online</option>
-            <option value="In Game">In Game</option>
-            <option value="LFD">Looking For Duo (LFD)</option>
-        </select>
-    </div>
-    <div id="lfdCategoryGroup" class="hidden">
-        <label style="color: cyan; display:block; margin-bottom:5px;">LFD Goal:</label>
-        <select id="profileLfdCategory">
-            <option value="Duo">Duo (2-person team)</option>
-            <option value="Squad">Squad (3+ person team)</option>
-            <option value="Team">Full Team (Permanent)</option>
-            <option value="Mentor">Mentor/Mentee</option>
-        </select>
-    </div>
-</div>
-<button class="neon-btn" style="border-color:#00ff00; box-shadow:0 0 10px #00ff00;" onclick="saveProfile()">Save Profile</button>
-<p id="saveMessage" style="color:#00ff00; margin-top:10px;"></p>
-</div>
+    <p id="welcomeMessage" class="welcome-text hidden">Welcome, User Loading...</p>
 </div>
 
-<script>
-// ----------------------------------------------------
-// 0. GLOBAL VARS 
-// ----------------------------------------------------
-let auth;
-let db;
-let storage;
-
-let currentUser = null;
-let currentProfileData = {};
-let allUsersCache = [];
-let requestCache = {};
-let currentChatId = null;
-let chatListener = null;
-let currentChatPartnerId = null; 
-
-const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
-
-// ---------------------------
-// Firebase Configuration (<<-- REPLACE THIS WITH YOUR ACTUAL CONFIG -->>)
-// ---------------------------
-const firebaseConfig = {
-    apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
-    authDomain: "duoup-cfae6.firebaseapp.com",
-    projectId: "duoup-cfae6",
-    storageBucket: "duoup-cfae6.firebasestorage.app",
-    messagingSenderId: "812263060524",
-    appId: "1:812263060524:web:ac09c3ae610db1cd110d89",
-    measurementId: "G-46B67F90FK"
-};
-
-const CO_FOUNDER_UIDS = [
-    // Add UIDs for co-founder badges here
-    "GmH4xJp92vY8sbwIWgJWjFw9MOQ2",
-];
-
-function getCoFounderBadge(uid) {
-    if (CO_FOUNDER_UIDS.includes(uid)) {
-        return '<div class="co-founder-badge">DEV/CO-FOUNDER</div>';
-    }
-    return '';
-}
-
-// ----------------------------------------------------
-// 1. INITIALIZATION & AUTHENTICATION ENTRY POINT
-// ----------------------------------------------------
-function initFirebase() {
-    if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-    }
-    auth = firebase.auth();
-    db = firebase.firestore();
-    storage = firebase.storage();
-
-    // Listener is the main entry point to ensure user is ready
-    auth.onAuthStateChanged(user => {
-        currentUser = user;
-        document.getElementById('loadingOverlay').classList.add('hidden');
-        
-        const loginPage = document.getElementById('loginPage');
-        const dashboard = document.getElementById('dashboard');
-        
-        if (currentUser) {
-            loginPage.classList.add('hidden');
-            dashboard.classList.remove('hidden');
-            document.getElementById('welcome').textContent = `Welcome, ${currentUser. || 'Cyber Warrior'}!`;
-            
-            // CRITICAL: Initialize the dashboard view *after* authentication is confirmed
-            showTab('allUsers'); 
-            checkAndCreateUserProfile(); // Ensure user document exists
-        } else {
-            loginPage.classList.remove('hidden');
-            dashboard.classList.add('hidden');
-        }
-    });
-}
-
-async function checkAndCreateUserProfile() {
-    if (!currentUser) return;
-    const userDocRef = db.collection('users').doc(currentUser.uid);
-    const userDoc = await userDocRef.get();
-
-    if (!userDoc.exists) {
-        // Create default profile for new user
-        await userDocRef.set({
-            nickname: currentUser.displayName.uid || 'User',
-            profileImageUrl: currentUser.photoURL || DEFAULT_AVATAR,
-            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-            status: 'Online',
-            bio: 'READY TO DUO UP!',
-            skillRating: 3,
-            nicknameChangeUsed: false
-        });
-        // New users start on the profile tab to set things up
-        showTab('profile'); 
-    }
-}
-
-// ---------------------------
-// Utility Functions
-function getChatId(otherUid) {
-    // Standardized Chat ID format: UID1_UID2 (alphabetically sorted)
-    return [currentUser.uid, otherUid].sort().join('_');
-}
-
-function findUserInCache(uid) {
-    return allUsersCache.find(user => user.id === uid);
-}
-
-// ---------------------------
-// Authentication
-function login(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-function logout(){ 
-    if(chatListener) chatListener(); 
-    auth.signOut(); 
-}
-
-// ---------------------------
-// Tab switching
-function showTab(tab){
-    document.querySelectorAll('#allUsersTab,#searchTab,#friendsTab,#messagingTab,#profileTab,#viewProfileTab').forEach(e=>e.classList.add('hidden'));
-
-    // Reset Chat Listener if not navigating to messaging
-    if(tab!=='messaging' && chatListener){
-        chatListener();
-        chatListener=null;
-        currentChatId=null;
-        currentChatPartnerId = null;
-        document.getElementById('messageDisplay').innerHTML = '';
-        document.getElementById('chatHeader').textContent = 'Select a Duo to start messaging';
-        document.getElementById('messageInputArea').classList.add('hidden');
-    }
-
-    // Highlight active navigation button
-    document.querySelectorAll('#navigationBar button').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('tab-' + tab)?.classList.add('active');
-
-
-    switch(tab){
-        case 'allUsers': loadAllUsers(); break;
-        case 'search': filterSearchResults(); break;
-        case 'friends': loadFriends(); break;
-        case 'messaging': loadChatList(); break;
-        case 'profile': loadUserProfile(); toggleLfdCategory(); break;
-        default: break;
-    }
-    document.getElementById(tab+'Tab')?.classList.remove('hidden'); 
-}
-
-// ---------------------------
-// CORE DATA LOADING (Fixed LoadAllUsers Query)
-// ---------------------------
-async function loadAllUsers(){
-    if(!currentUser) return;
-    const container=document.getElementById('allUsersTab');
-    container.innerHTML="<h3>Loading Suggested Players...</h3>";
+<div class="container">
     
-    try{
-        // 1. Load ALL users 
-        const snapshot=await db.collection('users').get();
-        allUsersCache=snapshot.docs.map(d=>({id:d.id,...d.data()}));
+    <div id="profileEditSection" class="hidden" style="background:#151515; padding:20px; border-radius:8px; border:1px solid #333;">
+        <h2>⚙️ Edit Profile</h2>
+        <div style="margin-bottom: 15px;">
+            <label for="profilePictureUpload" style="display:block; margin-bottom: 5px;">Change Profile Picture</label>
+            <input type="file" id="profilePictureUpload" accept="image/*"> 
+        </div>
         
-        // 2. Load all friend requests involving the current user (FIXED QUERY)
-        // Uses the 'participants' array field which is enforced by security rules.
-        const requestsSnap = await db.collection('friendRequests')
-            .where('participants', 'array-contains', currentUser.uid) 
-            .get();
-            
-        requestCache = {};
-        requestsSnap.forEach(doc => {
-            const data = doc.data();
-            const otherUid = data.participants.find(uid => uid !== currentUser.uid);
+        <input type="text" id="editUsername" placeholder="Username" style="margin-bottom: 10px;">
+        <textarea id="editBio" placeholder="Tell us about yourself..." style="margin-bottom: 15px;"></textarea>
+        
+        <button class="neon-btn add" id="saveProfileBtn">Save Changes</button>
+    </div>
 
-            if (otherUid) {
-                requestCache[otherUid] = { 
-                    id: doc.id, 
-                    status: data.status, 
-                    senderId: data.senderId,
-                    receiverId: data.receiverId
-                };
+    <div id="app-content">
+        <h2>🔥 Find Your Duo</h2>
+        
+        <div class="card-container" id="playerList">
+            
+            <div class="card" data-user-id="kHsYFJVHCGfQzI16nJH0mg1rv7u1">
+                <span class="badge pilex6"></span> 
+                <div class="card-content-box">
+                    <img class="avatar" src="https://example.com/default-avatar.png" alt="Profile Picture">
+                    <h3>Pilex6</h3>
+                    <p class="skill-rating">⭐ 5.0</p>
+                </div>
+                <button class="neon-btn">Request Duo</button>
+            </div>
+
+            <div class="card" data-user-id="someOtherUserId123">
+                <span class="badge hidden"></span> 
+                <div class="card-content-box">
+                    <img class="avatar" src="https://example.com/other-user-avatar.jpg" alt="Profile Picture">
+                    <h3>ExamplePlayer</h3>
+                    <p class="skill-rating">⭐ 4.2</p>
+                </div>
+                <button class="neon-btn">Request Duo</button>
+            </div>
+            
+        </div>
+    </div>
+    
+</div>
+
+<script src="path/to/your/app.js"></script>
+
+</body>
+</html>     };
             }
         });
 
@@ -1077,6 +756,7 @@ initFirebase();
 
 </body>
 </html>
+
 
 
 
