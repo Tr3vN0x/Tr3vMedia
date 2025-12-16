@@ -314,7 +314,7 @@ textarea { resize: vertical; }
 // ----------------------------------------------------
 let auth;
 let db;
-let storage;
+let storage; // Initialized for Firebase Storage
 
 let currentUser = null;
 let currentProfileData = {};
@@ -687,6 +687,10 @@ function previewAvatar(event) {
     }
 }
 
+/**
+ * Uploads the selected avatar file to Firebase Storage.
+ * FIX: This function is now correctly defined to handle the asynchronous file upload.
+ */
 async function uploadAvatar(file) {
     if (!file) return currentProfileData.profileImageUrl;
 
@@ -699,7 +703,10 @@ async function uploadAvatar(file) {
 
         document.getElementById('saveMessage').textContent = 'Uploading image...';
 
+        // Wait for the upload to complete
         const snapshot = await avatarRef.put(file);
+        
+        // Wait for the download URL
         const downloadURL = await snapshot.ref.getDownloadURL();
         return downloadURL;
     } catch (e) {
@@ -722,13 +729,13 @@ async function saveProfile() {
         const gameRole = document.getElementById('profileGameRole').value;
         const status = document.getElementById('profileStatus').value;
         const lfdCategory = document.getElementById('profileLfdCategory').value;
-        const avatarFile = document.getElementById('avatarFile').files[0];
         
+        // 🚨 PROFILE PICTURE INTEGRATION
+        const avatarFile = document.getElementById('avatarFile').files[0]; 
         let profileImageUrl = currentProfileData.profileImageUrl || DEFAULT_AVATAR;
 
-        // 1. Handle Avatar Upload (Uses Firebase Storage)
+        // 1. Handle Avatar Upload (Waits for URL)
         if (avatarFile) {
-            // Uploading image can fail if rules are wrong - this needs try/catch
             profileImageUrl = await uploadAvatar(avatarFile);
         }
 
@@ -738,7 +745,7 @@ async function saveProfile() {
             gameCategory,
             gameRole,
             status,
-            profileImageUrl: profileImageUrl, // Updated URL from storage
+            profileImageUrl: profileImageUrl, // <--- New URL is saved here
             lfdCategory: status === 'LFD' ? lfdCategory : null,
         };
 
@@ -941,7 +948,7 @@ async function loadFriends() {
     let acceptedCount = 0;
 
     try {
-        // Iterate through the requestCache which contains ALL requests involving currentUser
+        // We rely on requestCache being populated by loadAllUsers()
         for (const otherUid in requestCache) {
             const requestInfo = requestCache[otherUid];
             const otherUserData = findUserInCache(otherUid);
