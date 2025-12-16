@@ -469,6 +469,16 @@ function getChatId(otherUid) {
     return [currentUser.uid, otherUid].sort().join('_');
 }
 
+/**
+ * FIX: Helper function to create the canonical ID for friendRequests/chats, 
+ * matching the logic defined in the Firestore Security Rules.
+ */
+function getCanonicalId(uid1, uid2) {
+    // Canonical duo ID: uidA_uidB (lexicographically sorted)
+    return uid1 < uid2 ? uid1 + "_" + uid2 : uid2 + "_" + uid1;
+}
+
+
 function findUserInCache(uid) {
     return allUsersCache.find(user => user.id === uid);
 }
@@ -829,11 +839,19 @@ function toggleLfdCategory() {
 // DUO/FRIENDS/MESSAGING FUNCTIONS (IMPLEMENTATION)
 // ---------------------------
 
+/**
+ * Sends a friend request.
+ * FIX: Now uses getCanonicalId and set() to ensure the document ID matches 
+ * the ID required by the Firestore Security Rules.
+ */
 async function sendFriendRequest(receiverId) {
     if (receiverId === currentUser.uid) return alert("Cannot send request to yourself.");
 
     const receiver = findUserInCache(receiverId);
     if (!receiver) return alert("Error: User not found in cache.");
+
+    // 1. Calculate the required document ID (Canonical ID)
+    const canonicalDuoId = getCanonicalId(currentUser.uid, receiverId);
 
     // Check if a request already exists
     const existingRequest = requestCache[receiverId];
@@ -847,12 +865,15 @@ async function sendFriendRequest(receiverId) {
     }
 
     try {
-        await db.collection('friendRequests').add({
+        // 2. Use .doc(ID).set() to ensure the document ID is the canonical one,
+        // which satisfies the isCanonicalId check in the security rules.
+        await db.collection('friendRequests').doc(canonicalDuoId).set({
             status: 'pending',
             senderId: currentUser.uid,
             receiverId: receiverId,
             participants: [currentUser.uid, receiverId],
-            sentAt: firebase.firestore.FieldValue.serverTimestamp()
+            // FIX: Using 'createdAt' as required by the security rules
+            createdAt: firebase.firestore.FieldValue.serverTimestamp() 
         });
 
         alert(`Request sent to ${receiver.nickname}!`);
