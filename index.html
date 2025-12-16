@@ -344,7 +344,7 @@ const firebaseConfig = {
     storageBucket: "duoup-cfae6.firebasestorage.app",
     messagingSenderId: "812263060524",
     appId: "1:812263060524:web:ac09c3ae610db1cd110d89",
-    measurementId: "G-46B67F90FK" // Added measurementId
+    measurementId: "G-46B67F90FK"
 };
 
 const CO_FOUNDER_UIDS = [
@@ -670,7 +670,7 @@ async function sendFriendRequest(otherUid) {
     const requestId = getChatId(otherUid); // UID1_UID2 format
     const senderId = currentUser.uid;
     
-    if (requestCache[otherUid] && requestCache[otherUid].status !== 'rejected') {
+    if (requestCache[otherUid] && requestCache[otherUid].status !== 'rejected' && requestCache[otherUid].status !== 'deleted') {
         return alert(`A request status is already: ${requestCache[otherUid].status}.`);
     }
 
@@ -745,6 +745,7 @@ async function loadChatList() {
             return;
         }
 
+        // --- Active Chat Entry Rendering ---
         duoSnap.docs.forEach(doc => {
             const duoData = doc.data();
             const chatId = doc.id;
@@ -755,6 +756,7 @@ async function loadChatList() {
             const chatEntry = document.createElement('div');
             chatEntry.className = 'chat-entry';
             chatEntry.textContent = partner.nickname || partner.id;
+            // Pass the canonical chatId and the partner's UID
             chatEntry.onclick = () => selectChat(chatId, otherUid);
             container.appendChild(chatEntry);
         });
@@ -807,11 +809,12 @@ async function selectChat(chatId, otherUid) {
     });
 }
 
+// *** FINAL CORRECTED SEND MESSAGE FUNCTION ***
 async function sendMessage() {
     const inputElement = document.getElementById('messageInput');
     const text = inputElement.value.trim();
 
-    if (!text || !currentChatId) return;
+    if (!text || !currentChatId) return; // Must have content and a selected chat
 
     try {
         const chatDocRef = db.collection('chats').doc(currentChatId);
@@ -832,14 +835,14 @@ async function sendMessage() {
             text: text,
             senderId: currentUser.uid,
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            // CRITICAL: Include chatId in the message document for robust security rules enforcement
+            // CRITICAL: Include chatId in the message document to satisfy security rules
             chatId: currentChatId 
         });
         
         inputElement.value = ''; // Clear input
 
     } catch (e) {
-        console.error("Error sending message (Check Firestore rules for /chats/{chatId}/messages create permission):", e);
+        console.error("Error sending message (Check Firestore rules or Duo Status):", e);
         alert("Failed to send message. Duo status must be 'accepted' and chat rules correct.");
     }
 }
