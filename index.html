@@ -424,9 +424,130 @@ textarea { resize: vertical; }
 </div>
 </div>
 
+<style>
+    /* -------------------------------------- */
+    /* Neon Profile Card Styles */
+    /* -------------------------------------- */
+    
+    .profile-card {
+        max-width: 350px;
+        margin: 40px auto; /* Center the card */
+        padding: 20px;
+        background: #1a1a2e; /* Dark background */
+        border-radius: 15px;
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.5), /* Cyan Neon Glow */
+                    0 0 25px rgba(0, 255, 255, 0.3);
+        text-align: center;
+        color: #e0f7fa; /* Light text color */
+    }
+
+    .profile-avatar {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background-color: #00bcd4; /* Avatar background */
+        border: 4px solid #00ffff; /* Neon border */
+        box-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff;
+        object-fit: cover;
+        margin-bottom: 15px;
+    }
+
+    .profile-name {
+        font-size: 1.8em;
+        font-weight: bold;
+        color: #fff;
+        text-shadow: 0 0 5px #ff00ff; /* Magenta Glow */
+        margin-bottom: 5px;
+    }
+
+    .profile-handle {
+        font-size: 1em;
+        color: #80deea;
+        margin-bottom: 15px;
+    }
+
+    .profile-bio {
+        font-style: italic;
+        color: #bbdefb;
+        margin-bottom: 20px;
+        padding: 0 10px;
+    }
+
+    .stat-container {
+        display: flex;
+        justify-content: space-around;
+        padding-top: 15px;
+        border-top: 1px solid rgba(0, 255, 255, 0.2);
+    }
+
+    .stat {
+        font-size: 1.2em;
+        font-weight: bold;
+        color: #ffcc00; /* Yellow-Orange Stat color */
+    }
+    
+    .stat-label {
+        font-size: 0.8em;
+        color: #80cbc4;
+        font-weight: normal;
+        display: block;
+    }
+
+    /* Existing 'hidden' and 'neon-btn' styles should be kept or defined here */
+    .hidden { display: none !important; }
+    .container { width: 100%; padding: 20px; }
+    /* Assuming a neon-btn style exists for the back button */
+    .neon-btn {
+        background: transparent;
+        border: 2px solid #ff00ff;
+        color: #ff00ff;
+        padding: 10px 20px;
+        border-radius: 5px;
+        text-transform: uppercase;
+        box-shadow: 0 0 10px #ff00ff;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    .neon-btn:hover {
+        background: #ff00ff;
+        color: #1a1a2e;
+        box-shadow: 0 0 20px #ff00ff;
+    }
+
+</style>
+
 <div id="viewProfileTab" class="hidden container">
-<button class="neon-btn" onclick="showTab('allUsers')">← Back to Suggested</button>
-<div id="viewProfileContent"></div>
+    <button class="neon-btn" onclick="showTab('allUsers')">← Back to Suggested</button>
+    
+    <div id="viewProfileContent">
+        <div class="profile-card">
+            <img src="placeholder-avatar.jpg" alt="User Avatar" class="profile-avatar">
+            
+            <div class="profile-name">Viper_Strikes</div>
+            <div class="profile-handle">@TheCodeWitch</div>
+            
+            <p class="profile-bio">
+                Building worlds in code and drinking far too much coffee. Seeking my next great challenge!
+            </p>
+            
+            <div class="stat-container">
+                <div>
+                    <span class="stat">420</span>
+                    <span class="stat-label">Followers</span>
+                </div>
+                <div>
+                    <span class="stat">86</span>
+                    <span class="stat-label">Projects</span>
+                </div>
+                <div>
+                    <span class="stat">99+</span>
+                    <span class="stat-label">Kudos</span>
+                </div>
+            </div>
+            
+        </div>
+        </div>
 </div>
 
    <div id="profileTab" class="hidden container">
