@@ -112,95 +112,102 @@ textarea { resize: vertical; }
 #navigationBar { display:flex; justify-content:center; flex-wrap:wrap; padding:10px; background:#151515; border-radius:8px; margin-bottom:30px; border:1px solid #333; }
 #navigationBar button.active { background:#00ffcc; color:#0b0b0b; box-shadow:0 0 15px #00ffcc; }
 #searchControls { display:flex; gap:15px; margin-bottom:20px; align-items:center; flex-wrap:wrap; background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #004444; }
-/* --- UPDATED CHAT WINDOW STYLES FOR NEON LED EFFECT --- */
+/* --- ENHANCED CHAT WINDOW & BUBBLE STYLES (Modern & Structured) --- */
 
-/* Message Display Container (Minor change for glow clarity) */
+/* 1. Overall Chat Window Improvement */
+#chatWindow {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    /* Softened Border */
+    border: 2px solid #555; 
+    border-radius: 12px; /* Slightly rounder corners */
+    background: #111111; /* Uniform dark background */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* Subtle depth */
+}
+
+/* 2. Message Display (The Scrollable Area) */
 #messageDisplay {
-    padding: 15px;
+    padding: 15px 20px; /* More horizontal padding */
     overflow-y: auto;
-    background: #000000; /* Darker background enhances the neon glow */
-    border-bottom: 1px solid #333;
+    background: #0d0d0d; /* Slightly darker than window for contrast */
+    border-bottom: 1px solid #222;
     display: flex; 
     flex-direction: column;
     flex-grow: 1;
-    gap: 15px;
+    gap: 12px; /* Tighter spacing between message groups */
+    /* Custom scrollbar for dark mode */
+    scrollbar-color: #333 #1a1a1a;
 }
 
-/* Base message container - Increased border-radius for softer bubble */
-.message { 
-    max-width:75%;
-    padding:10px 15px; 
-    border-radius:20px; /* Slightly larger radius */
-    font-size:0.95em; 
-    position:relative; 
-    color: white; 
-    border: 1px solid transparent; 
-}
-
-/* Avatar for the chat bubble and input bar */
+/* 3. Avatar Improvement */
 .chat-avatar {
     width: 35px;
     height: 35px;
     min-width: 35px; 
     border-radius: 50%;
     object-fit: cover;
-    /* Use a vibrant, glowing border */
-    border: 2px solid cyan;
-    box-shadow: 0 0 5px cyan, 0 0 10px rgba(0, 255, 255, 0.7); /* Subtle avatar glow */
+    border: 2px solid #333; /* Less intense border */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
 }
 
-/* Sent Messages (Current User - Intense Neon Cyan/Blue) */
+/* 4. Base Message Bubble */
+.message { 
+    max-width: 70%; /* Slightly narrower for mobile look */
+    padding: 12px 16px; /* Increased padding */
+    border-radius: 18px; 
+    font-size: 0.9em; 
+    line-height: 1.4;
+    color: #ffffff; 
+    transition: background 0.2s; /* Smooth hover effect */
+}
+
+/* 5. Sent Messages (User - Clean Blue/Green) */
 .message-group.sent { 
     align-self: flex-end; 
-    flex-direction: row-reverse;
+    flex-direction: row-reverse; 
 }
-.message-group.sent .chat-avatar { margin-left: 10px; border-color: #00ffff; }
+.message-group.sent .chat-avatar { margin-left: 10px; border-color: #007bff; }
 .message-group.sent .message {
-    /* Background: Darker to look like a 'tube' is glowing on top of it */
-    background: #001f2f; 
-    /* Key to the neon effect: very strong, self-colored box-shadow */
-    border: 1px solid #00ffff; 
-    box-shadow: 0 0 10px #00ffff, 0 0 20px rgba(0, 255, 255, 0.6);
-    
-    /* Neon bubble shape */
-    border-bottom-right-radius: 6px; 
-    border-top-right-radius: 20px; 
-    border-bottom-left-radius: 20px; 
-    border-top-left-radius: 20px;
+    background: #007bff; /* Standard pleasant blue */
+    color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Tapered edge on the bottom right */
+    border-radius: 18px 18px 4px 18px; 
 }
-/* Ensure text inside is bright white or light cyan for contrast */
-.message-group.sent .message { color: #e0ffff; } 
+.message-group.sent .message span { color: rgba(255, 255, 255, 0.8); }
 
-
-/* Received Messages (Opponent - Intense Neon Magenta/Purple) */
+/* 6. Received Messages (Opponent - Subtle Grey/Darker Tone) */
 .message-group.received { 
     align-self: flex-start; 
-    flex-direction: row;
+    flex-direction: row; 
 }
-.message-group.received .chat-avatar { margin-right: 10px; border-color: #ff00ff; }
+.message-group.received .chat-avatar { margin-right: 10px; border-color: #555; }
 .message-group.received .message {
-    /* Background: Darker to look like a 'tube' is glowing on top of it */
-    background: #2f002f; 
-    /* Key to the neon effect: very strong, self-colored box-shadow */
-    border: 1px solid #ff00ff; 
-    box-shadow: 0 0 10px #ff00ff, 0 0 20px rgba(255, 0, 255, 0.6);
-    
-    /* Neon bubble shape */
-    border-bottom-left-radius: 6px; 
-    border-top-left-radius: 20px; 
-    border-bottom-right-radius: 20px; 
-    border-top-right-radius: 20px;
+    background: #282828; /* Dark, subtle background */
+    color: #f0f0f0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    /* Tapered edge on the bottom left */
+    border-radius: 18px 18px 18px 4px; 
 }
-/* Ensure text inside is bright white or light magenta for contrast */
-.message-group.received .message { color: #ffe0ff; }
+.message-group.received .message span { color: rgba(240, 240, 240, 0.7); }
 
-/* Read Indicator Icon - Brighter lime green */
-.read-indicator {
-    color: #39ff14; /* Intense lime green */
-    text-shadow: 0 0 5px #39ff14; /* Add a subtle glow to the indicator */
-    font-size: 0.8em;
-    margin-left: 5px; 
-    vertical-align: middle;
+/* 7. Read/Timestamp/Sender Info */
+.message span { 
+    font-size: 0.75em; /* Slightly larger timestamp */
+    text-align: right; 
+    margin-top: 4px; 
+}
+
+/* 8. Input Area (Cleaned up a bit) */
+#messageInputArea {
+    display: flex;
+    padding: 12px 15px;
+    gap: 10px;
+    align-items: center; 
+    border-top: 1px solid #333; /* Less intrusive border */
+    background: #111111; 
+    box-shadow: none; /* Removed intense shadow */
 }
 
 /* Loading State (Included for context/completeness) */
