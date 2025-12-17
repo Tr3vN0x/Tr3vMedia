@@ -1,312 +1,714 @@
 <?php
 // index.php
 // This PHP file serves as the wrapper for the single-page application (SPA).
-// The only changes here are removing the internal JavaScript and adding external links.
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DUO UP</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DUO UP - Find Your Game Partner</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
 
-<link rel="icon" type="image/x-icon" href="https://your-domain.com/favicon.ico"> 
-<link rel="apple-touch-icon" href="https://your-domain.com/apple-touch-icon.png">
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
 
-<meta property="og:title" content="DUO UP (BETA)">
-<meta property="og:description" content="DUO UP BETA IS OUT NOW! ⚡ ">
-<meta property="og:image" content="https://scontent-iad3-2.xx.fbcdn.net/v/t39.30808-6/598884570_845641984737502_3175907977751628974_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=127cfc&_nc_ohc=ZuwpdBTHlbQQ7kNvwFLa4-J&_nc_oc=AdnsRNEZ9LGhbLpRqeQnLeM5ZTiGo3THde7Ovkn1ymRwx86CnpNR8dGLxw8Vn8khnNbNbxoPDAEcuzexnVRQJ5Y&_nc_zt=23&_nc_ht=scontent-iad3-2.xx&_nc_gid=3wKM0Dsce2XSdse-2Nk3rw&oh=00_AflRQGBp1QY34jQ0Q1L20G0R8K8Hh3F34y2I2Uq9gDqK4A&oe=6946C99E">
-<meta property="og:url" content="https://tr3vn0x.github.io/DUOUP/">
-<meta property="og:type" content="website">
+    <style>
+        /* Base Reset and Body */
+        :root {
+            --neon-green: #00ff00;
+            --neon-blue: #00ffff;
+            --neon-pink: #ff00ff;
+            --background-dark: #111111;
+            --card-dark: #1b1b1b;
+            --text-light: #eeeeee;
+        }
 
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="DUO UP: Cyber Social Platform">
-<meta name="twitter:description" content="Connect, duo up, and conquer. Find your next teammate today.">
-<meta name="twitter:image" content="https://your-domain.com/duo-up-thumbnail.png">
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: var(--background-dark);
+            color: var(--text-light);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
 
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+        /* Loading Overlay */
+        #loadingOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(17, 17, 17, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 10em;
+            color: var(--neon-green);
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
 
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+        .hidden {
+            display: none !important;
+        }
 
-<style>
-/* --- Base styles --- */
-body { margin:0; font-family:'Orbitron',sans-serif; background:#0b0b0b; color:white; }
-.container { width:90%; max-width:1000px; margin:auto; padding:20px; }
-.hidden { display:none !important; }
-/* Header */
-.header { background:#111; border-bottom:3px solid cyan; box-shadow:0 0 20px rgba(0,255,255,0.5); padding:10px 0; margin-bottom:20px; display:flex; align-items:center; justify-content:center; }
-.header h1 { font-size:2.5em; color:#fff; text-shadow:0 0 5px cyan,0 0 10px cyan,0 0 15px magenta; margin:0; }
-/* Icon Container for Lightning Bolt */
-.icon-container { margin-right:15px; font-size:2.5em; color:yellow; text-shadow:0 0 5px yellow,0 0 10px orange; }
-/* Buttons */
-.neon-btn { border:2px solid cyan; background:transparent; color:white; padding:8px 14px; margin:5px; border-radius:6px; cursor:pointer; box-shadow:0 0 10px cyan; transition:all 0.2s ease-in-out; text-transform:uppercase; font-family:'Orbitron',sans-serif; }
-.neon-btn:hover { border-color:magenta; box-shadow:0 0 15px magenta; transform: translateY(-1px); }
-.neon-btn:disabled { border-color:#555; box-shadow:none; color:#555; cursor:not-allowed; }
-.neon-btn.add { border-color:lime; box-shadow:0 0 10px lime; }
-.neon-btn.add:hover { border-color:green; box-shadow:0 0 15px green; }
-.neon-btn.remove { border-color:red; box-shadow:0 0 10px red; }
-.neon-btn.remove:hover { border-color:orange; box-shadow:0 0 15px orange; }
-.neon-btn.pending { border-color:yellow; box-shadow:0 0 10px yellow; color:yellow; cursor:default; }
-/* Input fields */
-input[type="text"], input[type="number"], textarea, select { flex-grow:1; padding:10px; border:1px solid cyan; background:#181818; color:white; border-radius:6px; font-family:inherit; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
-input:focus, textarea:focus, select:focus { border-color: magenta; box-shadow: 0 0 8px magenta; }
-textarea { resize: vertical; }
-/* Cards */
-.card-container { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; padding-top: 10px; }
-.card { width: 100%; max-width:300px; padding:20px; border:3px solid transparent; border-radius:8px; background:#181818; box-shadow:0 0 15px rgba(0,255,255,0.4), inset 0 0 5px rgba(0,255,255,0.2); border-image-source: linear-gradient(45deg, cyan, magenta, cyan); border-image-slice:1; display:flex; flex-direction:column; align-items:center; cursor:pointer; transition: transform 0.2s, box-shadow 0.2s; }
-.card:hover { transform: translateY(-5px); box-shadow:0 0 30px magenta, inset 0 0 10px rgba(255,0,255,0.5); }
-.request-card { cursor:default; border:3px solid orange; box-shadow:0 0 15px orange; }
-.request-card:hover { transform:none; box-shadow:0 0 15px orange; }
+        /* Header */
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px 0;
+            margin-bottom: 20px;
+            background: linear-gradient(90deg, #111, rgba(0, 255, 0, 0.1), #111);
+            border-bottom: 2px solid var(--neon-green);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
 
-.card-content-box { display:flex; flex-direction:column; align-items:center; width:100%; margin-bottom:15px; padding-bottom:15px; border-bottom:1px dashed #333; }
-.avatar { width:80px; height:80px; border-radius:50%; border:4px solid magenta; object-fit:cover; margin-bottom:15px; }
-.skill-rating { color:gold; font-size:1.4em; margin-bottom:10px; }
+        .icon-container {
+            font-size: 2em;
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+            margin-right: 10px;
+        }
 
-/* Game Category (formerly Discipline) styling */
-.game-category { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; color:#0b0b0b; }
-.game-category-leagueoflegends { background-color:#0077B6; color:white; }
-.game-category-fortnite { background-color:#5a189a; color:white; }
-.game-category-valorant { background-color:#FF4655; color:white; }
-.game-category-cybersecurity { background-color:lime; color:#0b0b0b; }
-.game-category-other { background-color:gray; color:white; }
+        h1 {
+            margin: 0;
+            color: var(--text-light);
+            text-shadow: 0 0 5px var(--neon-green);
+            font-size: 2.5em;
+        }
 
-/* Game Role styling */
-.game-role { font-size:0.8em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:5px; text-transform:uppercase; background-color:cyan; color:#0b0b0b;}
+        /* Main Containers */
+        #loginPage, #dashboard {
+            width: 95%;
+            max-width: 1200px;
+            padding: 20px;
+            box-sizing: border-box;
+            background-color: #1a1a1a;
+            border: 1px solid var(--neon-blue);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.2);
+            border-radius: 8px;
+        }
 
-/* Looking For Category styling */
-.lfd-category { font-size:0.8em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; background-color:#ff00ff; color:white; border:1px solid white;}
+        /* Login Page */
+        #loginPage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            min-height: 400px;
+            justify-content: center;
+        }
+
+        #loginPage p {
+            font-size: 1.2em;
+            color: var(--neon-pink);
+            margin-bottom: 30px;
+            text-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        /* Neon Button Style */
+        .neon-btn {
+            background: transparent;
+            color: var(--neon-green);
+            border: 2px solid var(--neon-green);
+            padding: 10px 20px;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+            margin: 5px;
+            border-radius: 4px;
+        }
+
+        .neon-btn:hover:not(:disabled) {
+            background-color: var(--neon-green);
+            color: var(--background-dark);
+            box-shadow: 0 0 20px var(--neon-green);
+        }
+
+        .neon-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .neon-btn.add {
+            border-color: var(--neon-blue);
+            color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        .neon-btn.add:hover:not(:disabled) {
+            background-color: var(--neon-blue);
+            color: var(--background-dark);
+            box-shadow: 0 0 20px var(--neon-blue);
+        }
+        .neon-btn.remove {
+            border-color: var(--neon-pink);
+            color: var(--neon-pink);
+            box-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+        .neon-btn.remove:hover:not(:disabled) {
+            background-color: var(--neon-pink);
+            color: var(--background-dark);
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+        .neon-btn.pending {
+            border-color: orange;
+            color: orange;
+            box-shadow: 0 0 10px rgba(255, 165, 0, 0.5);
+            opacity: 0.8;
+        }
+        .neon-btn.message {
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+
+        /* Dashboard */
+        #welcome {
+            text-align: center;
+            color: var(--neon-pink);
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            text-shadow: 0 0 5px var(--neon-pink);
+        }
+
+        /* Navigation Bar */
+        #navigationBar {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            padding: 10px;
+            border-bottom: 1px dashed var(--neon-green);
+        }
+
+        #navigationBar button {
+            flex-grow: 1;
+            max-width: 180px;
+            border-color: #333;
+            color: #ccc;
+            box-shadow: none;
+        }
+
+        #navigationBar button.active {
+            border-color: var(--neon-green);
+            background-color: var(--neon-green);
+            color: var(--background-dark);
+            box-shadow: 0 0 15px var(--neon-green);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            padding: 20px;
+            border-top: 1px solid var(--neon-blue);
+            min-height: 400px;
+        }
+
+        /* User Card List Layout */
+        #allUsersTab, #searchResults, #friendList, #pendingRequestsList {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            padding: 0;
+            list-style: none;
+            justify-content: center;
+        }
+
+        /* Card Style */
+        .card {
+            background-color: var(--card-dark);
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.1);
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .card:hover {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        .card-content-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 10px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--neon-green);
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .nickname-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .card h3 {
+            margin: 5px 0 0;
+            font-size: 1.2em;
+            color: var(--neon-blue);
+        }
+
+        .status-indicator {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-top: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-online { background-color: #008800; color: #00ff00; box-shadow: 0 0 5px #00ff00; }
+        .status-offline { background-color: #555555; color: #ccc; }
+        .status-lfd { background-color: #880088; color: #ff00ff; box-shadow: 0 0 5px #ff00ff; }
+
+        .game-category {
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 0.7em;
+            margin-top: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+            box-shadow: 0 0 5px;
+        }
+
+        /* Specific Category Colors - Use a few distinct ones */
+        .game-category-fps { background-color: #0055ff; color: #fff; box-shadow: 0 0 5px #0055ff; }
+        .game-category-mmo { background-color: #ffaa00; color: #111; box-shadow: 0 0 5px #ffaa00; }
+        .game-category-moba { background-color: #ff0055; color: #fff; box-shadow: 0 0 5px #ff0055; }
+        .game-category-rpg { background-color: #00ffaa; color: #111; box-shadow: 0 0 5px #00ffaa; }
+        .game-category-other { background-color: #555555; color: #fff; box-shadow: none; }
+
+        .game-role {
+            font-size: 0.8em;
+            color: #aaa;
+            margin: 5px 0;
+        }
+
+        .skill-rating {
+            color: gold;
+            text-shadow: 0 0 3px #ffdf00;
+            font-size: 1.2em;
+        }
+
+        .lfd-category {
+            background-color: #ff00ff;
+            color: #111;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 0.7em;
+            font-weight: bold;
+            margin-top: 5px;
+            box-shadow: 0 0 5px #ff00ff;
+        }
 
 
-.status-indicator { font-size:0.9em; padding:4px 10px; border-radius:4px; font-weight:bold; margin-bottom:10px; text-transform:uppercase; }
-.status-online { background-color:#00cc00; color:#0b0b0b; box-shadow:0 0 5px #00ff00; }
-.status-ingame { background-color:#ffaa00; color:#0b0b0b; box-shadow:0 0 5px #ffaa00; }
-.status-lfd { background-color:#ff00ff; color:white; box-shadow:0 0 5px #ff00ff; border:1px solid #ff00ff; }
+        /* Profile Page */
+        #profileTab, #viewProfileTab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
 
-/* Co-Founder Badge Style */
-.nickname-group { display: flex; align-items: center; justify-content: center; margin-bottom: 5px; }
+        .profile-container {
+            width: 100%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #222;
+            border: 1px solid var(--neon-green);
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
 
-/* Nav */
-#navigationBar { display:flex; justify-content:center; flex-wrap:wrap; padding:10px; background:#151515; border-radius:8px; margin-bottom:30px; border:1px solid #333; }
-#navigationBar button.active { background:#00ffcc; color:#0b0b0b; box-shadow:0 0 15px #00ffcc; }
-#searchControls { display:flex; gap:15px; margin-bottom:20px; align-items:center; flex-wrap:wrap; background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #004444; }
-/* Messaging */
-#messagingTab { display:flex; gap:20px; height:75vh; }
-#chatList { width:300px; padding:15px; border:2px solid cyan; border-radius:8px; background:#1a1a1a; overflow-y:auto; }
-#activeDuoList { margin-top:10px; }
-.chat-entry { padding:10px; border-bottom:1px dashed #333; cursor:pointer; transition: background 0.2s; }
-.chat-entry:hover { background:#2a2a2a; }
-.chat-entry.active { background:#004444; border-left:5px solid lime; font-weight:bold; }
-#chatWindow { flex-grow:1; display:flex; flex-direction:column; border:2px solid magenta; border-radius:8px; background:#1a1a1a; }
-#chatHeader { padding:10px; border-bottom:2px solid magenta; margin:0; background:#330033; }
-#messageDisplay { flex-grow:1; padding:15px; overflow-y:auto; display:flex; flex-direction:column; gap:15px; }
-/* Message Bubbles - Styling the chat */
-.message { max-width:70%; padding:10px 15px; border-radius:18px; font-size:0.95em; position:relative; }
-.message span { display:block; font-size:0.7em; opacity:0.6; text-align:right; margin-top:3px; }
-.message.sent { 
-    background:#005555; 
-    align-self:flex-end; 
-    border-bottom-right-radius:5px;
-    box-shadow: 0 0 5px #00ffff;
-}
-.message.received { 
-    background:#333333; 
-    align-self:flex-start; 
-    border-bottom-left-radius:5px;
-    box-shadow: 0 0 5px #ff00ff;
-}
-#messageInputArea { padding:10px; border-top:2px solid magenta; background:#0b0b0b; display:flex; gap:10px; }
-/* Profile view */
-#viewProfileTab { display:none; }
-/* Refined Profile Content Style */
-#viewProfileContent { padding:30px; border:3px solid magenta; border-radius:12px; background:#1a1a1a; margin-top:20px; display:flex; flex-direction:column; align-items:center; }
-.profile-stat { width:100%; max-width:400px; display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px dashed #333; margin-bottom:5px; }
-.profile-stat span:first-child { color: cyan; font-weight:bold; }
-.profile-stat span:last-child { text-align:right; }
+        .profile-group {
+            margin-bottom: 15px;
+        }
 
-/* Loading State */
-#loadingOverlay {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 9999;
-    display: flex; justify-content: center; align-items: center;
-    font-size: 2em; color: lime; text-shadow: 0 0 10px lime;
-}
-</style>
+        .profile-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--neon-blue);
+            font-size: 0.9em;
+        }
+
+        .profile-group input, .profile-group select, .profile-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: var(--text-light);
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        #saveMessage {
+            text-align: center;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .profile-stat {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px dashed #333;
+        }
+
+        .profile-stat span:first-child {
+            color: var(--neon-green);
+        }
+
+        /* Search Tab */
+        #searchFilters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+            padding: 10px;
+            background-color: #1a1a1a;
+            border: 1px dashed var(--neon-blue);
+            border-radius: 4px;
+        }
+
+        #searchFilters input, #searchFilters select {
+            padding: 8px;
+            border: 1px solid #555;
+            background-color: #333;
+            color: var(--text-light);
+            border-radius: 4px;
+            font-family: 'Orbitron', sans-serif;
+            min-width: 150px;
+            flex-grow: 1;
+        }
+
+        /* Messaging Tab */
+        #messagingTab {
+            display: flex;
+            gap: 20px;
+            min-height: 500px;
+        }
+
+        #activeDuoList {
+            width: 250px;
+            min-width: 200px;
+            border-right: 1px solid var(--neon-pink);
+            padding-right: 10px;
+        }
+
+        .chat-entry {
+            padding: 10px;
+            margin-bottom: 5px;
+            background-color: #222;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s, border-left 0.2s;
+            color: var(--text-light);
+        }
+
+        .chat-entry:hover, .chat-entry.active {
+            background-color: #333;
+            border-left: 3px solid var(--neon-pink);
+            color: var(--neon-pink);
+        }
+
+        #chatWindow {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #chatHeader {
+            padding: 10px;
+            background-color: #222;
+            border-bottom: 1px solid var(--neon-pink);
+            text-align: center;
+            color: var(--neon-pink);
+            margin-bottom: 10px;
+        }
+
+        #messageDisplay {
+            flex-grow: 1;
+            background-color: #151515;
+            border: 1px solid #333;
+            padding: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-radius: 4px;
+        }
+
+        .message {
+            max-width: 70%;
+            padding: 8px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            word-wrap: break-word;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .message span {
+            font-size: 0.6em;
+            opacity: 0.7;
+            margin-top: 2px;
+        }
+
+        .sent {
+            align-self: flex-end;
+            background-color: var(--neon-blue);
+            color: var(--background-dark);
+            border-bottom-right-radius: 3px;
+            text-align: right;
+        }
+
+        .received {
+            align-self: flex-start;
+            background-color: var(--neon-green);
+            color: var(--background-dark);
+            border-bottom-left-radius: 3px;
+        }
+
+        #messageInputArea {
+            display: flex;
+            margin-top: 10px;
+        }
+
+        #messageInput {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid var(--neon-pink);
+            background-color: #333;
+            color: var(--text-light);
+            border-radius: 4px 0 0 4px;
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        #messageInputArea button {
+            border-radius: 0 4px 4px 0;
+        }
+
+        /* Friends Tab - Group Headers */
+        .group-header {
+            color: var(--neon-pink);
+            font-size: 1.5em;
+            text-align: center;
+            margin: 20px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--neon-pink);
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
+        }
+        
+        .request-card {
+            border-color: var(--neon-pink) !important;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.5) !important;
+        }
+    </style>
 </head>
-<body onload="initFirebase()"> <div id="loadingOverlay">⚡</div>
+<body onload="initFirebase()">
+
+<div id="loadingOverlay">⚡</div>
 
 <div class="header"><div class="icon-container">⚡</div><h1>DUO UP</h1></div>
 
-<div id="loginPage" class="container hidden">
-<p style="text-align:center;">Log in to connect and find your next cyber-duo.</p>
-<div style="text-align:center;">
-<button class="neon-btn" onclick="login()">Login with Google</button>
-</div>
-</div>
-
-<div id="dashboard" class="container hidden">
-<h2 id="welcome"></h2>
-<div id="navigationBar">
-<button class="neon-btn" id="tab-allUsers" onclick="showTab('allUsers')">Suggested</button>
-<button class="neon-btn" id="tab-search" onclick="showTab('search')">Find Players</button>
-<button class="neon-btn" id="tab-friends" onclick="showTab('friends')">Duos</button>
-<button class="neon-btn" id="tab-messaging" onclick="showTab('messaging')">Messaging</button>
-<button class="neon-btn" id="tab-profile" onclick="showTab('profile')">Profile</button>
-<button class="neon-btn remove" onclick="logout()">Logout</button>
+<div id="loginPage" class="hidden">
+    <h2>Welcome to the Cyber Arena</h2>
+    <p>Sign in to find your perfect Duo partner.</p>
+    <button class="neon-btn add" onclick="login()">Login with Google</button>
 </div>
 
-<div id="allUsersTab" class="card-container"></div>
+<div id="dashboard" class="hidden">
+    <h2 id="welcome">WELCOME CYBER WARRIOR TO DUO UP!</h2>
 
-<div id="searchTab" class="hidden container">
-<h2>Player Search Filter</h2>
-<div id="searchControls">
-<input type="text" id="searchInput" placeholder="Search by Nickname or Bio..." onkeyup="filterSearchResults()">
-<label style="color:cyan; margin-left:15px;">Status:</label>
-<select id="statusFilter" onchange="filterSearchResults()">
-<option value="">Any Status</option>
-<option value="Online">Online</option>
-<option value="In Game">In Game</option>
-<option value="LFD">Looking For Duo (LFD)</option>
-</select>
-<label style="color:cyan; margin-left:15px;">Game/Category:</label>
-<select id="gameCategoryFilter" onchange="filterSearchResults()">
-<option value="">Any Game/Category</option>
-<option value="LeagueOfLegends">League of Legends</option>
-<option value="Fortnite">Fortnite</option>
-<option value="Valorant">Valorant</option>
-<option value="CyberSecurity">Cyber Security</option>
-<option value="Other">Other</option>
-</select>
-<label style="color:cyan; margin-left:15px;">Game Role/Mode:</label>
-<select id="gameRoleFilter" onchange="filterSearchResults()">
-<option value="">Any Role/Mode</option>
-<option value="TopTank">Top Tank (LoL)</option>
-<option value="JungleCarry">Jungle Carry (LoL)</option>
-<option value="Duo">Duo (Fortnite/Valorant)</option>
-<option value="Squad">Squad (Fortnite)</option>
-<option value="Support">Support (LoL/Valorant)</option>
-<option value="ExploitDev">Exploit Dev (Cyber)</option>
-<option value="RedTeamOp">Red Team Op (Cyber)</option>
-</select>
-<label style="color:cyan; margin-left:15px;">Looking For:</label>
-<select id="lfdCategoryFilter" onchange="filterSearchResults()">
-<option value="">Any LFD Type</option>
-<option value="Duo">Duo (2-person team)</option>
-<option value="Squad">Squad (3+ person team)</option>
-<option value="Team">Full Team (Permanent)</option>
-<option value="Mentor">Mentor/Mentee</option>
-</select>
-</div>
-<div id="searchResults" class="card-container"></div>
-</div>
+    <div id="navigationBar">
+        <button id="tab-allUsers" class="neon-btn active" onclick="showTab('allUsers')">Suggested Duos</button>
+        <button id="tab-search" class="neon-btn" onclick="showTab('search')">Find Player</button>
+        <button id="tab-friends" class="neon-btn" onclick="showTab('friends')">My Duos</button>
+        <button id="tab-messaging" class="neon-btn" onclick="showTab('messaging')">Messaging</button>
+        <button id="tab-profile" class="neon-btn" onclick="showTab('profile')">Profile</button>
+        <button class="neon-btn remove" onclick="logout()">Logout</button>
+    </div>
 
-<div id="friendsTab" class="container hidden">
-<h2>Incoming Duo Requests</h2>
-<div id="pendingRequestsList" class="card-container"></div>
-<h2 style="margin-top:40px;">Your Accepted Duos</h2>
-<div id="friendList" class="card-container">
-    <p style="width:100%; text-align:center; color:magenta;">
-    Loading accepted duos...
-    </p>
-</div>
-</div>
+    <div id="allUsersTab" class="tab-content">
+        <h2>Suggested Duos</h2>
+        </div>
 
-<div id="messagingTab" class="hidden">
-<div id="chatList">
-<h3>Active Duos</h3>
-<div id="activeDuoList">No Duos yet.</div>
-</div>
-<div id="chatWindow">
-<h3 id="chatHeader">Select a Duo to start messaging</h3>
-<div id="messageDisplay"></div>
-<div id="messageInputArea" class="hidden">
-<input type="text" id="messageInput" placeholder="Type your message..." onkeyup="if(event.key==='Enter') sendMessage()">
-<button class="neon-btn" id="sendMessageBtn" onclick="sendMessage()">Send</button>
-</div>
-</div>
-</div>
+    <div id="searchTab" class="tab-content hidden">
+        <h2>Find a Duo</h2>
+        <div id="searchFilters">
+            <input type="text" id="searchInput" placeholder="Search nickname or bio..." onkeyup="filterSearchResults()">
+            <select id="statusFilter" onchange="filterSearchResults()">
+                <option value="">Any Status</option>
+                <option value="Online">Online</option>
+                <option value="Offline">Offline</option>
+                <option value="LFD">LFD (Looking for Duo)</option>
+            </select>
+            <select id="gameCategoryFilter" onchange="filterSearchResults()">
+                <option value="">Any Category</option>
+                <option value="FPS">FPS</option>
+                <option value="MMO">MMO</option>
+                <option value="MOBA">MOBA</option>
+                <option value="RPG">RPG</option>
+                <option value="Other">Other</option>
+            </select>
+            <select id="gameRoleFilter" onchange="filterSearchResults()">
+                <option value="">Any Role</option>
+                <option value="Support">Support</option>
+                <option value="Tank">Tank</option>
+                <option value="DPS">DPS</option>
+                <option value="Healer">Healer</option>
+                <option value="Generalist">Generalist</option>
+            </select>
+            <select id="lfdCategoryFilter" onchange="filterSearchResults()">
+                <option value="">LFD Goal (Any)</option>
+                <option value="Duo">Duo</option>
+                <option value="Team">Team</option>
+            </select>
+        </div>
+        <div id="searchResults">
+            </div>
+    </div>
 
-<div id="viewProfileTab" class="hidden container">
-<button class="neon-btn" onclick="showTab('allUsers')">← Back to Suggested</button>
-<div id="viewProfileContent"></div>
-</div>
+    <div id="friendsTab" class="tab-content hidden">
+        <h2 class="group-header">Pending Duo Requests (Incoming)</h2>
+        <div id="pendingRequestsList">
+            </div>
 
-<div id="profileTab" class="hidden container">
-<h2>Gamer-Profile Editor</h2>
-<div style="padding:20px; border:2px solid magenta; border-radius:10px; background:#1a1a1a;">
-<div style="display:flex; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
-    <div style="margin-right:20px; display:flex; flex-direction:column; align-items:center;">
-        <img id="profileAvatar" class="avatar" src="" style="width:100px;height:100px;border-color:cyan;">
-        
-        <label style="color: cyan; display:block; margin:10px 0 5px 0;">New Image URL:</label>
-        <input type="text" id="profileImageUrlInput" placeholder="Paste image link here" oninput="previewUrl(this.value)" style="width: 250px;">
-        </div>
-    <div style="flex-grow:1; min-width:200px;">
-        <label style="color: cyan; display:block; margin-bottom:5px;">Unique Identifier:</label>
-        <input type="text" id="profileNickname" value="User Nickname" placeholder="Your Unique Nickname">
-        <p id="nicknameChangeInfo" style="color:yellow; font-size:0.8em; margin:5px 0 0 0;">(You get one free nickname change.)</p>
-    </div>
-</div>
-<div style="margin-bottom:15px;">
-<label style="color: cyan; display:block; margin-bottom:5px;">Bio/Tagline:</label>
-<textarea id="profileBio" rows="3" style="width:100%;"></textarea>
-</div>
-<div style="display:flex; gap:30px; margin-bottom:20px; flex-wrap:wrap;">
-<div>
-    <label style="color: cyan; display:block; margin-bottom:5px;">Skill Rating (1-5):</label>
-    <input id="profileSkillRating" type="number" min="1" max="5">
-</div>
-<div>
-    <label style="color: cyan; display:block; margin-bottom:5px;">Primary Game/Category:</label>
-    <select id="profileGameCategory">
-        <option value="LeagueOfLegends">League of Legends</option>
-        <option value="Fortnite">Fortnite</option>
-        <option value="Valorant">Valorant</option>
-        <option value="CyberSecurity">Cyber Security</option>
-        <option value="Other">Other</option>
-    </select>
-</div>
-</div>
-<div style="display:flex; gap:30px; margin-bottom:20px; flex-wrap:wrap;">
-    <div>
-        <label style="color: cyan; display:block; margin-bottom:5px;">Game Role/Mode:</label>
-        <select id="profileGameRole">
-            <option value="TopTank">Top Tank (LoL)</option>
-            <option value="JungleCarry">Jungle Carry (LoL)</option>
-            <option value="Duo">Duo (Fortnite/Valorant)</option>
-            <option value="Squad">Squad (Fortnite)</option>
-            <option value="Support">Support (LoL/Valorant)</option>
-            <option value="ExploitDev">Exploit Dev (Cyber)</option>
-            <option value="RedTeamOp">Red Team Op (Cyber)</option>
-            <option value="Generalist">Generalist/Flex</option>
-        </select>
-    </div>
-    <div>
-        <label style="color: cyan; display:block; margin-bottom:5px;">Current Status:</label>
-        <select id="profileStatus" onchange="toggleLfdCategory()">
-            <option value="Online">Online</option>
-            <option value="In Game">In Game</option>
-            <option value="LFD">Looking For Duo (LFD)</option>
-        </select>
-    </div>
-    <div id="lfdCategoryGroup" class="hidden">
-        <label style="color: cyan; display:block; margin-bottom:5px;">LFD Goal:</label>
-        <select id="profileLfdCategory">
-            <option value="Duo">Duo (2-person team)</option>
-            <option value="Squad">Squad (3+ person team)</option>
-            <option value="Team">Full Team (Permanent)</option>
-            <option value="Mentor">Mentor/Mentee</option>
-        </select>
-    </div>
-</div>
-<button class="neon-btn" style="border-color:#00ff00; box-shadow:0 0 10px #00ff00;" onclick="saveProfile()">Save Profile</button>
-<p id="saveMessage" style="color:#00ff00; margin-top:10px;"></p>
-</div>
-</div>
+        <h2 class="group-header">My Active Duos</h2>
+        <div id="friendList">
+            </div>
+    </div>
 
-<script src="config.js"></script>
+    <div id="messagingTab" class="tab-content hidden">
+        <div id="activeDuoList">
+            <p style="color:var(--neon-blue); text-align:center;">Select a Duo:</p>
+        </div>
+        <div id="chatWindow">
+            <h3 id="chatHeader">Select a Duo to start messaging</h3>
+            <div id="messageDisplay">
+                </div>
+            <div id="messageInputArea" class="hidden">
+                <input type="text" id="messageInput" placeholder="Send a message..." onkeypress="if(event.keyCode==13) sendMessage()">
+                <button class="neon-btn message" onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="profileTab" class="tab-content hidden">
+        <div class="profile-container">
+            <div style="text-align: center; margin-bottom: 20px;">
+                <img id="profileAvatar" class="avatar" src="https://cdn-icons-png.flaticon.com/512/149/149071.png" style="width:100px; height:100px;">
+            </div>
+            
+            <div class="profile-group">
+                <label for="profileNickname">Nickname (One change only)</label>
+                <input type="text" id="profileNickname" maxlength="20">
+                <p id="nicknameChangeInfo" style="font-size:0.75em; margin:5px 0 0; color:yellow;">(You get one free nickname change.)</p>
+            </div>
+
+            <div class="profile-group">
+                <label for="profileBio">Bio / Slogan</label>
+                <textarea id="profileBio" rows="3" maxlength="150"></textarea>
+            </div>
+
+            <div class="profile-group">
+                <label for="profileImageUrlInput">Avatar Image URL</label>
+                <input type="url" id="profileImageUrlInput" oninput="previewUrl(this.value)">
+            </div>
+            
+            <div class="profile-group">
+                <label for="profileStatus">Status</label>
+                <select id="profileStatus" onchange="toggleLfdCategory()">
+                    <option value="Online">Online</option>
+                    <option value="Offline">Offline</option>
+                    <option value="LFD">LFD (Looking for Duo)</option>
+                </select>
+            </div>
+            
+            <div class="profile-group hidden" id="lfdCategoryGroup">
+                <label for="profileLfdCategory">LFD Goal</label>
+                <select id="profileLfdCategory">
+                    <option value="Duo">Duo</option>
+                    <option value="Team">Team/Group</option>
+                </select>
+            </div>
+
+            <div class="profile-group">
+                <label for="profileSkillRating">Skill Rating (1-5)</label>
+                <select id="profileSkillRating">
+                    <option value="1">★</option>
+                    <option value="2">★★</option>
+                    <option value="3">★★★</option>
+                    <option value="4">★★★★</option>
+                    <option value="5">★★★★★</option>
+                </select>
+            </div>
+            
+            <div class="profile-group">
+                <label for="profileGameCategory">Primary Game Category</label>
+                <select id="profileGameCategory">
+                    <option value="FPS">FPS</option>
+                    <option value="MMO">MMO</option>
+                    <option value="MOBA">MOBA</option>
+                    <option value="RPG">RPG</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            
+            <div class="profile-group">
+                <label for="profileGameRole">Primary Game Role</label>
+                <select id="profileGameRole">
+                    <option value="Support">Support</option>
+                    <option value="Tank">Tank</option>
+                    <option value="DPS">DPS</option>
+                    <option value="Healer">Healer</option>
+                    <option value="Generalist">Generalist</option>
+                </select>
+            </div>
+
+            <button class="neon-btn add" onclick="saveProfile()" style="width:100%;">Save Profile</button>
+            <p id="saveMessage"></p>
+        </div>
+    </div>
+
+    <div id="viewProfileTab" class="tab-content hidden" style="text-align:center;">
+        <button class="neon-btn" onclick="showTab('allUsers')" style="margin-bottom:20px;">← Back to Users</button>
+        <div id="viewProfileContent" class="profile-container" style="display:flex; flex-direction:column; align-items:center; background-color: #1a1a1a; border-color:cyan; box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);">
+            </div>
+    </div>
+
+</div> <script src="config.js"></script>
 <script src="app.js"></script>
 
 </body>
