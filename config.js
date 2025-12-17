@@ -1,0 +1,106 @@
+// config.js
+// Contains global variables, configuration, and simple utility functions.
+
+// ----------------------------------------------------
+// 0. GLOBAL VARS & CONFIG
+// ----------------------------------------------------
+let auth;
+let db;
+let currentUser = null;
+let currentProfileData = {};
+let allUsersCache = [];
+let requestCache = {};
+let currentChatId = null;
+let chatListener = null;
+let currentChatPartnerId = null; 
+
+const DEFAULT_AVATAR = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+
+// --- Firebase Configuration ---
+const firebaseConfig = {
+    apiKey: "AIzaSyDVHxatohLvJNqIHXjf1ZXdmmWX5W1EpNw",
+    authDomain: "duoup-cfae6.firebaseapp.com",
+    projectId: "duoup-cfae6",
+    messagingSenderId: "812263060524",
+    appId: "1:812263060524:web:ac09c3ae610db1cd110d89",
+    measurementId: "G-46B67F90FK"
+};
+
+const CO_FOUNDER_UIDS = [
+    "GmH4xJp92vY8sbwIWgJWjFw9MOQ2", // Admin UID from previous conversation
+];
+
+// --- CUSTOM BADGE MAPPING (Includes Pilex6/Pelix6) ---
+const CUSTOM_BADGE_MAP = {
+    "kHsYFJVHCGfQzI16nJH0mg1rv7u1": { title: "Pilex6", color: "pilex6" }, 
+};
+
+// ---------------------------
+// Utility Functions
+// ---------------------------
+
+/**
+ * Generates the HTML for the custom 'Pilex6' badge.
+ */
+function getCustomBadge(uid) {
+    const customData = CUSTOM_BADGE_MAP[uid];
+    if (customData) {
+        const style = `
+            background: linear-gradient(45deg, #00ff00, #009900); 
+            color: #0b0b0b; 
+            font-size: 0.75em; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-left: 8px;
+            box-shadow: 0 0 8px #00ff00;
+        `;
+        return `<div style="${style}">${customData.title}</div>`;
+    }
+    return '';
+}
+
+/**
+ * Generates the HTML for the Co-Founder/Dev badge.
+ */
+function getCoFounderBadge(uid) {
+    if (CO_FOUNDER_UIDS.includes(uid)) {
+        const style = `
+            background: linear-gradient(90deg, #00ffff, #ff00ff); 
+            color: #111; 
+            font-size: 0.75em; 
+            padding: 2px 8px; 
+            border-radius: 4px; 
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-left: 8px; 
+            box-shadow: 0 0 8px #00ffff;
+        `;
+        return `<div style="${style}">⚡ DUO UP DEV</div>`;
+    }
+    return '';
+}
+
+/**
+ * Standardized Chat ID format: UID1_UID2 (alphabetically sorted).
+ */
+function getChatId(otherUid) {
+    return [currentUser.uid, otherUid].sort().join('_');
+}
+
+/**
+ * Helper function to create the canonical ID for friendRequests/chats,
+ * matching the logic defined in the Firestore Security Rules.
+ */
+function getCanonicalId(uid1, uid2) {
+    // Canonical duo ID: uidA_uidB (lexicographically sorted)
+    return uid1 < uid2 ? uid1 + "_" + uid2 : uid2 + "_" + uid1;
+}
+
+/**
+ * Searches the local user cache for a profile by UID.
+ */
+function findUserInCache(uid) {
+    return allUsersCache.find(user => user.id === uid);
+}
