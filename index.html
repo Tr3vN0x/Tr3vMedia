@@ -112,106 +112,127 @@ textarea { resize: vertical; }
 #navigationBar { display:flex; justify-content:center; flex-wrap:wrap; padding:10px; background:#151515; border-radius:8px; margin-bottom:30px; border:1px solid #333; }
 #navigationBar button.active { background:#00ffcc; color:#0b0b0b; box-shadow:0 0 15px #00ffcc; }
 #searchControls { display:flex; gap:15px; margin-bottom:20px; align-items:center; flex-wrap:wrap; background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #004444; }
-/* --- REVISED FUTURISTIC LED / MATRIX THEME --- */
+/* --- CYBERPUNK GREY & CYAN LED THEME --- */
 
-/* 1. Base Elements - Keeping original application font */
-/* NOTE: Removed the global font change. */
+/* 1. Overall Messaging Layout - Dark Grey Background */
+#messagingTab { 
+    gap:20px; 
+    height:75vh; 
+    background: #1a1a1a; /* Dark base application background */
+}
 
-/* 2. Chat Header - The "LED Box" */
+/* 2. Chat List - Monochromatic with Cyan Accent */
+#chatList { 
+    width:300px; 
+    padding:15px; 
+    border:2px solid #333333; /* Soft grey border */
+    border-radius:8px; 
+    background:#111111; /* Very dark inner background */
+    overflow-y:auto; 
+    color: #cccccc;
+}
+
+/* Chat List Entries */
+.chat-entry { 
+    padding:10px; 
+    border-bottom:1px dashed #222222; 
+    transition: background 0.2s; 
+}
+.chat-entry:hover { 
+    background:#1e1e1e; 
+    color: #00ffff; /* Subtle cyan hover */
+}
+.chat-entry.active { 
+    background:#003333; /* Dark cyan background */
+    border-left:5px solid #00ffff; /* Neon Cyan Active Border */
+    color: #00ffff; 
+    font-weight:bold; 
+}
+
+/* 3. Chat Window - Focus on Grey/Cyan */
+#chatWindow {
+    border: 2px solid #222222; /* Clean grey border */
+    border-radius: 8px;
+    background: #0d0d0d; /* Pure black message area base */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+}
+
+/* 4. Chat Header - The Cyan LED Box */
 #chatHeader {
     padding: 15px 20px;
-    /* Use the primary theme colors */
-    border-bottom: 2px solid #00ff99; /* Bright Green LED Accent */
-    color: #00ff99; /* Green LED Text */
-    background: #001000; /* Almost black, very dark green background */
-    font-size: 1.5em; /* Larger, bolder header */
+    border-bottom: 2px solid #00ffff; /* Bright Cyan LED Accent */
+    color: #00ffff; /* Neon Cyan LED Text */
+    background: #001111; /* Dark teal background for contrast */
+    font-size: 1.5em; 
     font-weight: bold;
     text-align: center;
     text-transform: uppercase;
-    letter-spacing: 3px;
+    letter-spacing: 2px;
     
-    /* The Key LED Text Effect */
-    text-shadow: 0 0 5px #00ff99, 0 0 10px rgba(0, 255, 153, 0.7);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Lifted effect */
+    /* Strong LED Text Effect */
+    text-shadow: 0 0 5px #00ffff, 0 0 10px rgba(0, 255, 255, 0.5);
     margin: 0;
 }
 
-/* 3. Chat Window Container (The Main Panel) */
-#chatWindow {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    /* Clean, defined boundary */
-    border: 3px solid #ff00ff; /* Secondary Magenta Accent */
-    border-radius: 10px;
-    background: #000000; /* Pure Black for best LED contrast */
-    /* Intense Outer Glow */
-    box-shadow: 0 0 15px #ff00ff, 0 0 30px rgba(255, 0, 255, 0.4); 
-}
-
-/* 4. Message Display Area */
+/* 5. Message Display Area */
 #messageDisplay {
-    background: #000000; /* Pure Black */
-    padding: 20px;
-    gap: 18px; /* Slightly more space for the glow */
+    background: #000000; /* Pure Black for maximum LED contrast */
+    gap: 15px;
 }
 
-/* 5. Avatars - Highly Defined LED Ring */
+/* 6. Avatars - Grey Ring */
 .chat-avatar {
-    width: 40px; /* Slightly larger avatar */
-    height: 40px;
-    min-width: 40px; 
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid; /* Thicker border for better glow */
-    /* Avatar glow */
-    box-shadow: 0 0 5px currentColor, 0 0 10px rgba(255, 255, 255, 0.2); 
+    width: 35px;
+    height: 35px;
+    min-width: 35px; 
+    border: 2px solid #444444; /* Cyber Grey Ring */
+    box-shadow: none;
 }
-
-/* 6. Base Message Bubble - Setup for LED Glow */
-.message { 
-    max-width: 70%; 
-    padding: 12px 18px; 
-    border-radius: 20px; 
-    font-size: 0.9em; 
-    color: white; 
-    border: 1px solid transparent; 
-    line-height: 1.5;
-}
-
-/* 7. Sent Messages (User - Bright LED Cyan/Blue) */
+/* Active User Avatar Accent */
 .message-group.sent .chat-avatar { border-color: #00ffff; }
-.message-group.sent .message {
-    background: #002233; /* Dark background under the light */
-    color: #e6ffff; /* Very light text */
-    /* Strong LED Glow Effect */
-    border: 1px solid #00ffff;
-    box-shadow: 0 0 8px #00ffff, 0 0 15px rgba(0, 255, 255, 0.5);
-    /* Futuristic Angular Shape */
-    border-radius: 20px 20px 4px 20px; 
-}
-.message-group.sent .message span { color: #88ffff; } /* Lighter, glowing timestamp */
 
-/* 8. Received Messages (Opponent - Bright LED Magenta/Purple) */
-.message-group.received .chat-avatar { border-color: #ff00ff; }
-.message-group.received .message {
-    background: #330033; /* Dark background under the light */
-    color: #ffe6ff; /* Very light text */
-    /* Strong LED Glow Effect */
-    border: 1px solid #ff00ff;
-    box-shadow: 0 0 8px #ff00ff, 0 0 15px rgba(255, 0, 255, 0.5);
-    /* Futuristic Angular Shape */
-    border-radius: 20px 20px 20px 4px; 
+
+/* 7. Sent Messages (User - Cyan Blue LED Neon) */
+.message-group.sent .message {
+    background: #002222; /* Very dark teal base */
+    color: #e6ffff; /* Light Cyan text */
+    /* LED Glow Effect */
+    border: 1px solid #00ffff; /* Cyan border */
+    box-shadow: 0 0 8px #00ffff, 0 0 15px rgba(0, 255, 255, 0.4);
+    
+    /* Bubble Shape */
+    border-radius: 18px 18px 4px 18px; 
 }
-.message-group.received .message span { color: #ff88ff; } /* Lighter, glowing timestamp */
+.message-group.sent .message span { color: #88ffff; } 
+
+/* 8. Received Messages (Opponent - Neon Cyberpunk Grey) */
+.message-group.received .message {
+    background: #222222; /* Medium dark grey base */
+    color: #dddddd; /* Light grey text */
+    /* LED Glow Effect (Grey/White Glow) */
+    border: 1px solid #999999; /* Light grey border */
+    box-shadow: 0 0 8px #cccccc, 0 0 15px rgba(100, 100, 100, 0.4); 
+    
+    /* Bubble Shape */
+    border-radius: 18px 18px 18px 4px; 
+}
+.message-group.received .message span { color: #aaaaaa; } 
 
 
 /* 9. Read Indicator Icon */
 .read-indicator {
-    color: #00ff99; 
+    color: #00ffff; 
     font-weight: bold;
-    text-shadow: 0 0 4px #00ff99; /* Sharp glow */
-    }
+    text-shadow: 0 0 3px #00ffff; 
+}
+
+/* 10. Message Input Area */
+#messageInputArea {
+    padding: 12px 15px;
+    border-top: 2px solid #00ffff; /* Cyan Accent Bar */
+    background: #0a0a0a;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.3); /* Subtle input area glow */
+}
 /* Loading State (Included for context/completeness) */
 #loadingOverlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9); z-index: 9999;
