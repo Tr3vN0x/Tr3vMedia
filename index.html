@@ -254,63 +254,73 @@ textarea { resize: vertical; }
 </div>
 <div style="display:flex; gap:30px; margin-bottom:20px; flex-wrap:wrap;">
 <div>
-    <label style="color: cyan; display:block; margin-bottom:5px;">Skill Rating (1-5):</label>
-    <input id="profileSkillRating" type="number" min="1" max="5">
+  <div id="searchTab" class="hidden container">
+<h2>Player Search Filter</h2>
+<div id="searchControls">
+<input type="text" id="searchInput" placeholder="Search by Nickname or Bio..." onkeyup="filterSearchResults()">
+<label style="color:cyan; margin-left:15px;">Status:</label>
+<select id="statusFilter" onchange="filterSearchResults()">
+<option value="">Any Status</option>
+<option value="Online">Online</option>
+<option value="In Game">In Game</option>
+<option value="LFD">Looking For Duo (LFD)</option>
+</select>
+<label style="color:cyan; margin-left:15px;">Game/Category:</label>
+<select id="gameCategoryFilter" onchange="filterSearchResults()">
+<option value="">Any Game/Category</option>
+<option value="LeagueOfLegends">League of Legends</option>
+<option value="Fortnite">Fortnite</option>
+<option value="Valorant">Valorant</option>
+<option value="CallOfDuty">Call of Duty</option>
+<option value="Minecraft">Minecraft</option>
+<option value="GenshinImpact">Genshin/MMORPG</option>
+<option value="Fighting">Fighting Games</option>
+<option value="Sports">Sports Games</option>
+<option value="Strategy">Strategy/RTS</option>
+<option value="CyberSecurity">Cyber Security</option>
+<option value="Other">Other</option>
+</select>
+<label style="color:cyan; margin-left:15px;">Game Role/Mode:</label>
+<select id="gameRoleFilter" onchange="filterSearchResults()">
+<option value="">Any Role/Mode</option>
+<option value="TopTank">Top Tank (LoL)</option>
+<option value="JungleCarry">Jungle Carry (LoL)</option>
+<option value="Support">Support (LoL/Valorant/Genshin)</option>
+<option value="Duo">Duo (Fortnite/Valorant/CoD)</option>
+<option value="Squad">Squad (Fortnite/CoD)</option>
+<option value="WZTrios">Warzone Trios (CoD)</option>
+<option value="Survival">Survival (Minecraft)</option>
+<option value="Builder">Builder (Minecraft)</option>
+<option value="Exploration">Exploration (Genshin/MMO)</option>
+<option value="Striker">Striker (Sports)</option>
+<option value="Grappler">Grappler (Fighting)</option>
+<option value="Commander">Commander (Strategy)</option>
+<option value="ExploitDev">Exploit Dev (Cyber)</option>
+<option value="RedTeamOp">Red Team Op (Cyber)</option>
+</select>
+<label style="color:cyan; margin-left:15px;">Looking For:</label>
+<select id="lfdCategoryFilter" onchange="filterSearchResults()">
+<option value="">Any LFD Type</option>
+<option value="Duo">Duo (2-person team)</option>
+<option value="Squad">Squad (3+ person team)</option>
+<option value="Team">Full Team (Permanent)</option>
+<option value="Mentor">Mentor/Mentee</option>
+</select>
 </div>
-<div>
-    <label style="color: cyan; display:block; margin-bottom:5px;">Primary Game/Category:</label>
-    <select id="profileGameCategory">
-        <option value="LeagueOfLegends">League of Legends</option>
-        <option value="Fortnite">Fortnite</option>
-        <option value="Valorant">Valorant</option>
-        <option value="CallOfDuty">Call of Duty</option>
-        <option value="Minecraft">Minecraft</option>
-        <option value="GenshinImpact">Genshin/MMORPG</option>
-        <option value="Fighting">Fighting Games</option>         <option value="Sports">Sports Games</option>         <option value="Strategy">Strategy/RTS</option>         <option value="CyberSecurity">Cyber Security</option>
-        <option value="Other">Other</option>
-    </select>
+<div id="searchResults" class="card-container"></div>
+</div>
+
+<div id="friendsTab" class="container hidden">
+<h2>Incoming Duo Requests</h2>
+<div id="pendingRequestsList" class="card-container"></div>
+<h2 style="margin-top:40px;">Your Accepted Duos</h2>
+<div id="friendList" class="card-container">
+    <p style="width:100%; text-align:center; color:magenta;">
+    Loading accepted duos...
+    </p>
 </div>
 </div>
-<div style="display:flex; gap:30px; margin-bottom:20px; flex-wrap:wrap;">
-    <div>
-        <label style="color: cyan; display:block; margin-bottom:5px;">Game Role/Mode:</label>
-        <select id="profileGameRole">
-            <option value="TopTank">Top Tank (LoL)</option>
-            <option value="JungleCarry">Jungle Carry (LoL)</option>
-            <option value="Support">Support (LoL/Valorant/Genshin)</option>
-            <option value="Duo">Duo (Fortnite/Valorant/CoD)</option>
-            <option value="Squad">Squad (Fortnite/CoD)</option>
-            <option value="WZTrios">Warzone Trios (CoD)</option>
-            <option value="Survival">Survival (Minecraft)</option>
-            <option value="Builder">Builder (Minecraft)</option>
-            <option value="Exploration">Exploration (Genshin/MMO)</option>
-            <option value="Striker">Striker (Sports)</option>             <option value="Grappler">Grappler (Fighting)</option>             <option value="Commander">Commander (Strategy)</option>             <option value="ExploitDev">Exploit Dev (Cyber)</option>
-            <option value="RedTeamOp">Red Team Op (Cyber)</option>
-            <option value="Generalist">Generalist/Flex</option>
-        </select>
-    </div>
-    <div>
-        <label style="color: cyan; display:block; margin-bottom:5px;">Current Status:</label>
-        <select id="profileStatus" onchange="toggleLfdCategory()">
-            <option value="Online">Online</option>
-            <option value="In Game">In Game</option>
-            <option value="LFD">Looking For Duo (LFD)</option>
-        </select>
-    </div>
-    <div id="lfdCategoryGroup" class="hidden">
-        <label style="color: cyan; display:block; margin-bottom:5px;">LFD Goal:</label>
-        <select id="profileLfdCategory">
-            <option value="Duo">Duo (2-person team)</option>
-            <option value="Squad">Squad (3+ person team)</option>
-            <option value="Team">Full Team (Permanent)</option>
-            <option value="Mentor">Mentor/Mentee</option>
-        </select>
-    </div>
-</div>
-<button class="neon-btn" style="border-color:#00ff00; box-shadow:0 0 10px #00ff00;" onclick="saveProfile()">Save Profile</button>
-<p id="saveMessage" style="color:#00ff00; margin-top:10px;"></p>
-</div>
-</div>
+
 <div id="messagingTab" class="hidden">
 <div id="chatList">
 <h3>Active Duos</h3>
@@ -362,7 +372,10 @@ textarea { resize: vertical; }
         <option value="LeagueOfLegends">League of Legends</option>
         <option value="Fortnite">Fortnite</option>
         <option value="Valorant">Valorant</option>
-        <option value="CallOfDuty">Call of Duty</option>         <option value="Minecraft">Minecraft</option>         <option value="GenshinImpact">Genshin/MMORPG</option>         <option value="CyberSecurity">Cyber Security</option>
+        <option value="CallOfDuty">Call of Duty</option>
+        <option value="Minecraft">Minecraft</option>
+        <option value="GenshinImpact">Genshin/MMORPG</option>
+        <option value="Fighting">Fighting Games</option>         <option value="Sports">Sports Games</option>         <option value="Strategy">Strategy/RTS</option>         <option value="CyberSecurity">Cyber Security</option>
         <option value="Other">Other</option>
     </select>
 </div>
@@ -373,9 +386,16 @@ textarea { resize: vertical; }
         <select id="profileGameRole">
             <option value="TopTank">Top Tank (LoL)</option>
             <option value="JungleCarry">Jungle Carry (LoL)</option>
-            <option value="Duo">Duo (Fortnite/Valorant/CoD)</option>             <option value="Squad">Squad (Fortnite/CoD)</option>             <option value="WZTrios">Warzone Trios (CoD)</option>             <option value="Support">Support (LoL/Valorant/Genshin)</option>             <option value="ExploitDev">Exploit Dev (Cyber)</option>
+            <option value="Support">Support (LoL/Valorant/Genshin)</option>
+            <option value="Duo">Duo (Fortnite/Valorant/CoD)</option>
+            <option value="Squad">Squad (Fortnite/CoD)</option>
+            <option value="WZTrios">Warzone Trios (CoD)</option>
+            <option value="Survival">Survival (Minecraft)</option>
+            <option value="Builder">Builder (Minecraft)</option>
+            <option value="Exploration">Exploration (Genshin/MMO)</option>
+            <option value="Striker">Striker (Sports)</option> <option value="Grappler">Grappler (Fighting)</option> <option value="Commander">Commander (Strategy)</option>             <option value="ExploitDev">Exploit Dev (Cyber)</option>
             <option value="RedTeamOp">Red Team Op (Cyber)</option>
-            <option value="Survival">Survival (Minecraft)</option>             <option value="Builder">Builder (Minecraft)</option>             <option value="Exploration">Exploration (Genshin/MMO)</option>             <option value="Generalist">Generalist/Flex</option>
+            <option value="Generalist">Generalist/Flex</option>
         </select>
     </div>
     <div>
