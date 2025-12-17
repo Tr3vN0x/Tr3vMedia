@@ -276,8 +276,7 @@ textarea { resize: vertical; }
             box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
         }
 
-        /* 9. Loading State */
-   <style>
+<style>
     #loadingOverlay {
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
         background: rgba(0, 0, 0, 0.9);
@@ -285,35 +284,46 @@ textarea { resize: vertical; }
         display: flex; justify-content: center; align-items: center;
 
         /* Text Styling for "DUO UP" */
-        font-size: 4em; /* Made text larger */
+        font-size: 4em;
         font-weight: bold;
         color: lime;
         text-shadow: 0 0 10px lime;
-        opacity: 0; /* Start invisible */
-        transform: scale(0); /* Start scaled down */
+        opacity: 0;
+        transform: scale(0);
 
-        /* Apply the Animation */
+        /* Apply the 1.2s Pop Animation */
         animation: duoUpPop 1.2s ease-out forwards;
     }
 
     /* Keyframe Animation Definition */
     @keyframes duoUpPop {
-        0% {
-            opacity: 0;
-            transform: scale(0); /* Very small */
-        }
-        50% {
-            opacity: 1;
-            transform: scale(1.1); /* Overshoot for the 'pop' effect */
-        }
-        100% {
-            opacity: 1;
-            transform: scale(1); /* Settle at normal size */
-        }
+        0% { opacity: 0; transform: scale(0); }
+        50% { opacity: 1; transform: scale(1.1); } /* Pop overshoot */
+        100% { opacity: 1; transform: scale(1); } /* Settle */
+    }
+
+    /* Style to hide the overlay when done loading */
+    .hidden {
+        display: none !important;
     }
 </style>
 </head>
 <body>
+
+<div id="loadingOverlay">DUO UP</div>
+
+<script>
+    // Get the loading overlay element
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Set a timer to hide the overlay after 2500 milliseconds (2.5 seconds)
+    setTimeout(() => {
+        // Add the 'hidden' class to the overlay to make it disappear
+        loadingOverlay.classList.add('hidden');
+    }, 2500); // 2500ms = 2.5 seconds
+</script>
+
+</body>
 
 <div id="loadingOverlay">DUO UP</div>
 <div class="header"><div class="icon-container">⚡</div><h1>DUO UP</h1></div>
