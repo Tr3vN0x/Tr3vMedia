@@ -159,7 +159,6 @@ textarea { resize: vertical; }
 </div>
 
 <div id="allUsersTab" class="card-container"></div>
-
 <div id="searchTab" class="hidden container">
 <h2>Player Search Filter</h2>
 <div id="searchControls">
@@ -174,15 +173,7 @@ textarea { resize: vertical; }
 <label style="color:cyan; margin-left:15px;">Game/Category:</label>
 <select id="gameCategoryFilter" onchange="filterSearchResults()">
 <option value="">Any Game/Category</option>
-<option value="LeagueOfLegends">League of Legends</option>
-<option value="Fortnite">Fortnite</option>
-<option value="Valorant">Valorant</option>
-<option value="CallOfDuty">Call of Duty</option>
-<option value="Minecraft">Minecraft</option>
-<option value="GenshinImpact">Genshin/MMORPG</option>
-<option value="CyberSecurity">Cyber Security</option>
-<option value="Other">Other</option>
-</select>
+<option value="LeagueOfLegends">League of Legends</option> <option value="Fortnite">Fortnite</option>             <option value="Valorant">Valorant</option>             <option value="CallOfDuty">Call of Duty</option>       <option value="Minecraft">Minecraft</option>           <option value="GenshinImpact">Genshin/MMORPG</option> <option value="Fighting">Fighting Games</option>      <option value="Sports">Sports Games</option>          <option value="Strategy">Strategy/RTS</option>        <option value="CyberSecurity">Cyber Security</option> <option value="Other">Other</option>                  </select>
 <label style="color:cyan; margin-left:15px;">Game Role/Mode:</label>
 <select id="gameRoleFilter" onchange="filterSearchResults()">
 <option value="">Any Role/Mode</option>
@@ -197,7 +188,7 @@ textarea { resize: vertical; }
 <option value="Exploration">Exploration (Genshin/MMO)</option>
 <option value="ExploitDev">Exploit Dev (Cyber)</option>
 <option value="RedTeamOp">Red Team Op (Cyber)</option>
-</select>
+<option value="Striker">Striker (Sports)</option> <option value="Grappler">Grappler (Fighting)</option> <option value="Commander">Commander (Strategy)</option> </select>
 <label style="color:cyan; margin-left:15px;">Looking For:</label>
 <select id="lfdCategoryFilter" onchange="filterSearchResults()">
 <option value="">Any LFD Type</option>
@@ -275,7 +266,7 @@ textarea { resize: vertical; }
         <option value="CallOfDuty">Call of Duty</option>
         <option value="Minecraft">Minecraft</option>
         <option value="GenshinImpact">Genshin/MMORPG</option>
-        <option value="CyberSecurity">Cyber Security</option>
+        <option value="Fighting">Fighting Games</option>         <option value="Sports">Sports Games</option>         <option value="Strategy">Strategy/RTS</option>         <option value="CyberSecurity">Cyber Security</option>
         <option value="Other">Other</option>
     </select>
 </div>
@@ -293,7 +284,7 @@ textarea { resize: vertical; }
             <option value="Survival">Survival (Minecraft)</option>
             <option value="Builder">Builder (Minecraft)</option>
             <option value="Exploration">Exploration (Genshin/MMO)</option>
-            <option value="ExploitDev">Exploit Dev (Cyber)</option>
+            <option value="Striker">Striker (Sports)</option>             <option value="Grappler">Grappler (Fighting)</option>             <option value="Commander">Commander (Strategy)</option>             <option value="ExploitDev">Exploit Dev (Cyber)</option>
             <option value="RedTeamOp">Red Team Op (Cyber)</option>
             <option value="Generalist">Generalist/Flex</option>
         </select>
@@ -320,7 +311,6 @@ textarea { resize: vertical; }
 <p id="saveMessage" style="color:#00ff00; margin-top:10px;"></p>
 </div>
 </div>
-
 <div id="messagingTab" class="hidden">
 <div id="chatList">
 <h3>Active Duos</h3>
