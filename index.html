@@ -112,126 +112,106 @@ textarea { resize: vertical; }
 #navigationBar { display:flex; justify-content:center; flex-wrap:wrap; padding:10px; background:#151515; border-radius:8px; margin-bottom:30px; border:1px solid #333; }
 #navigationBar button.active { background:#00ffcc; color:#0b0b0b; box-shadow:0 0 15px #00ffcc; }
 #searchControls { display:flex; gap:15px; margin-bottom:20px; align-items:center; flex-wrap:wrap; background:#1a1a1a; padding:15px; border-radius:8px; border:1px solid #004444; }
-/* --- CYBERPUNK / HACKER THEME ENHANCEMENTS --- */
+/* --- REVISED FUTURISTIC LED / MATRIX THEME --- */
 
-/* Base Font Update for "Hacker" Feel */
-body {
-    /* Assuming a body style is present. Use a monospaced font if possible */
-    font-family: 'Consolas', 'Courier New', monospace; 
-    color: #e0e0e0;
-}
+/* 1. Base Elements - Keeping original application font */
+/* NOTE: Removed the global font change. */
 
-/* 1. Layout & Containers - Sharper, Darker, More Defined */
-#messagingTab { 
-    display:flex; 
-    gap:25px; /* Increased gap */
-    height:75vh; 
-}
-
-#chatList { 
-    width:300px; 
-    padding:15px; 
-    border:3px solid #00ff99; /* Bright Cyber Green border */
-    border-radius:6px; 
-    background:#080808; /* Super dark background */
-    box-shadow: 0 0 15px rgba(0, 255, 153, 0.4); /* Subtle glow effect */
-    overflow-y:auto; 
-}
-
-/* Chat List Entries - Glowing on Active */
-.chat-entry { 
-    padding:12px; 
-    border-bottom:1px solid #1a1a1a; 
-    cursor:pointer; 
-    transition: background 0.3s; 
-}
-.chat-entry:hover { 
-    background:#151515; 
-    color: #00ff99; /* Hover text color */
-}
-.chat-entry.active { 
-    background:#003322; 
-    border-left:5px solid #00ff99; /* Active border color */
-    color: #00ff99; 
-    font-weight:bold; 
-    box-shadow: inset 0 0 5px rgba(0, 255, 153, 0.5); /* Inner glow */
-}
-
-/* 2. Chat Window - Focus on High Contrast */
-#chatWindow {
-    border: 3px solid #ff00ff; /* Bright Cyber Magenta border */
-    border-radius: 10px;
-    background: #0d0d0d; 
-    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5); /* Intense window glow */
-}
-
-/* Chat Header - Command Line Feel */
+/* 2. Chat Header - The "LED Box" */
 #chatHeader {
-    padding: 12px 15px;
-    border-bottom: 2px solid #ff00ff;
-    text-align: left; /* Alignment change */
-    margin: 0;
-    color: #00ff99; /* Green text on magenta background */
-    background: #250025; /* Dark magenta header background */
-    font-size: 1.3em;
-    font-weight: normal;
+    padding: 15px 20px;
+    /* Use the primary theme colors */
+    border-bottom: 2px solid #00ff99; /* Bright Green LED Accent */
+    color: #00ff99; /* Green LED Text */
+    background: #001000; /* Almost black, very dark green background */
+    font-size: 1.5em; /* Larger, bolder header */
+    font-weight: bold;
+    text-align: center;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 3px;
+    
+    /* The Key LED Text Effect */
+    text-shadow: 0 0 5px #00ff99, 0 0 10px rgba(0, 255, 153, 0.7);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5); /* Lifted effect */
+    margin: 0;
 }
 
-/* 3. Message Display */
+/* 3. Chat Window Container (The Main Panel) */
+#chatWindow {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    /* Clean, defined boundary */
+    border: 3px solid #ff00ff; /* Secondary Magenta Accent */
+    border-radius: 10px;
+    background: #000000; /* Pure Black for best LED contrast */
+    /* Intense Outer Glow */
+    box-shadow: 0 0 15px #ff00ff, 0 0 30px rgba(255, 0, 255, 0.4); 
+}
+
+/* 4. Message Display Area */
 #messageDisplay {
-    background: #000000; /* Pure black for maximum impact */
-    gap: 15px;
+    background: #000000; /* Pure Black */
+    padding: 20px;
+    gap: 18px; /* Slightly more space for the glow */
 }
 
-/* 4. Sent Messages (User - Bright Green/Cyan) */
+/* 5. Avatars - Highly Defined LED Ring */
+.chat-avatar {
+    width: 40px; /* Slightly larger avatar */
+    height: 40px;
+    min-width: 40px; 
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid; /* Thicker border for better glow */
+    /* Avatar glow */
+    box-shadow: 0 0 5px currentColor, 0 0 10px rgba(255, 255, 255, 0.2); 
+}
+
+/* 6. Base Message Bubble - Setup for LED Glow */
+.message { 
+    max-width: 70%; 
+    padding: 12px 18px; 
+    border-radius: 20px; 
+    font-size: 0.9em; 
+    color: white; 
+    border: 1px solid transparent; 
+    line-height: 1.5;
+}
+
+/* 7. Sent Messages (User - Bright LED Cyan/Blue) */
 .message-group.sent .chat-avatar { border-color: #00ffff; }
 .message-group.sent .message {
-    background: #005555; /* Dark Cyan/Teal background */
-    color: #ccffff; /* Light Cyan text */
-    /* Stronger, more angular bubble shape */
-    border-radius: 15px 15px 4px 15px; 
-    /* Adding a distinct shadow/border */
+    background: #002233; /* Dark background under the light */
+    color: #e6ffff; /* Very light text */
+    /* Strong LED Glow Effect */
     border: 1px solid #00ffff;
-    box-shadow: 0 0 5px rgba(0, 255, 255, 0.6); 
+    box-shadow: 0 0 8px #00ffff, 0 0 15px rgba(0, 255, 255, 0.5);
+    /* Futuristic Angular Shape */
+    border-radius: 20px 20px 4px 20px; 
 }
+.message-group.sent .message span { color: #88ffff; } /* Lighter, glowing timestamp */
 
-/* 5. Received Messages (Opponent - Bright Magenta/Purple) */
+/* 8. Received Messages (Opponent - Bright LED Magenta/Purple) */
 .message-group.received .chat-avatar { border-color: #ff00ff; }
 .message-group.received .message {
-    background: #330033; /* Dark Magenta/Purple background */
-    color: #ffccff; /* Light Magenta text */
-    /* Stronger, more angular bubble shape */
-    border-radius: 15px 15px 15px 4px; 
-    /* Adding a distinct shadow/border */
+    background: #330033; /* Dark background under the light */
+    color: #ffe6ff; /* Very light text */
+    /* Strong LED Glow Effect */
     border: 1px solid #ff00ff;
-    box-shadow: 0 0 5px rgba(255, 0, 255, 0.6); 
+    box-shadow: 0 0 8px #ff00ff, 0 0 15px rgba(255, 0, 255, 0.5);
+    /* Futuristic Angular Shape */
+    border-radius: 20px 20px 20px 4px; 
 }
+.message-group.received .message span { color: #ff88ff; } /* Lighter, glowing timestamp */
 
-/* 6. Read Indicator Icon */
+
+/* 9. Read Indicator Icon */
 .read-indicator {
-    color: #00ff99; /* Cyber Green read indicator */
-    text-shadow: 0 0 3px #00ff99;
-}
-
-/* 7. Message Input Area - Terminal Look */
-#messageInputArea {
-    padding: 15px 20px;
-    border-top: 3px solid #00ff99; /* Green Accent Bar */
-    background: #0a0a0a;
-}
-/* Input Field (requires HTML/JS for styling, but here is a placeholder) */
-/* Assuming an <input> or <textarea> element */
-/*
-#messageInputArea input[type="text"] {
-    background: #111;
-    color: #00ff99;
-    border: 1px solid #00ff99;
-    box-shadow: inset 0 0 5px rgba(0, 255, 153, 0.3);
-}
-*/
-
+    color: #00ff99; 
+    font-weight: bold;
+    text-shadow: 0 0 4px #00ff99; /* Sharp glow */
+    }
 /* Loading State (Included for context/completeness) */
 #loadingOverlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.9); z-index: 9999;
